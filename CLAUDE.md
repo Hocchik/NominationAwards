@@ -17,7 +17,7 @@ El requisito central es la **confianza**: nadie (ni el organizador/admin) puede 
 - Deploy en **Vercel**; repositorio **público en GitHub** (transparencia: el grupo puede auditar el código)
 - Costo objetivo: **$0**
 
-Convenciones: identificadores de código en inglés, **todo el texto de la UI en español**. Mobile-first para votantes; la pantalla de ceremonia es 16:9 para proyector.
+Convenciones: identificadores de código en inglés, **todo el texto de la UI en español**. Mobile-first para votantes, pero Nominar, Votar y la página de Nominados también necesitan vista de escritorio (PC); la pantalla de ceremonia es 16:9 para proyector.
 
 ---
 
@@ -176,11 +176,12 @@ El `receiptCode` se genera en el cliente, va dentro de la papeleta cifrada y tam
 
 ## 7. Rutas y pantallas
 
-### Participante (mobile-first)
+### Participante (mobile-first, con vista de PC)
 | Ruta | Pantalla |
 |---|---|
 | `/s/[roomCode]` | Entrada a la sala: "Registrarme" (nombre + crear PIN) o "Ya me registré" (elegir nombre + PIN). Muestra estado `PENDING` si aún no está aprobado |
 | `/s/[roomCode]/nominar` | Una tarjeta por categoría con su consigna; autocompletado con los participantes aprobados + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
+| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): finalistas por categoría con foto o iniciales, frase corta, en orden alfabético o aleatorio y **sin conteos** (regla 8), filtros Premio/Honoríficas y cuenta regresiva a la votación. Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones |
 | `/s/[roomCode]/votar` | Una categoría por pantalla, tarjetas de finalistas, resumen final y confirmación |
 | `/s/[roomCode]/listo` | "¡Listo!" + código de comprobante + cuenta regresiva a la ceremonia |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación simple del cifrado, el notario, el comprobante y link al repo público |
@@ -209,10 +210,10 @@ El `receiptCode` se genera en el cliente, va dentro de la papeleta cifrada y tam
 
 ## 8. Secuencia de revelación (por categoría)
 
-1. Título de la categoría entra con brillo (dorado si es PRIZE, plateado/lavanda si es HONORARY) + consigna
+1. Título de la categoría entra con brillo (cobre si es PRIZE, salvia si es HONORARY) + consigna
 2. Finalistas aparecen uno por uno en tarjetas
 3. Suspenso: tarjetas se atenúan, un foco de luz las recorre, redoble de tambor (Howler)
-4. Se abre un "sobre"; la tarjeta ganadora crece al centro con destello + confeti dorado (`canvas-confetti`) + sonido de fanfarria
+4. Se abre un "sobre"; la tarjeta ganadora crece al centro con destello + confeti cobre (`canvas-confetti`) + sonido de fanfarria
 5. Opcional: % del ganador redondeado (`showWinnerPercent`)
 6. **Empates:** mostrar ganadores compartidos (por defecto)
 
@@ -220,26 +221,54 @@ Los resultados se calculan en memoria al cargar la llave; no se persisten hasta 
 
 ---
 
-## 9. Design system — "Gala"
+## 9. Design system — "Día y noche"
 
-Estética de gala elegante pero cálida.
+Una sola identidad con dos momentos: **de día** (la web: Nominar, Nominados, Votar) y **de noche** (la premiación en el proyector). La noche usa los mismos colores del día con los papeles cambiados: la tinta pasa a ser el fondo y la hoja pasa a ser la luz. Referencia visual: lienzo de diseño del organizador, página «Ronda 5 · Día y noche».
+
+> **Estado del código:** la Fase 0 todavía usa los tokens provisionales «Gala» (azul noche + dorado, Playfair + Inter) en `src/app/globals.css` y `src/components/ui/`. Se migran a este sistema en el rediseño, al final del plan; mientras tanto, usar siempre los primitivos (`Button`, `Card`, `Chip`) y los tokens, nunca estilos sueltos en las páginas, para que el cambio sea un reemplazo.
+
+### Colores
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--bg` | `#0B0E1A` | Fondo base (azul noche) con degradado radial sutil |
-| `--surface` | `rgba(255,255,255,0.06)` + blur | Tarjetas tipo vidrio |
-| `--gold` | `#D4AF37` | Acento principal, categorías PRIZE, botones primarios |
-| `--gold-soft` | `#F3E2A9` | Brillos, hover |
-| `--honor` | `#B8B5FF` | Acento de categorías HONORARY |
-| `--text` | `#F5F3EE` | Texto principal |
-| `--muted` | `#9A9CB0` | Texto secundario |
-| `--success` / `--danger` | `#4ADE80` / `#F87171` | Estados |
+| `--bg` | `#E9E1D3` | Fondo de la web (día) |
+| `--sheet` | `#F8F4EC` | Hoja: papeletas, fichas, paneles · texto principal de noche |
+| `--raised` | `#FFFFFF` | Fila seleccionada, tarjetas de nominado, lista de sugerencias |
+| `--sand` | `#E2D7C5` | Fondo de iniciales cuando no hay foto |
+| `--line` | `#DDD2C0` | Bordes y separadores de día |
+| `--ink` | `#141A19` | Texto principal de día · fondo de noche |
+| `--ink-soft` | `#55605D` | Texto secundario de día |
+| `--night-panel` | `#1D2523` | Paneles de noche |
+| `--night-line` | `#2C3633` | Líneas de noche |
+| `--night-text-2` | `#C9C2B6` | Texto secundario de noche |
+| `--night-text-3` | `#93A39E` | Texto terciario de noche |
+| `--copper` | `#D9783F` | Acento de categorías PRIZE, botón primario |
+| `--copper-duo` | `#D08050` | Duotono de fotos PRIZE |
+| `--sage` | `#5E9488` | Acento de categorías HONORARY |
+| `--sage-duo` | `#7FAFA4` | Duotono de fotos HONORARY |
+| `--kraft` | `#C9A57B` | Sobre de la pantalla «Voto sellado» |
 
-- **Tipografía:** Playfair Display (títulos, aire de premiación) + Inter (texto, botones), vía `next/font`.
-- **Fondo:** partículas/bokeh dorado muy sutil (canvas ligero, respetar `prefers-reduced-motion`).
-- **Componentes:** tarjetas con glassmorphism suave, bordes redondeados (16px), botones grandes (mín. 48px de alto), chips para nominados seleccionados.
-- **Logo:** trofeo/estrella + nombre del evento.
-- Accesibilidad: contraste AA, foco visible, animaciones reducidas si el usuario lo pide.
+Estados (éxito / error): por definir en el rediseño; deben pasar AA sobre `--bg` y `--sheet`.
+
+### Reglas
+
+- **Los acentos no cambian de tono:** cobre y salvia son idénticos de día y de noche (no usar versiones "profundas" para que se lean sobre claro).
+- **Sobre fondos claros, el cobre y la salvia nunca son texto pequeño:** van de relleno (sello de tipo de categoría, etiqueta «Nº», «Tu voto», casilla marcada, botón primario, sello de cera) con texto `--ink` encima. Sobre la noche sí pueden ser texto.
+- **Pedacitos de noche en la web:** la cuenta regresiva, el comprobante de «Voto sellado» y las cartas boca abajo de Nominados van sobre `--ink`, con cifras y detalles en cobre.
+- **Tipografía:** solo **Unbounded** (600/700/800: títulos, números, etiquetas, botones, códigos de comprobante) y **Schibsted Grotesk** (400/600/700 e itálica: texto, nombres, frase del nominado), vía `next/font`.
+- **Forma:** esquina cortada en diagonal (chaflán) en tarjetas, botones, etiquetas y fotos: `clip-path: polygon(N 0, 100% 0, 100% calc(100% - N), calc(100% - N) 100%, 0 100%, 0 N)`. Para un borde fino con chaflán, envolver en un contenedor con el color del borde y 1px de padding.
+- **Fotos:** siempre en duotono (cobre para PRIZE, salvia para HONORARY) para igualar fotos de distinta calidad; sin foto, iniciales en `--ink` sobre `--sand`.
+- **Logo:** rombo + cono (trofeo abstracto) en cobre + nombre del evento.
+- **Fondo:** haces de luz suaves en diagonal (de día, blanco translúcido; de noche, luz de `--sheet` muy tenue). Respetar `prefers-reduced-motion`.
+- **Accesibilidad:** contraste AA (por eso la regla de los acentos), foco visible, botones de mín. 48px de alto, animaciones reducidas si el usuario lo pide.
+
+### Componentes y pantallas
+
+- **Botones:** primario cobre con texto tinta y chaflán; secundario transparente con borde de 1.5px en tinta. Filtro seleccionado: fondo tinta con texto `--sheet`.
+- **Papeleta (Nominar / Votar):** hoja `--sheet` con filo `--line` sobre `--bg`, cabecera con doble regla (2px + 1px de tinta) y sello de tipo de categoría rotado. En Votar, fila completa tocable con foto, frase, «Tu voto» y casilla que se llena de cobre. En PC, la papeleta va al centro con el índice o el resumen a un costado.
+- **Nominados = «Cartelera»:** índice de las categorías (con marca premio/honorífica) y una categoría a la vez «en escenario»: número grande, consigna y los finalistas de pie sobre una línea de escenario, con nombre y frase debajo, sin conteos. En móvil, chips de categorías arriba y deslizar. Antes de los finalistas: cartas boca abajo de noche y cuenta regresiva.
+- **Voto sellado:** sobre kraft con sello de cera cobre, comprobante en tarjeta de noche («Se proyecta en la gala») y cuenta regresiva a la ceremonia.
+- **Premiación (noche):** fondo `--ink`, reflectores laterales, piso en perspectiva, número de categoría gigante al fondo, trofeo facetado en cobre y fila de finalistas.
 
 ---
 
