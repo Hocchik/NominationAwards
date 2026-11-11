@@ -7,17 +7,23 @@ import { PrismaClient } from "@/generated/prisma/client";
 // módulo; guardarla en globalThis evita abrir un pool nuevo en cada recarga.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("Falta DATABASE_URL (ver .env.example).");
+function getClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("Falta DATABASE_URL (ver .env.example).");
+    }
+    globalForPrisma.prisma = new PrismaClient({ adapter: new PrismaNeon({ connectionString }) });
   }
-  const adapter = new PrismaNeon({ connectionString });
-  return new PrismaClient({ adapter });
+  return globalForPrisma.prisma;
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Se crea recién en la primera consulta, no al importar el módulo: así
+// `next build` puede analizar las páginas aunque no haya base de datos.
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getClient();
+    const value = Reflect.get(client, property, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});

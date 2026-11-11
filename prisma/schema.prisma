@@ -89,13 +89,14 @@ model Category {
   name          String
   description   String // la consigna
   type          CategoryType
-  revealOrder   Int          @default(0)
+  sortOrder     Int          @default(0) // orden en que se muestran al nominar
+  revealOrder   Int          @default(0) // orden en la ceremonia (se define en la Fase 5)
   activeForVote Boolean      @default(false)
   revealed      Boolean      @default(false)
 
   finalists Finalist[]
 
-  @@index([eventId])
+  @@index([eventId, sortOrder])
 }
 
 model Finalist {
