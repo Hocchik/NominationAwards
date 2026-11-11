@@ -1,0 +1,124 @@
+// Esquema de NominacionesDP — ver CLAUDE.md, secciones 4 (anonimato) y 6 (modelo).
+//
+// REGLAS QUE ESTE ARCHIVO DEBE RESPETAR SIEMPRE:
+// - Ballot: sin participantId, sin createdAt/updatedAt, sin IP ni user-agent.
+// - Participant: sin @updatedAt ni fechas sobre nominar/votar (solo booleanos).
+// - Todos los IDs son UUID v4 explícito: uuid(7) y cuid() incrustan la hora
+//   de creación dentro del ID, y eso permitiría ordenar papeletas por llegada.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EventPhase {
+  SETUP
+  NOMINATIONS
+  NOMINATIONS_CLOSED
+  FINALISTS_READY
+  VOTING
+  VOTING_CLOSED
+  CEREMONY
+  FINISHED
+}
+
+enum ParticipantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CategoryType {
+  PRIZE
+  HONORARY
+}
+
+enum BallotPhase {
+  NOMINATION
+  VOTE
+}
+
+model Event {
+  id                   String     @id @default(uuid(4))
+  name                 String
+  roomCode             String     @unique
+  phase                EventPhase @default(SETUP)
+  capacity             Int        @default(40)
+  minNominations       Int        @default(3)
+  maxNominations       Int        @default(5)
+  finalistsPerCategory Int        @default(4)
+  maxPrizeCategories   Int        @default(15)
+  nominationPublicKey  String?
+  votePublicKey        String?
+  notarySetupTokenHash String?
+  votingOpensAt        DateTime?
+  votingClosesAt       DateTime?
+  showWinnerPercent    Boolean    @default(false)
+
+  participants Participant[]
+  categories   Category[]
+  ballots      Ballot[]
+}
+
+model Participant {
+  id             String            @id @default(uuid(4))
+  eventId        String
+  event          Event             @relation(fields: [eventId], references: [id])
+  displayName    String
+  normalizedName String // minúsculas y sin tildes, para detectar duplicados
+  pinHash        String // bcrypt, nunca el PIN en claro
+  status         ParticipantStatus @default(PENDING)
+  hasNominated   Boolean           @default(false)
+  hasVoted       Boolean           @default(false)
+  failedAttempts Int               @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime          @default(now()) // fecha de REGISTRO: permitida
+  // SIN @updatedAt (regla de anonimato 3): delataría cuándo nominó o votó.
+
+  @@unique([eventId, normalizedName])
+}
+
+model Category {
+  id            String       @id @default(uuid(4))
+  eventId       String
+  event         Event        @relation(fields: [eventId], references: [id])
+  name          String
+  description   String // la consigna
+  type          CategoryType
+  revealOrder   Int          @default(0)
+  activeForVote Boolean      @default(false)
+  revealed      Boolean      @default(false)
+
+  finalists Finalist[]
+
+  @@index([eventId])
+}
+
+model Finalist {
+  id            String   @id @default(uuid(4))
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  displayName   String
+  participantId String? // si es del grupo; null si es referente externo
+  photoUrl      String?
+  blurb         String?
+
+  @@index([categoryId])
+}
+
+model Ballot {
+  id          String      @id @default(uuid(4))
+  eventId     String
+  event       Event       @relation(fields: [eventId], references: [id])
+  phase       BallotPhase
+  ciphertext  String // base64 de crypto_box_seal (papeleta con padding fijo)
+  receiptCode String // código de comprobante, p. ej. "K7M-29Q"
+  // SIN participantId, SIN createdAt/updatedAt, SIN IP (regla de anonimato 2).
+  // Al leer: ordenar por id o barajar, nunca por orden físico (regla 9).
+
+  @@index([eventId, phase])
+}

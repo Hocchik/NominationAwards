@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design system "Gala" — CLAUDE.md §9
+   Los tokens viven aquí como variables CSS (fuente de verdad) y se exponen a
+   Tailwind con @theme inline → clases como bg-gold, text-muted, border-honor.
+   ========================================================================== */
+
+:root {
+  --bg: #0b0e1a;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.12);
+  --gold: #d4af37;
+  --gold-soft: #f3e2a9;
+  --honor: #b8b5ff;
+  --text: #f5f3ee;
+  --muted: #9a9cb0;
+  --success: #4ade80;
+  --danger: #f87171;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--border);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-honor: var(--honor);
+  --color-foreground: var(--text);
+  --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  /* Fuentes cargadas con next/font en layout.tsx */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
+@theme {
+  --radius-card: 1rem; /* 16px → rounded-card */
+}
+
+/* --- Utilidades propias -------------------------------------------------- */
+
+/* Tarjeta de vidrio: superficie translúcida + desenfoque del fondo */
+@utility glass {
+  background-color: var(--surface);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Texto con degradado dorado (títulos, logo) */
+@utility text-gold-gradient {
+  background-image: linear-gradient(
+    180deg,
+    var(--gold-soft) 0%,
+    var(--gold) 55%,
+    color-mix(in oklab, var(--gold) 70%, black) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Texto con degradado plateado/lavanda (categorías honoríficas) */
+@utility text-honor-gradient {
+  background-image: linear-gradient(180deg, #ffffff 0%, var(--honor) 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Base ---------------------------------------------------------------- */
+
+@layer base {
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--gold) 40%, transparent);
+    color: var(--text);
+  }
+
+  /* Foco siempre visible al navegar con teclado (accesibilidad) */
+  :focus-visible {
+    outline: 2px solid var(--gold-soft);
+    outline-offset: 3px;
+  }
+}
+
+/* Fondo de gala: degradados radiales cálidos sobre azul noche + viñeta */
+.gala-backdrop {
+  background:
+    radial-gradient(120% 70% at 50% -15%, rgb(212 175 55 / 0.16) 0%, transparent 55%),
+    radial-gradient(70% 55% at 110% 105%, rgb(184 181 255 / 0.1) 0%, transparent 60%),
+    radial-gradient(55% 45% at -10% 85%, rgb(212 175 55 / 0.06) 0%, transparent 60%),
+    radial-gradient(140% 100% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.45) 100%),
+    var(--bg);
+}
+
+/* Respeta a quien pide menos movimiento en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
