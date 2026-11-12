@@ -300,7 +300,7 @@ public/sounds/            # drumroll, fanfare (libres de derechos)
 
 Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcione de punta a punta.
 
-- [ ] **Fase 0 — Base:** Next.js + TS + Tailwind, Prisma + Neon, design system (tokens, fuentes, `Button`, `Card`, `Chip`), layout con fondo de gala, deploy inicial en Vercel, `.env.example` _(todo listo salvo el deploy en Vercel)_
+- [x] **Fase 0 — Base:** Next.js + TS + Tailwind, Prisma + Neon, design system (tokens, fuentes, `Button`, `Card`, `Chip`), layout con fondo de gala, deploy inicial en Vercel, `.env.example`
 - [x] **Fase 1 — Admin y evento:** login admin, CRUD de evento y categorías, control de fases, link/QR de la sala
 - [x] **Fase 2 — Notario y cripto:** `lib/crypto` (generación de llaves, seal, open, padding) con **tests unitarios**, página `/notario/[setupToken]`
 - [x] **Fase 3 — Registro abierto:** entrada a la sala, registro con PIN, login, sesión, anti fuerza bruta, aprobación en admin, participación ✔/⏳
