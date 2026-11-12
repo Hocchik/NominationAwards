@@ -38,14 +38,19 @@ export async function getPhaseContext(event: Event): Promise<PhaseContext> {
 }
 
 /**
- * Link público de la sala. Usa APP_URL si está definida (recomendado en
+ * Dirección pública de la app. Usa APP_URL si está definida (recomendado en
  * Vercel); si no, el host con el que se abrió el panel.
  */
-export async function getRoomUrl(roomCode: string): Promise<string> {
+export async function getBaseUrl(): Promise<string> {
   const base = process.env.APP_URL?.replace(/\/+$/, "");
-  if (base) return `${base}/s/${roomCode}`;
+  if (base) return base;
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}/s/${roomCode}`;
+  return `${proto}://${host}`;
+}
+
+/** Link público de la sala: el único que se comparte con el grupo. */
+export async function getRoomUrl(roomCode: string): Promise<string> {
+  return `${await getBaseUrl()}/s/${roomCode}`;
 }

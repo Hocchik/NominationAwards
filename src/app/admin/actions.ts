@@ -12,14 +12,16 @@ import {
 } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { ADVANCE_MODE, PHASES, PHASE_LABELS, getAdvanceBlockers, nextPhase } from "@/lib/event/phases";
-import { getCategories, getCurrentEvent, getPhaseContext } from "@/lib/event/queries";
+import { getBaseUrl, getCategories, getCurrentEvent, getPhaseContext } from "@/lib/event/queries";
 import { generateRoomCode } from "@/lib/event/roomCode";
+import { createSetupToken } from "@/lib/notary";
 import {
   canEditCategoryText,
   canEditFinalistsCount,
   canEditMaxPrize,
   canEditSchedule,
   canEditStructure,
+  canEditVoteRules,
   canEditWinnerPercent,
 } from "@/lib/event/rules";
 import {
@@ -113,6 +115,12 @@ export async function updateEventAction(_prev: FormState, formData: FormData): P
     showWinnerPercent: canEditWinnerPercent(phase)
       ? formData.get("showWinnerPercent") === "on"
       : event.showWinnerPercent,
+    allowNominationSkip: canEditStructure(phase)
+      ? formData.get("allowNominationSkip") === "on"
+      : event.allowNominationSkip,
+    allowVoteAbstention: canEditVoteRules(phase)
+      ? formData.get("allowVoteAbstention") === "on"
+      : event.allowVoteAbstention,
   });
   if (!parsed.success) return fieldErrors(parsed.error, formData);
 
@@ -182,6 +190,28 @@ export async function advancePhaseAction(
   }
   refresh();
   return { ok: true, message: `Ahora: ${PHASE_LABELS[to]}.` };
+}
+
+// --- Notario ---------------------------------------------------------------
+
+/**
+ * Genera el link de configuración del notario. Se muestra UNA vez: en la base
+ * queda solo su hash. Generar otro invalida el anterior.
+ */
+export async function createNotaryLinkAction(): Promise<FormState & { link?: string }> {
+  await requireAdmin();
+  const event = await getCurrentEvent();
+  if (!event) return NO_EVENT;
+  if (event.phase !== "SETUP") {
+    return { ok: false, message: "El link del notario solo se genera durante la preparación." };
+  }
+  if (event.nominationPublicKey || event.votePublicKey) {
+    return { ok: false, message: "El notario ya configuró sus llaves." };
+  }
+  const { token, hash } = createSetupToken();
+  await prisma.event.update({ where: { id: event.id }, data: { notarySetupTokenHash: hash } });
+  refresh();
+  return { ok: true, link: `${await getBaseUrl()}/notario/${token}` };
 }
 
 // --- Categorías ------------------------------------------------------------

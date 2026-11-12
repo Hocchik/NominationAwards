@@ -14,6 +14,8 @@ export interface EventSettingsValues {
   finalistsPerCategory: number;
   maxPrizeCategories: number;
   showWinnerPercent: boolean;
+  allowNominationSkip: boolean;
+  allowVoteAbstention: boolean;
 }
 
 /** true = se puede editar en la fase actual (ver lib/event/rules.ts). */
@@ -22,7 +24,10 @@ export interface EventSettingsEditable {
   finalists: boolean;
   maxPrize: boolean;
   winnerPercent: boolean;
+  voteRules: boolean;
 }
+
+type BooleanSetting = "showWinnerPercent" | "allowNominationSkip" | "allowVoteAbstention";
 
 const LOCKED = "Bloqueado en esta fase para que las reglas sean iguales para todos.";
 
@@ -113,23 +118,49 @@ export function EventSettingsForm({
           errors={state.errors?.maxPrizeCategories}
         />
       </div>
-      <label className="flex items-start gap-3 text-sm">
-        <input
-          type="checkbox"
-          name="showWinnerPercent"
-          defaultChecked={
-            state.values ? state.values.showWinnerPercent === "on" : values.showWinnerPercent
-          }
-          disabled={!editable.winnerPercent}
-          className="mt-0.5 size-5 shrink-0 accent-gold"
-        />
-        <span>
-          Mostrar en la ceremonia el porcentaje del ganador (redondeado)
-          <span className="block text-xs text-muted">
-            Nunca se muestran conteos exactos ni finalistas con cero votos.
-          </span>
-        </span>
-      </label>
+      <fieldset className="space-y-4">
+        <legend className="sr-only">Reglas de las papeletas</legend>
+        {(
+          [
+            {
+              name: "allowNominationSkip",
+              editable: editable.structure,
+              label: "Al nominar, se puede dejar una categoría vacía",
+              hint: "Si no, hay que nominar al menos el mínimo en todas las categorías.",
+            },
+            {
+              name: "allowVoteAbstention",
+              editable: editable.voteRules,
+              label: "Al votar, se puede abstener en una categoría",
+              hint: "Aparece la opción «Me abstengo» junto a los finalistas.",
+            },
+            {
+              name: "showWinnerPercent",
+              editable: editable.winnerPercent,
+              label: "Mostrar en la ceremonia el porcentaje del ganador (redondeado)",
+              hint: "Nunca se muestran conteos exactos ni finalistas con cero votos.",
+            },
+          ] satisfies Array<{ name: BooleanSetting; editable: boolean; label: string; hint: string }>
+        ).map((setting) => (
+          <label key={setting.name} className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name={setting.name}
+              defaultChecked={
+                state.values ? state.values[setting.name] === "on" : values[setting.name]
+              }
+              disabled={!setting.editable}
+              className="mt-0.5 size-5 shrink-0 accent-gold"
+            />
+            <span>
+              {setting.label}
+              <span className="block text-xs text-muted">
+                {setting.editable ? setting.hint : LOCKED}
+              </span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>
         {pending ? "Guardando…" : "Guardar cambios"}

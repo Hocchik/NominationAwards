@@ -26,6 +26,8 @@ export const eventSettingsSchema = z
     finalistsPerCategory: intField("Finalistas por categoría", 2, 8),
     maxPrizeCategories: intField("Máximo de categorías de premio", 1, 50),
     showWinnerPercent: z.boolean(),
+    allowNominationSkip: z.boolean(),
+    allowVoteAbstention: z.boolean(),
   })
   .refine((d) => d.maxNominations >= d.minNominations, {
     path: ["maxNominations"],

@@ -8,10 +8,12 @@ import {
   canEditMaxPrize,
   canEditSchedule,
   canEditStructure,
+  canEditVoteRules,
   canEditWinnerPercent,
 } from "@/lib/event/rules";
 import { CreateEventForm } from "../../_components/CreateEventForm";
 import { EventSettingsForm } from "../../_components/EventSettingsForm";
+import { NotaryStatus } from "../../_components/NotaryStatus";
 import { PanelLoading } from "../../_components/PanelLoading";
 import { PhaseControl } from "../../_components/PhaseControl";
 import { RoomShare } from "../../_components/RoomShare";
@@ -58,6 +60,10 @@ async function EventPanel() {
         <PhaseControl phase={event.phase} blockers={blockers} />
       </SectionCard>
 
+      <SectionCard id="notario" title="Notario">
+        <NotaryStatus event={event} />
+      </SectionCard>
+
       <SectionCard id="sala" title="Link de la sala">
         <RoomShare roomCode={event.roomCode} url={roomUrl} />
       </SectionCard>
@@ -72,12 +78,15 @@ async function EventPanel() {
             finalistsPerCategory: event.finalistsPerCategory,
             maxPrizeCategories: event.maxPrizeCategories,
             showWinnerPercent: event.showWinnerPercent,
+            allowNominationSkip: event.allowNominationSkip,
+            allowVoteAbstention: event.allowVoteAbstention,
           }}
           editable={{
             structure: canEditStructure(event.phase),
             finalists: canEditFinalistsCount(event.phase),
             maxPrize: canEditMaxPrize(event.phase),
             winnerPercent: canEditWinnerPercent(event.phase),
+            voteRules: canEditVoteRules(event.phase),
           }}
         />
       </SectionCard>

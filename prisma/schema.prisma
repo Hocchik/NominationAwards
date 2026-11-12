@@ -58,6 +58,8 @@ model Event {
   votingOpensAt        DateTime?
   votingClosesAt       DateTime?
   showWinnerPercent    Boolean    @default(false)
+  allowNominationSkip  Boolean    @default(true) // se puede dejar una categoría sin nominar
+  allowVoteAbstention  Boolean    @default(true) // se puede abstener en una categoría al votar
 
   participants Participant[]
   categories   Category[]
@@ -71,6 +73,7 @@ model Participant {
   displayName    String
   normalizedName String // minúsculas y sin tildes, para detectar duplicados
   pinHash        String // bcrypt, nunca el PIN en claro
+  pinReset       Boolean           @default(false) // el admin lo restableció: debe crear uno nuevo
   status         ParticipantStatus @default(PENDING)
   hasNominated   Boolean           @default(false)
   hasVoted       Boolean           @default(false)

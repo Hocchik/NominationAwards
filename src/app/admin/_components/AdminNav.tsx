@@ -8,6 +8,7 @@ import { logoutAction } from "../actions";
 const LINKS = [
   { href: "/admin/evento", label: "Evento" },
   { href: "/admin/categorias", label: "Categorías" },
+  { href: "/admin/participantes", label: "Participantes" },
 ];
 
 export function AdminNav() {

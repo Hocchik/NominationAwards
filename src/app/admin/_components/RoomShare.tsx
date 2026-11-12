@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { CopyButton } from "./CopyButton";
+import { CopyButton } from "@/components/ui/CopyButton";
 
 // El QR se genera en el servidor como SVG: no carga ninguna librería en el
 // navegador. Va sobre fondo blanco porque así lo leen mejor todas las cámaras.

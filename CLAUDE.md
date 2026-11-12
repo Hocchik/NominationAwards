@@ -56,7 +56,7 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 2. **Sin vínculo votante–papeleta.** La tabla `Ballot` NO tiene `participantId`, NO tiene `createdAt`/`updatedAt`, NO tiene IP ni user-agent. El ID es UUID v4 aleatorio.
 3. **Sin marcas de tiempo delatoras.** `Participant` NO tiene `@updatedAt` ni campos de fecha sobre nominar/votar (solo booleanos `hasNominated` / `hasVoted`). `createdAt` del registro sí está permitido.
 4. **Envío atómico.** El envío de una papeleta es UNA transacción (`prisma.$transaction`): verificar participante `APPROVED` y que no haya enviado → marcar booleano → insertar `Ballot`. Si dos dispositivos envían a la vez, solo uno pasa (usar `updateMany` con condición `hasVoted: false` y verificar `count === 1`).
-5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo (p. ej. 4 KB para nominaciones, 1 KB para votos) para que el largo del texto cifrado no delate nada.
+5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según número de categorías × máximo de nominados, en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB. El servidor rechaza textos cifrados que no midan exactamente eso.
 6. **Nunca registrar contenido.** No hacer `console.log` de papeletas, payloads descifrados ni conteos. Nada de analytics con eventos de voto.
 7. **Descifrado solo en el navegador del notario/ceremonia.** Las llaves privadas nunca se envían al servidor ni se guardan en `localStorage`. Viven solo en memoria durante la sesión.
 8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. En la ceremonia se muestra solo el ganador (opcional: % redondeado del ganador). Nunca mostrar finalistas con 0 votos ni conteos exactos.
@@ -327,7 +327,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 - Nombre del evento y del grupo (identidad visual)
 - Fecha de la reunión (para programar fases)
 - ¿Quién será el notario?
-- ¿Se permite omitir una categoría al nominar o votar (abstención)?
+- ~~¿Se permite omitir una categoría al nominar o votar (abstención)?~~ **Decidido (por ahora):** sí en ambos casos; queda configurable por evento (`allowNominationSkip`, `allowVoteAbstention`) por si cambia. Nadie puede nominarse a sí mismo.
 - ¿Mostrar el % del ganador o solo el nombre?
 - Número de finalistas por categoría (3, 4 o 5)
 - ¿Fotos de los finalistas en la ceremonia?

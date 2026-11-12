@@ -24,10 +24,28 @@ export function canEditMaxPrize(phase: EventPhase): boolean {
   return isBefore(phase, "VOTING");
 }
 
+/** Reglas de la papeleta de votación (p. ej., si se permite abstenerse). */
+export function canEditVoteRules(phase: EventPhase): boolean {
+  return isBefore(phase, "VOTING");
+}
+
 export function canEditSchedule(phase: EventPhase): boolean {
   return isBefore(phase, "VOTING_CLOSED");
 }
 
 export function canEditWinnerPercent(phase: EventPhase): boolean {
   return isBefore(phase, "CEREMONY");
+}
+
+/**
+ * Registro abierto (CLAUDE.md §3): desde que abren las nominaciones hasta el
+ * cierre de la votación, para quien no alcanzó a nominar.
+ */
+export function canRegister(phase: EventPhase): boolean {
+  return !isBefore(phase, "NOMINATIONS") && isBefore(phase, "VOTING_CLOSED");
+}
+
+/** Aprobar, rechazar, restablecer PIN o eliminar registros: hasta que cierra la votación. */
+export function canManageParticipants(phase: EventPhase): boolean {
+  return isBefore(phase, "VOTING_CLOSED");
 }
