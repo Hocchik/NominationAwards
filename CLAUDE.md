@@ -187,6 +187,12 @@ El `receiptCode` se genera en el cliente, va dentro de la papeleta cifrada y tam
 | `/s/[roomCode]/listo` | "¡Listo!" + código de comprobante + cuenta regresiva a la ceremonia |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación simple del cifrado, el notario, el comprobante y link al repo público |
 
+### Demo y diseño (públicas)
+| Ruta | Pantalla |
+|---|---|
+| `/demo` | Demo para probar sin evento: portada y cuatro pasos (`/demo/nominar`, `/demo/nominados`, `/demo/votar`, `/demo/ceremonia`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `openBallots`, `intro`); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
+| `/diseno.html` | Archivo autónomo (`public/diseno.html`) que presenta el sistema «Día y noche». Copia los valores de `globals.css`: actualizarlo si el diseño cambia |
+
 ### Notario
 | Ruta | Pantalla |
 |---|---|

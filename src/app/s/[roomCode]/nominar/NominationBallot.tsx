@@ -25,7 +25,7 @@ import { generateReceiptCode } from "@/lib/ballots/receipt";
 import { cn } from "@/lib/cn";
 import { sealPayload } from "@/lib/crypto/seal";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { submitNominationAction } from "./actions";
+import { type SubmitResult, submitNominationAction } from "./actions";
 import { NomineePicker } from "./NomineePicker";
 
 interface CategoryInfo {
@@ -57,6 +57,8 @@ export function NominationBallot({
   publicKey,
   ballotBytes,
   selfName,
+  onSubmit,
+  doneLink,
 }: {
   roomCode: string;
   eventName: string;
@@ -66,6 +68,10 @@ export function NominationBallot({
   publicKey: string;
   ballotBytes: number;
   selfName: string;
+  /** Qué hacer con la papeleta ya sellada. Por defecto se envía al servidor. */
+  onSubmit?: (ciphertext: string, receipt: string) => Promise<SubmitResult>;
+  /** Botón de la pantalla sellada. Por defecto, «Ver nominados» de la sala. */
+  doneLink?: { href: string; label: string };
 }) {
   const [selections, setSelections] = useState<Record<string, Nominee[]>>({});
   const [restored, setRestored] = useState(false);
@@ -110,7 +116,8 @@ export function NominationBallot({
         const ballot = buildNominationBallot(selections, ids, code);
         // Se sella aquí, en este dispositivo: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const result = await submitNominationAction(roomCode, ciphertext, code);
+        const send = onSubmit ?? ((sealed: string, receiptCode: string) => submitNominationAction(roomCode, sealed, receiptCode));
+        const result = await send(ciphertext, code);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
           return;
@@ -125,6 +132,8 @@ export function NominationBallot({
     });
   }
 
+  const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
+
   if (receipt) {
     return (
       <SealedScreen
@@ -136,8 +145,8 @@ export function NominationBallot({
         actions={
           <>
             <CopyButton text={receipt} label="Copiar código" className="flex-1" />
-            <Link href={`/s/${roomCode}/nominados`} className={buttonClasses({ className: "flex-1" })}>
-              Ver nominados
+            <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
+              {done.label}
             </Link>
           </>
         }

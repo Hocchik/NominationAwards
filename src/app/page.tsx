@@ -36,9 +36,14 @@ export default function Home() {
           Abre el link de tu sala que compartió el organizador (se ve así: <span className="font-semibold text-ink">…/s/ABC123</span>).
           Ahí te registras con tu nombre y un PIN.
         </p>
-        <Link href="/transparencia" className={buttonClasses({ variant: "secondary", className: "max-sm:w-full" })}>
-          ¿Quién puede ver mi voto?
-        </Link>
+        <div className="flex flex-wrap gap-3 pt-1">
+          <Link href="/demo" className={buttonClasses({ className: "max-sm:w-full" })}>
+            Pruébalo: demo
+          </Link>
+          <Link href="/transparencia" className={buttonClasses({ variant: "secondary", className: "max-sm:w-full" })}>
+            ¿Quién puede ver mi voto?
+          </Link>
+        </div>
       </Card>
     </main>
   );

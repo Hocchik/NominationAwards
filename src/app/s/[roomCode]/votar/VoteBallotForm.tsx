@@ -22,7 +22,7 @@ import { buildVoteBallot, validateVotes } from "@/lib/ballots/vote";
 import { cn } from "@/lib/cn";
 import { sealPayload } from "@/lib/crypto/seal";
 import { initials } from "@/lib/initials";
-import { submitVoteAction } from "./actions";
+import { type SubmitResult, submitVoteAction } from "./actions";
 
 interface FinalistInfo {
   id: string;
@@ -55,6 +55,8 @@ export function VoteBallotForm({
   publicKey,
   ballotBytes,
   closesAt,
+  onSubmit,
+  doneLink,
 }: {
   roomCode: string;
   eventName: string;
@@ -63,6 +65,10 @@ export function VoteBallotForm({
   publicKey: string;
   ballotBytes: number;
   closesAt: string | null;
+  /** Qué hacer con el voto ya sellado. Por defecto se envía al servidor. */
+  onSubmit?: (ciphertext: string, receipt: string) => Promise<SubmitResult>;
+  /** Botón de la pantalla «Voto sellado». Por defecto, «Ver nominados» de la sala. */
+  doneLink?: { href: string; label: string };
 }) {
   const [votes, setVotes] = useState<Votes>({});
   const [restored, setRestored] = useState(false);
@@ -112,7 +118,8 @@ export function VoteBallotForm({
         const ballot = buildVoteBallot(votes, ids, code);
         // Se sella aquí: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const result = await submitVoteAction(roomCode, ciphertext, code);
+        const send = onSubmit ?? ((sealed: string, receiptCode: string) => submitVoteAction(roomCode, sealed, receiptCode));
+        const result = await send(ciphertext, code);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
           return;
@@ -127,6 +134,8 @@ export function VoteBallotForm({
     });
   }
 
+  const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
+
   if (receipt) {
     return (
       <SealedScreen
@@ -138,8 +147,8 @@ export function VoteBallotForm({
         actions={
           <>
             <CopyButton text={receipt} label="Copiar código" className="flex-1" />
-            <Link href={`/s/${roomCode}/nominados`} className={buttonClasses({ className: "flex-1" })}>
-              Ver nominados
+            <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
+              {done.label}
             </Link>
           </>
         }
