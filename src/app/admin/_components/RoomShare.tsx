@@ -16,21 +16,21 @@ export async function RoomShare({ roomCode, url }: { roomCode: string; url: stri
       <div
         role="img"
         aria-label={`Código QR del link de la sala: ${url}`}
-        className="size-44 shrink-0 rounded-xl bg-white p-2 [&>svg]:size-full"
+        className="size-44 shrink-0 bg-white p-2 [&>svg]:size-full"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       <div className="min-w-0 space-y-3">
         <div>
-          <p className="text-sm text-muted">Código de la sala</p>
+          <p className="text-sm text-ink-soft">Código de la sala</p>
           <p className="font-display text-4xl font-semibold tracking-[0.2em]">{roomCode}</p>
         </div>
         <p className="text-sm break-all">{url}</p>
         <div className="flex flex-wrap gap-3">
           <CopyButton text={url} />
         </div>
-        <p className="text-xs text-muted">
-          Es el único link que se comparte (por ejemplo, por WhatsApp). La página de la sala se
-          construye en la Fase 3.
+        <p className="text-xs text-ink-soft">
+          Es el único link que se comparte (por ejemplo, por WhatsApp). Ahí cada persona se registra,
+          nomina, vota y ve a los nominados.
         </p>
       </div>
     </div>

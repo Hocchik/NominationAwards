@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Ceremonia", robots: { index: false, 
 
 export default function CeremonyPage() {
   return (
-    <Suspense fallback={<p className="p-10 text-muted">Cargando la ceremonia…</p>}>
+    <Suspense fallback={<p className="p-10 text-ink-soft">Cargando la ceremonia…</p>}>
       <Ceremony />
     </Suspense>
   );
@@ -21,8 +21,8 @@ function Notice({ title, children }: { title: string; children: React.ReactNode 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-16">
       <Card className="space-y-3">
-        <h1 className="font-display text-2xl font-semibold">{title}</h1>
-        <div className="text-sm text-muted">{children}</div>
+        <h1 className="font-display text-2xl font-bold">{title}</h1>
+        <div className="text-sm text-ink-soft">{children}</div>
       </Card>
     </main>
   );
@@ -40,7 +40,7 @@ async function Ceremony() {
           ? "La premiación ya terminó."
           : "Cuando la votación haya cerrado y estén todos reunidos, avanza a «Ceremonia» desde "}
         {event.phase !== "FINISHED" && (
-          <Link href="/admin/evento" className="text-gold underline underline-offset-4">
+          <Link href="/admin/evento" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
             Evento
           </Link>
         )}

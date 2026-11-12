@@ -73,24 +73,24 @@ export function CategoryForm({
           {TYPES.map((option) => (
             <label
               key={option.value}
-              className="glass flex min-h-12 cursor-pointer items-start gap-3 rounded-xl px-4 py-3 has-checked:border-gold/60"
+              className="border border-line bg-sheet flex min-h-12 cursor-pointer items-start gap-3 px-4 py-3 has-checked:border-ink has-checked:bg-raised has-checked:shadow-[inset_3px_0_0_var(--copper)]"
             >
               <input
                 type="radio"
                 name="type"
                 value={option.value}
                 defaultChecked={type === option.value}
-                className="mt-1 size-4 shrink-0 accent-gold"
+                className="mt-1 size-4 shrink-0 accent-copper"
               />
               <span className="text-sm">
                 <span className="block font-medium">{option.label}</span>
-                <span className="block text-xs text-muted">{option.hint}</span>
+                <span className="block text-xs text-ink-soft">{option.hint}</span>
               </span>
             </label>
           ))}
         </div>
         {!canEditType && (
-          <p className="text-xs text-muted">El tipo solo se cambia durante la preparación.</p>
+          <p className="text-xs text-ink-soft">El tipo solo se cambia durante la preparación.</p>
         )}
         {state.errors?.type && <p className="text-sm text-danger">{state.errors.type.join(" ")}</p>}
       </fieldset>

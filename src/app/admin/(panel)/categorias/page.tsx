@@ -28,9 +28,9 @@ async function CategoriesPanel() {
     return (
       <Card className="space-y-2">
         <h1 className="font-display text-2xl font-semibold">Categorías</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Primero{" "}
-          <Link href="/admin/evento" className="text-gold underline underline-offset-4">
+          <Link href="/admin/evento" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
             crea el evento
           </Link>
           .
@@ -49,14 +49,14 @@ async function CategoriesPanel() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">Categorías</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           {categories.length === 1 ? "1 categoría" : `${categories.length} categorías`} · {prize}{" "}
           de premio · {honorary} {honorary === 1 ? "honorífica" : "honoríficas"}. A la votación
           pasan hasta {event.maxPrizeCategories} de premio y todas las honoríficas que elijas (se
           decide con los finalistas).
         </p>
         {!structure && (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-ink-soft">
             Las nominaciones ya empezaron: solo se pueden corregir nombres y consignas.
           </p>
         )}
@@ -64,7 +64,7 @@ async function CategoriesPanel() {
 
       {categories.length === 0 ? (
         <Card>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-ink-soft">
             Aún no hay categorías. Agrega la primera aquí abajo; el orden en que aparecen es el
             orden en que el grupo las verá al nominar.
           </p>

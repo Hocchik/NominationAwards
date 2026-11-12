@@ -5,9 +5,10 @@ import type { FormState } from "@/lib/forms";
 // Campos de formulario con etiqueta, ayuda y errores conectados para lectores
 // de pantalla (aria-describedby / aria-invalid).
 
+// Sin chaflán: el borde fino quedaría cortado en la diagonal (CLAUDE.md §9).
 const control =
-  "glass w-full rounded-xl px-4 text-base text-foreground placeholder:text-muted/70 " +
-  "transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger/70";
+  "w-full border border-line-strong bg-raised px-4 text-base text-ink placeholder:text-ink-soft " +
+  "transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger aria-invalid:border-2";
 
 interface FieldShellProps {
   id: string;
@@ -23,17 +24,17 @@ function FieldShell({ id, label, hint, errors, children }: FieldShellProps) {
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-foreground">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink">
         {label}
       </label>
       {children(describedBy, Boolean(errorId))}
       {hint && (
-        <p id={hintId} className="text-xs text-muted">
+        <p id={hintId} className="text-xs text-ink-soft">
           {hint}
         </p>
       )}
       {errorId && (
-        <p id={errorId} className="text-sm text-danger">
+        <p id={errorId} className="text-sm font-semibold text-danger">
           {errors!.join(" ")}
         </p>
       )}
@@ -95,7 +96,7 @@ export function FormMessage({ state }: { state: FormState }) {
   return (
     <p
       role={state.ok ? "status" : "alert"}
-      className={cn("text-sm", state.ok ? "text-success" : "text-danger")}
+      className={cn("text-sm font-semibold", state.ok ? "text-success" : "text-danger")}
     >
       {state.message}
     </p>

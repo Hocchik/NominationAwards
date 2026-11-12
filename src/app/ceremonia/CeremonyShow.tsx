@@ -3,6 +3,7 @@
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LogoMark } from "@/components/ui/Logo";
 import type { CategoryType } from "@/generated/prisma/enums";
 import { type VoteBallot, voteBallotSchema } from "@/lib/ballots/vote";
 import { type CategoryResult, tallyVotes } from "@/lib/ballots/voteTally";
@@ -160,24 +161,24 @@ export function CeremonyShow({
       <main className="mx-auto w-full max-w-lg flex-1 space-y-6 px-4 py-16">
         <Card className="space-y-5">
           <div className="space-y-1">
-            <h1 className="font-display text-3xl font-semibold">Ceremonia</h1>
-            <p className="text-sm text-muted">
+            <h1 className="font-display text-3xl font-extrabold">Ceremonia</h1>
+            <p className="text-sm text-ink-soft">
               El notario carga su archivo de llaves. Los votos se abren en este navegador y solo se
               guardan en memoria los ganadores.
             </p>
           </div>
           {!results ? (
-            <label className="glass inline-flex min-h-12 cursor-pointer items-center rounded-xl px-5 text-sm font-semibold">
+            <label className="inline-flex min-h-12 cursor-pointer items-center border-[1.5px] border-ink px-5 text-[15px] font-bold transition-colors hover:bg-ink/5 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink">
               {pending ? "Abriendo votos…" : "Elegir archivo de llaves…"}
               <input type="file" accept="application/json,.json" onChange={loadKey} disabled={pending} className="sr-only" />
             </label>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-success">
+              <p className="text-sm font-semibold text-success">
                 ✓ Votos abiertos: {results.receipts.length}.
                 {results.unreadable > 0 && ` ${results.unreadable} no se pudieron abrir.`}
               </p>
-              <p className="text-xs text-muted">
+              <p className="text-xs text-ink-soft">
                 En la presentación: <kbd>Espacio</kbd> o <kbd>→</kbd> avanza, <kbd>←</kbd> retrocede,{" "}
                 <kbd>F</kbd> pantalla completa, <kbd>M</kbd> sonido.
               </p>
@@ -187,7 +188,7 @@ export function CeremonyShow({
             </div>
           )}
           {error && (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-sm font-semibold text-danger">
               {error}
             </p>
           )}
@@ -196,13 +197,20 @@ export function CeremonyShow({
     );
   }
 
+  const current = slide.kind === "category" ? categories[slide.index] : null;
   return (
     <main
-      className="fixed inset-0 z-20 flex cursor-none items-center justify-center bg-background/80"
+      className="theme-night fixed inset-0 z-20 flex cursor-none items-center justify-center bg-[#0b0f0e]"
       onClick={next}
       aria-live="polite"
     >
-      <div className="@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden px-[6cqw]">
+      <div
+        className={cn(
+          "@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden bg-bg",
+          current?.type === "HONORARY" ? "accent-honor" : "accent-prize",
+        )}
+      >
+        <NightStage number={slide.kind === "category" ? pad(slide.index + 1) : null} />
         <SlideView
           key={position}
           slide={slide}
@@ -211,7 +219,7 @@ export function CeremonyShow({
           results={results!}
           showWinnerPercent={showWinnerPercent}
         />
-        <span className="absolute right-[2cqw] bottom-[1.5cqw] text-[1.1cqw] text-muted/60">
+        <span className="absolute right-[2cqw] bottom-[1.2cqw] z-10 text-[1cqw] text-ink-faint">
           {sound ? "" : "Sonido apagado · "}
           {position + 1}/{slides.length}
         </span>
@@ -220,30 +228,79 @@ export function CeremonyShow({
   );
 }
 
-function FinalistCard({
-  finalist,
-  size,
-  className,
-  style,
-}: {
-  finalist: FinalistInfo;
-  size: "md" | "lg";
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const box = size === "lg" ? "size-[18cqw]" : "size-[11cqw]";
+const pad = (n: number) => String(n).padStart(2, "0");
+const TYPE_LABEL = { PRIZE: "Premio", HONORARY: "Honorífica" } as const;
+
+/** Escenario de noche: reflectores, piso en perspectiva y el número gigante al fondo. */
+function NightStage({ number }: { number: string | null }) {
   return (
-    <div className={cn("glass flex flex-col items-center gap-[1cqw] rounded-[1.5cqw] p-[1.5cqw] text-center", className)} style={style}>
-      {finalist.photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL
-        <img src={finalist.photoUrl} alt="" className={cn(box, "rounded-[1cqw] object-cover")} />
-      ) : (
-        <span className={cn(box, "grid place-items-center rounded-[1cqw] bg-surface-strong font-display", size === "lg" ? "text-[6cqw]" : "text-[3.5cqw]")}>
-          {initials(finalist.name)}
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {number && (
+        <span className="absolute top-[-1cqw] left-[42cqw] font-display text-[40cqw] leading-none font-extrabold tracking-[-0.04em] text-transparent [-webkit-text-stroke:0.16cqw_color-mix(in_oklab,var(--accent)_16%,transparent)]">
+          {number}
         </span>
       )}
-      <span className={cn("font-semibold", size === "lg" ? "text-[3cqw]" : "text-[1.8cqw]")}>{finalist.name}</span>
-      {size === "lg" && finalist.blurb && <span className="text-[1.6cqw] text-muted italic">«{finalist.blurb}»</span>}
+      {/* Piso */}
+      <div className="absolute inset-x-0 top-[80%] bottom-0 bg-[color-mix(in_oklab,var(--bg)_75%,black)]" />
+      <svg viewBox="0 0 1280 142" preserveAspectRatio="none" className="absolute inset-x-0 top-[80%] h-[20%] w-full">
+        <path
+          d="M640 0 L-200 142 M640 0 L100 142 M640 0 L380 142 M640 0 L640 142 M640 0 L900 142 M640 0 L1180 142 M640 0 L1480 142 M0 30 L1280 30 M0 70 L1280 70 M0 122 L1280 122"
+          stroke="rgb(248 244 236 / 0.06)"
+          strokeWidth="1"
+          fill="none"
+        />
+        <path d="M0 0 L1280 0" stroke="color-mix(in oklab, var(--accent) 35%, transparent)" strokeWidth="1.5" />
+      </svg>
+      {/* Reflectores laterales */}
+      <div className="absolute inset-0 bg-ink/[0.035] [clip-path:polygon(0_0,5.5%_0,40.6%_83%,25.8%_83%)]" />
+      <div className="absolute inset-0 bg-ink/[0.035] [clip-path:polygon(94.5%_0,100%_0,95.3%_83%,77.3%_83%)]" />
+      <div className="absolute inset-0 bg-ink/[0.05] [clip-path:polygon(19.5%_0,28%_0,43.7%_83%,3%_83%)]" />
+      <div className="absolute top-[77%] left-[8.6%] h-[5.5%] w-[29%] rounded-[50%] bg-ink/[0.08]" />
+      <div className="absolute top-[78%] left-[79%] h-[4%] w-[16.4%] rounded-[50%] bg-ink/[0.06]" />
+    </div>
+  );
+}
+
+/** Trofeo facetado (rombo + cono), en los tonos de la categoría. */
+function Trophy({ year, className }: { year: string; className?: string }) {
+  const tone = (pct: number, mix: string) => `color-mix(in oklab, var(--accent) ${pct}%, ${mix})`;
+  return (
+    <svg viewBox="0 0 180 420" role="img" aria-label="Trofeo" className={className}>
+      <path d="M90 0 L114 26 L90 52 L66 26 Z" fill={tone(60, "white")} />
+      <path d="M90 0 L114 26 L90 26 Z" fill="var(--accent)" />
+      <path d="M66 26 L90 52 L90 26 Z" fill={tone(85, "black")} />
+      <path d="M76 66 L104 66 L150 300 L30 300 Z" fill={tone(85, "black")} />
+      <path d="M90 66 L104 66 L150 300 L90 300 Z" fill="var(--accent)" />
+      <path d="M90 66 L97 66 L120 300 L90 300 Z" fill={tone(60, "white")} fillOpacity="0.55" />
+      <path d="M76 66 L90 66 L90 300 L30 300 Z" fill={tone(70, "black")} />
+      <path d="M30 300 L150 300 L140 318 L40 318 Z" fill={tone(55, "black")} />
+      <path d="M24 330 L156 330 L170 344 L170 404 L156 418 L24 418 L10 404 L10 344 Z" fill="var(--sheet)" />
+      <path d="M24 330 L156 330 L170 344 L10 344 Z" fill="var(--line)" />
+      <path d="M10 344 L170 344" stroke="var(--accent)" strokeWidth="2" />
+      <text x="90" y="384" textAnchor="middle" fontFamily="var(--font-unbounded)" fontWeight="700" fontSize="11" letterSpacing="2" fill="var(--accent)">
+        {year}
+      </text>
+    </svg>
+  );
+}
+
+/** Foto enmarcada en el color de la categoría, en duotono (o iniciales). */
+function Portrait({ finalist, className, dim }: { finalist: FinalistInfo; className?: string; dim?: boolean }) {
+  return (
+    <div className={cn("bg-(--accent) p-[0.25cqw] chamfer-[var(--frame-chamfer)]", dim && "bg-line", className)}>
+      <div className="relative size-full overflow-hidden [clip-path:inherit]">
+        {finalist.photoUrl ? (
+          <div className="photo-duotone size-full">
+            {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
+            <img src={finalist.photoUrl} alt="" className="size-full object-cover" />
+          </div>
+        ) : (
+          <span className="grid size-full place-items-center bg-sheet font-display font-extrabold text-(--accent)">
+            {initials(finalist.name)}
+          </span>
+        )}
+        <span className="absolute inset-0 bg-white/12 [clip-path:polygon(55%_0,80%_0,45%_100%,20%_100%)]" />
+      </div>
     </div>
   );
 }
@@ -263,25 +320,30 @@ function SlideView({
 }) {
   if (slide.kind === "cover") {
     return (
-      <div className="ceremony-rise space-y-[2cqw] text-center">
-        <p className="text-[1.6cqw] tracking-[0.4em] text-gold uppercase">Esta noche</p>
-        <h1 className="font-display text-[7cqw] leading-none font-bold text-gold-gradient">{eventName}</h1>
-        <p className="text-[2cqw] text-muted">La premiación está por comenzar</p>
+      <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
+        <p className="inline-flex items-center gap-[0.8cqw] font-display text-[1.3cqw] font-semibold tracking-[0.3em] text-copper uppercase">
+          <LogoMark className="h-[2cqw] w-[1.8cqw]" /> Esta noche
+        </p>
+        <h1 className="font-display text-[7cqw] leading-[0.95] font-extrabold uppercase">{eventName}</h1>
+        <p className="text-[2cqw] text-ink-soft">La premiación está por comenzar</p>
       </div>
     );
   }
 
   if (slide.kind === "receipts") {
     return (
-      <div className="ceremony-rise w-full space-y-[2cqw] text-center">
-        <h1 className="font-display text-[4cqw] font-semibold">Comprobantes recibidos</h1>
-        <p className="text-[1.6cqw] text-muted">
+      <div className="ceremony-rise relative z-10 w-full space-y-[2cqw] text-center">
+        <h1 className="font-display text-[4cqw] font-extrabold uppercase">Comprobantes recibidos</h1>
+        <p className="text-[1.6cqw] text-ink-soft">
           {results.receipts.length} votos. Busca el tuyo: si está aquí, tu voto se contó.
           {results.unreadable > 0 && ` (${results.unreadable} no se pudieron abrir.)`}
         </p>
-        <ul className="mx-auto flex max-w-[80cqw] flex-wrap justify-center gap-[1cqw]">
+        <ul className="mx-auto flex max-w-[80cqw] flex-wrap justify-center gap-[0.8cqw]">
           {results.receipts.map((code, i) => (
-            <li key={`${code}-${i}`} className="glass rounded-[0.8cqw] px-[1.4cqw] py-[0.6cqw] font-mono text-[1.8cqw] tracking-widest">
+            <li
+              key={`${code}-${i}`}
+              className="bg-sheet px-[1.4cqw] py-[0.7cqw] font-display text-[1.7cqw] font-bold tracking-[0.12em] chamfer-[0.7cqw]"
+            >
               {code}
             </li>
           ))}
@@ -292,15 +354,19 @@ function SlideView({
 
   if (slide.kind === "end") {
     return (
-      <div className="ceremony-rise w-full space-y-[2.5cqw] text-center">
-        <h1 className="font-display text-[5cqw] font-bold text-gold-gradient">¡Gracias por participar!</h1>
-        <ul className="mx-auto grid max-w-[80cqw] grid-cols-2 gap-x-[4cqw] gap-y-[1cqw] text-left text-[1.6cqw]">
+      <div className="ceremony-rise relative z-10 w-full space-y-[2.5cqw] text-center">
+        <h1 className="font-display text-[5cqw] font-extrabold uppercase">¡Gracias por participar!</h1>
+        <ul className="mx-auto grid max-w-[80cqw] grid-cols-2 gap-x-[4cqw] gap-y-[1.1cqw] text-left text-[1.6cqw]">
           {categories.map((c) => {
             const winners = results.byCategory[c.id]?.winnerIds ?? [];
             const names = c.finalists.filter((f) => winners.includes(f.id)).map((f) => f.name);
             return (
-              <li key={c.id}>
-                <span className="text-muted">{c.name}:</span> <strong>{names.length ? names.join(" y ") : "desierta"}</strong>
+              <li key={c.id} className="flex items-baseline gap-[0.8cqw]">
+                <span aria-hidden="true" className={cn("size-[0.7cqw] shrink-0", c.type === "PRIZE" ? "bg-copper" : "bg-sage")} />
+                <span>
+                  <span className="text-ink-soft">{c.name}:</span>{" "}
+                  <strong className="font-display font-bold">{names.length ? names.join(" y ") : "desierta"}</strong>
+                </span>
               </li>
             );
           })}
@@ -310,47 +376,69 @@ function SlideView({
   }
 
   const category = categories[slide.index];
-  const isPrize = category.type === "PRIZE";
   const result = results.byCategory[category.id];
-  const header = (
+  const topBar = (
+    <div className="absolute inset-x-[4.4cqw] top-[2.7cqw] z-10 flex items-center justify-between font-display text-[1cqw] font-semibold tracking-[0.16em] uppercase">
+      <span className="inline-flex items-center gap-[0.8cqw]">
+        <LogoMark className="h-[1.9cqw] w-[1.7cqw] text-copper" />
+        {eventName}
+      </span>
+      <span className="inline-flex items-center gap-[1.1cqw] text-(--accent)">
+        Categoría {pad(slide.index + 1)} / {pad(categories.length)} · {TYPE_LABEL[category.type]}
+        <span className="flex gap-[0.25cqw]" aria-hidden="true">
+          {categories.map((c, i) => (
+            <span key={c.id} className={cn("h-[0.25cqw] w-[0.65cqw]", i < slide.index ? "bg-ink" : i === slide.index ? "bg-(--accent)" : "bg-line")} />
+          ))}
+        </span>
+      </span>
+    </div>
+  );
+  const heading = (
     <div className="space-y-[1cqw] text-center">
-      <p className={cn("text-[1.5cqw] tracking-[0.35em] uppercase", isPrize ? "text-gold" : "text-honor")}>
-        {isPrize ? "Premio" : "Honorífica"} · {slide.index + 1} de {categories.length}
-      </p>
-      <h1 className={cn("font-display text-[5.5cqw] leading-tight font-bold", isPrize ? "text-gold-gradient" : "text-honor-gradient")}>
-        {category.name}
-      </h1>
+      <p className="font-display text-[1.4cqw] font-semibold tracking-[0.3em] text-(--accent) uppercase">{TYPE_LABEL[category.type]}</p>
+      <h1 className="font-display text-[5.5cqw] leading-[1.02] font-extrabold">{category.name}</h1>
     </div>
   );
 
   if (slide.step === "intro") {
     return (
-      <div className="ceremony-rise space-y-[2cqw] text-center">
-        {header}
-        <p className="mx-auto max-w-[70cqw] text-[2.4cqw] text-muted">{category.description}</p>
-      </div>
+      <>
+        {topBar}
+        <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
+          {heading}
+          <p className="mx-auto max-w-[70cqw] text-[2.4cqw] text-ink-soft italic">{category.description}</p>
+        </div>
+      </>
     );
   }
 
   if (slide.step === "finalists" || slide.step === "suspense") {
     const suspense = slide.step === "suspense";
     return (
-      <div className="w-full space-y-[3cqw]">
-        {header}
-        <div className="relative flex flex-wrap justify-center gap-[2cqw]">
-          {category.finalists.map((f, i) => (
-            <FinalistCard
-              key={f.id}
-              finalist={f}
-              size="md"
-              className={cn(!suspense && "ceremony-rise", suspense && "opacity-40 grayscale transition-all duration-700")}
-              style={suspense ? undefined : { animationDelay: `${i * 0.45}s` }}
-            />
-          ))}
-          {suspense && <div aria-hidden="true" className="ceremony-spotlight pointer-events-none absolute inset-y-0 left-1/4 w-1/2" />}
+      <>
+        {topBar}
+        <div className="relative z-10 w-full space-y-[3cqw]">
+          {heading}
+          <div className="relative flex flex-wrap items-start justify-center gap-[2.4cqw]">
+            {category.finalists.map((f, i) => (
+              <div
+                key={f.id}
+                className={cn(
+                  "flex w-[13cqw] flex-col items-center gap-[1cqw] text-center [--frame-chamfer:1.6cqw]",
+                  !suspense && "ceremony-rise",
+                  suspense && "opacity-40 grayscale transition-all duration-700",
+                )}
+                style={suspense ? undefined : { animationDelay: `${i * 0.45}s` }}
+              >
+                <Portrait finalist={f} className="h-[16cqw] w-[13cqw] text-[4cqw]" />
+                <span className="font-display text-[1.6cqw] leading-tight font-bold">{f.name}</span>
+              </div>
+            ))}
+            {suspense && <div aria-hidden="true" className="ceremony-spotlight pointer-events-none absolute inset-y-0 left-1/4 w-1/2" />}
+          </div>
+          {suspense && <p className="text-center text-[2.4cqw] text-ink-soft italic">Y el premio es para…</p>}
         </div>
-        {suspense && <p className="text-center text-[2.4cqw] text-muted">Y el premio es para…</p>}
-      </div>
+      </>
     );
   }
 
@@ -358,29 +446,65 @@ function SlideView({
   const winners = category.finalists.filter((f) => result?.winnerIds.includes(f.id));
   if (winners.length === 0) {
     return (
-      <div className="ceremony-rise space-y-[2cqw] text-center">
-        {header}
-        <p className="text-[2.6cqw] text-muted">Categoría desierta: no hubo votos para ningún finalista.</p>
-      </div>
+      <>
+        {topBar}
+        <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
+          {heading}
+          <p className="text-[2.6cqw] text-ink-soft">Categoría desierta: no hubo votos para ningún finalista.</p>
+        </div>
+      </>
     );
   }
+  const tie = winners.length > 1;
   return (
-    <div className="w-full space-y-[2.5cqw] text-center">
-      {header}
-      <p className="text-[2.2cqw] text-muted">{winners.length > 1 ? "¡Empate! Comparten el premio:" : "¡Y gana…!"}</p>
-      <div className="flex flex-wrap justify-center gap-[3cqw]">
-        {winners.map((w) => (
-          <FinalistCard
-            key={w.id}
-            finalist={w}
-            size="lg"
-            className={cn("ceremony-winner", isPrize ? "border-gold/70 shadow-[0_0_6cqw_-1cqw_rgb(212_175_55/0.6)]" : "border-honor/70 shadow-[0_0_6cqw_-1cqw_rgb(184_181_255/0.6)]")}
-          />
-        ))}
+    <>
+      {topBar}
+      <div className="absolute inset-x-[4.4cqw] top-[11.5cqw] bottom-[9cqw] z-10 flex items-center gap-[3.8cqw] pl-[7cqw]">
+        <div className="ceremony-winner flex shrink-0 gap-[1.5cqw] [--frame-chamfer:2cqw]">
+          {winners.map((w) => (
+            <Portrait
+              key={w.id}
+              finalist={w}
+              className={cn(tie ? "h-[24cqw] w-[17cqw] text-[6cqw]" : "h-[29.7cqw] w-[22.7cqw] text-[8cqw]")}
+            />
+          ))}
+        </div>
+        <div className="ceremony-rise flex min-w-0 flex-1 flex-col items-start gap-[0.95cqw]" style={{ animationDelay: "0.35s" }}>
+          <span className="font-display text-[1.6cqw] font-semibold text-ink-soft">{category.name}</span>
+          <span className="bg-(--accent) px-[1.1cqw] py-[0.5cqw] font-display text-[1.2cqw] font-bold tracking-[0.3em] text-bg uppercase chamfer-[0.6cqw]">
+            {tie ? "Empate · comparten" : "Gana"}
+          </span>
+          <h2 className="font-display text-[6.7cqw] leading-[0.98] font-extrabold tracking-[-0.01em]">
+            {winners.map((w) => w.name).join(" y ")}
+          </h2>
+          {!tie && winners[0]!.blurb && <p className="text-[2cqw] text-ink-soft italic">«{winners[0]!.blurb}»</p>}
+          {showWinnerPercent && result?.winnerPercent != null && (
+            <span className="mt-[0.4cqw] inline-flex items-baseline gap-[0.6cqw] border-t border-ink/20 pt-[0.8cqw] text-[1.2cqw] text-ink-faint">
+              <span className="font-display text-[2cqw] font-bold text-(--accent)">≈ {result.winnerPercent} %</span>
+              {tie ? "de los votos cada uno" : "de los votos"}
+            </span>
+          )}
+        </div>
+        <Trophy year={String(new Date().getFullYear())} className="h-[32.8cqw] w-[14cqw] shrink-0 max-[600px]:hidden" />
       </div>
-      {showWinnerPercent && result?.winnerPercent != null && (
-        <p className="text-[1.8cqw] text-muted">con el {result.winnerPercent} % de los votos</p>
-      )}
-    </div>
+      {/* Fila de nominados */}
+      <div className="absolute inset-x-[4.4cqw] bottom-[2cqw] z-10 flex items-center gap-[1.9cqw] [--frame-chamfer:0.55cqw]">
+        <span className="text-[0.95cqw] font-bold tracking-[0.16em] text-ink-faint uppercase">Nominados</span>
+        {category.finalists.map((f) => {
+          const won = winners.includes(f);
+          return (
+            <span key={f.id} className={cn("flex items-center gap-[0.9cqw]", !won && "opacity-55")}>
+              <Portrait finalist={f} dim={!won} className="h-[4.2cqw] w-[3.4cqw] text-[1cqw]" />
+              <span className="flex flex-col gap-[0.15cqw]">
+                <span className="text-[1.25cqw] font-bold">{f.name}</span>
+                <span className={cn("text-[0.85cqw] font-bold tracking-[0.12em] uppercase", won ? "text-(--accent)" : "text-ink-faint")}>
+                  {won ? "Gana" : "Finalista"}
+                </span>
+              </span>
+            </span>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -29,9 +29,9 @@ async function ParticipantsPanel() {
     return (
       <Card className="space-y-2">
         <h1 className="font-display text-2xl font-semibold">Participantes</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Primero{" "}
-          <Link href="/admin/evento" className="text-gold underline underline-offset-4">
+          <Link href="/admin/evento" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
             crea el evento
           </Link>
           .
@@ -68,16 +68,16 @@ async function ParticipantsPanel() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">Participantes</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           {plural(approved.length, "aprobado", "aprobados")} ·{" "}
           {plural(pending.length, "pendiente", "pendientes")} · cupo {event.capacity}. Nominaron{" "}
           {nominated} de {approved.length} · votaron {voted} de {approved.length}.
         </p>
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-soft">
           Solo ves si cada persona ya nominó o votó, nunca qué eligió.
         </p>
         {!editable && (
-          <p className="text-sm text-muted">La votación cerró: los registros ya no se modifican.</p>
+          <p className="text-sm text-ink-soft">La votación cerró: los registros ya no se modifican.</p>
         )}
       </div>
 
@@ -115,7 +115,7 @@ function ParticipantList({
   editable: boolean;
   empty: string;
 }) {
-  if (rows.length === 0) return <p className="text-sm text-muted">{empty}</p>;
+  if (rows.length === 0) return <p className="text-sm text-ink-soft">{empty}</p>;
   return (
     <ul>
       {rows.map((p) => (

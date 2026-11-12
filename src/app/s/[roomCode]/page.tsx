@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
@@ -12,7 +12,6 @@ import {
 } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { EntryForms } from "./EntryForms";
-import { ParticipantHome } from "./ParticipantHome";
 
 export const metadata: Metadata = {
   title: "Sala",
@@ -43,24 +42,16 @@ async function Room({ params }: { params: Params }) {
   const event = await getEventByRoomCode(roomCode);
   if (!event) notFound();
 
+  // Con sesión, la vista por defecto de la sala es la página de Nominados,
+  // que también muestra su participación (CLAUDE.md §7).
   const participant = await getSessionParticipant(event.id);
-  if (participant) {
-    return (
-      <ParticipantHome
-        participant={participant}
-        phase={event.phase}
-        roomCode={event.roomCode}
-        votingOpensAt={event.votingOpensAt?.toISOString() ?? null}
-        votingClosesAt={event.votingClosesAt?.toISOString() ?? null}
-      />
-    );
-  }
+  if (participant) redirect(`/s/${event.roomCode}/nominados`);
 
   if (event.phase === "SETUP") {
     return (
       <Card className="space-y-2">
-        <h1 className="font-display text-2xl font-semibold">{event.name}</h1>
-        <p className="text-sm text-muted">
+        <h1 className="font-display text-2xl font-bold">{event.name}</h1>
+        <p className="text-sm text-ink-soft">
           La sala todavía no abre. Cuando empiecen las nominaciones podrás registrarte aquí mismo.
         </p>
       </Card>
@@ -80,18 +71,21 @@ async function Room({ params }: { params: Params }) {
   return (
     <Card className="space-y-6">
       <div className="space-y-1">
-        <p className="text-sm text-muted">Te damos la bienvenida a</p>
-        <h1 className="font-display text-3xl font-semibold">{event.name}</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">Te damos la bienvenida a</p>
+        <h1 className="font-display text-3xl leading-tight font-extrabold">{event.name}</h1>
+        <p className="text-sm text-ink-soft">
           Nominaciones y votación anónimas: nadie, ni el organizador, puede ver lo que elijas.
         </p>
       </div>
       <EntryForms roomCode={event.roomCode} names={names} registration={registration} />
-      <p className="text-xs text-muted">
-        <Link href="/transparencia" className="underline underline-offset-4">
+      <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-soft">
+        <Link href={`/s/${event.roomCode}/nominados`} className="flex min-h-11 items-center underline underline-offset-4">
+          Ver los nominados
+        </Link>
+        <Link href="/transparencia" className="flex min-h-11 items-center underline underline-offset-4">
           ¿Quién puede ver lo que elijo? Nadie.
         </Link>
-      </p>
+      </div>
     </Card>
   );
 }

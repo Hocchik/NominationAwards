@@ -20,16 +20,22 @@ export async function getCurrentEvent(): Promise<Event | null> {
  * solo una lo aplica y la otra lee el resultado.
  */
 export async function applySchedule(event: Event): Promise<Event> {
-  if (event.phase !== "FINALISTS_READY" && event.phase !== "VOTING") return event;
-  if (!event.votingOpensAt && !event.votingClosesAt) return event;
+  const scheduled =
+    event.phase === "NOMINATIONS"
+      ? Boolean(event.nominationsCloseAt)
+      : (event.phase === "FINALISTS_READY" || event.phase === "VOTING") &&
+        Boolean(event.votingOpensAt || event.votingClosesAt);
+  if (!scheduled) return event;
 
   await connection(); // la hora se lee en cada petición, nunca en el prerender
   const readyToOpen =
+    event.phase === "FINALISTS_READY" &&
     Boolean(event.votePublicKey) &&
     (await prisma.category.count({ where: { eventId: event.id, activeForVote: true } })) > 0;
   const next = scheduledPhase({
     phase: event.phase,
     now: new Date(),
+    nominationsCloseAt: event.nominationsCloseAt,
     votingOpensAt: event.votingOpensAt,
     votingClosesAt: event.votingClosesAt,
     readyToOpen,

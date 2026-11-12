@@ -19,6 +19,7 @@ import {
   canEditCategoryText,
   canEditFinalistsCount,
   canEditMaxPrize,
+  canEditNominationsClose,
   canEditSchedule,
   canEditStructure,
   canEditVoteRules,
@@ -37,13 +38,18 @@ import type { FormState } from "@/lib/forms";
 
 const NO_EVENT: FormState = { ok: false, message: "Primero crea el evento." };
 
-function fieldErrors(error: z.ZodError, formData: FormData): FormState {
+/** Lo que se escribió, para volver a llenar el formulario si hay errores. */
+function formValues(formData: FormData): Record<string, string> {
   const values: Record<string, string> = {};
   for (const [key, value] of formData.entries()) {
     // Los campos "$ACTION…" los agrega Next.js; no son del formulario.
     if (typeof value === "string" && !key.startsWith("$")) values[key] = value;
   }
-  return { ok: false, errors: z.flattenError(error).fieldErrors, values };
+  return values;
+}
+
+function fieldErrors(error: z.ZodError, formData: FormData): FormState {
+  return { ok: false, errors: z.flattenError(error).fieldErrors, values: formValues(formData) };
 }
 
 // --- Sesión ----------------------------------------------------------------
@@ -147,13 +153,31 @@ export async function updateScheduleAction(
   if (!canEditSchedule(event.phase)) {
     return { ok: false, message: "La votación ya cerró: el horario no se puede cambiar." };
   }
+  // Ya cerradas las nominaciones, su hora queda como estaba (solo se valida).
+  const closeEditable = canEditNominationsClose(event.phase);
   const parsed = scheduleSchema.safeParse({
+    nominationsCloseAt: closeEditable
+      ? (formData.get("nominationsCloseAt") ?? "")
+      : (event.nominationsCloseAt?.toISOString() ?? ""),
     votingOpensAt: formData.get("votingOpensAt") ?? "",
     votingClosesAt: formData.get("votingClosesAt") ?? "",
   });
   if (!parsed.success) return fieldErrors(parsed.error, formData);
 
-  await prisma.event.update({ where: { id: event.id }, data: parsed.data });
+  const { nominationsCloseAt, ...voting } = parsed.data;
+  // Una hora ya pasada cerraría las nominaciones al instante, y eso no se deshace.
+  if (closeEditable && nominationsCloseAt && nominationsCloseAt <= new Date()) {
+    return {
+      ok: false,
+      errors: { nominationsCloseAt: ["Elige una hora futura. Para cerrar ahora, usa el botón de fases."] },
+      values: formValues(formData),
+    };
+  }
+
+  await prisma.event.update({
+    where: { id: event.id },
+    data: closeEditable ? { ...voting, nominationsCloseAt } : voting,
+  });
   refresh();
   return { ok: true, message: "Horario guardado." };
 }

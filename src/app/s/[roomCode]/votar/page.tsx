@@ -16,8 +16,7 @@ type Params = Promise<{ roomCode: string }>;
 
 export default function VotePage({ params }: { params: Params }) {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-8">
-      <Logo />
+    <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-2.5 pt-2 pb-8 sm:px-4 lg:max-w-5xl lg:pt-6">
       <Suspense
         fallback={
           <Card className="h-72 animate-pulse" aria-busy="true">
@@ -33,10 +32,11 @@ export default function VotePage({ params }: { params: Params }) {
 
 function Notice({ roomCode, title, text }: { roomCode: string; title: string; text: string }) {
   return (
-    <Card className="space-y-3">
-      <h1 className="font-display text-2xl font-semibold">{title}</h1>
-      <p className="text-sm text-muted">{text}</p>
-      <Link href={`/s/${roomCode}`} className="inline-flex min-h-11 items-center text-sm text-gold underline underline-offset-4">
+    <Card className="mt-4 space-y-3">
+      <Logo />
+      <h1 className="font-display text-2xl font-bold">{title}</h1>
+      <p className="text-sm text-ink-soft">{text}</p>
+      <Link href={`/s/${roomCode}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
         Volver a la sala
       </Link>
     </Card>

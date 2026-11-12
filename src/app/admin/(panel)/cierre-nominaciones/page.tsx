@@ -22,7 +22,7 @@ function Notice({ title, children }: { title: string; children: React.ReactNode 
   return (
     <Card className="space-y-2">
       <h1 className="font-display text-2xl font-semibold">{title}</h1>
-      <div className="text-sm text-muted">{children}</div>
+      <div className="text-sm text-ink-soft">{children}</div>
     </Card>
   );
 }
@@ -36,7 +36,7 @@ async function ClosingPanel() {
     return (
       <Notice title="Las nominaciones siguen abiertas">
         Ciérralas desde{" "}
-        <Link href="/admin/evento" className="text-gold underline underline-offset-4">
+        <Link href="/admin/evento" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
           Evento
         </Link>{" "}
         (avanzar a «Nominaciones cerradas») y vuelve aquí con el notario.
@@ -47,7 +47,7 @@ async function ClosingPanel() {
     return (
       <Notice title="Los finalistas ya están guardados">
         Revísalos en{" "}
-        <Link href="/admin/finalistas" className="text-gold underline underline-offset-4">
+        <Link href="/admin/finalistas" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
           Finalistas
         </Link>
         .

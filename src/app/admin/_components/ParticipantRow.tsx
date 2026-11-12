@@ -46,7 +46,7 @@ export function ParticipantRow({ p, editable }: { p: ParticipantRowData; editabl
         {p.pinReset && <Chip size="sm" tone="neutral">PIN restablecido</Chip>}
         {p.locked && <Chip size="sm" tone="neutral">Bloqueado 15 min</Chip>}
         {p.status === "APPROVED" && (
-          <span className="ml-auto flex gap-4 text-sm text-muted">
+          <span className="ml-auto flex gap-4 text-sm text-ink-soft">
             <span>{p.hasNominated ? "✔" : "⏳"} Nominó</span>
             <span>{p.hasVoted ? "✔" : "⏳"} Votó</span>
           </span>

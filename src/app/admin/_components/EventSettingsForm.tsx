@@ -150,11 +150,11 @@ export function EventSettingsForm({
                 state.values ? state.values[setting.name] === "on" : values[setting.name]
               }
               disabled={!setting.editable}
-              className="mt-0.5 size-5 shrink-0 accent-gold"
+              className="mt-0.5 size-5 shrink-0 accent-copper"
             />
             <span>
               {setting.label}
-              <span className="block text-xs text-muted">
+              <span className="block text-xs text-ink-soft">
                 {setting.editable ? setting.hint : LOCKED}
               </span>
             </span>

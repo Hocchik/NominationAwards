@@ -29,6 +29,11 @@ export function canEditVoteRules(phase: EventPhase): boolean {
   return isBefore(phase, "VOTING");
 }
 
+/** La hora de cierre de nominaciones: deja de importar en cuanto cierran. */
+export function canEditNominationsClose(phase: EventPhase): boolean {
+  return isBefore(phase, "NOMINATIONS_CLOSED");
+}
+
 export function canEditSchedule(phase: EventPhase): boolean {
   return isBefore(phase, "VOTING_CLOSED");
 }

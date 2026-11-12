@@ -44,7 +44,7 @@ export function CategoryItem({
 
   return (
     <Card as="li" accent={isPrize ? "prize" : "honor"} className="flex gap-4">
-      <span className="font-display text-2xl text-muted tabular-nums" aria-hidden="true">
+      <span className="font-display text-2xl text-ink-soft tabular-nums" aria-hidden="true">
         {String(position).padStart(2, "0")}
       </span>
       <div className="min-w-0 flex-1 space-y-2">
@@ -53,11 +53,11 @@ export function CategoryItem({
             <span className="sr-only">{position}. </span>
             {category.name}
           </h3>
-          <Chip size="sm" tone={isPrize ? "gold" : "honor"}>
+          <Chip size="sm" tone={isPrize ? "copper" : "sage"}>
             {isPrize ? "Premio" : "Honorífica"}
           </Chip>
         </div>
-        <p className="text-sm text-muted">{category.description}</p>
+        <p className="text-sm text-ink-soft">{category.description}</p>
 
         <div className="flex flex-wrap items-center gap-2 pt-2">
           {canEditStructure && (

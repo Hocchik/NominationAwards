@@ -1,31 +1,34 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-/** prize = categoría de premio (dorado) · honor = honorífica (lavanda) */
+// Hoja «Día y noche» (CLAUDE.md §9): panel --sheet con filo --line y chaflán.
+// El filo fino con chaflán se logra con dos capas: el elemento pinta la línea
+// y su ::before, 1px más adentro y con su propio chaflán, pinta la hoja. Así
+// la tarjeta sigue siendo un solo elemento y las clases de layout aplican igual.
+
+/** prize = categoría de premio (cobre) · honor = honorífica (salvia) */
 type CardAccent = "none" | "prize" | "honor";
 
 export interface CardProps extends HTMLAttributes<HTMLElement> {
   accent?: CardAccent;
   as?: "div" | "section" | "article" | "li";
+  /** Tamaño del chaflán: sm en tarjetas chicas o listas. */
+  size?: "sm" | "md";
 }
 
 const accents: Record<CardAccent, string> = {
   none: "",
-  prize:
-    "border-gold/35 shadow-[0_0_48px_-16px_rgb(212_175_55/0.45)] " +
-    "before:bg-linear-to-r before:from-transparent before:via-gold before:to-transparent",
-  honor:
-    "border-honor/30 shadow-[0_0_48px_-16px_rgb(184_181_255/0.4)] " +
-    "before:bg-linear-to-r before:from-transparent before:via-honor before:to-transparent",
+  prize: "accent-prize",
+  honor: "accent-honor",
 };
 
-export function Card({ accent = "none", as: Tag = "div", className, ...props }: CardProps) {
+export function Card({ accent = "none", as: Tag = "div", size = "md", className, ...props }: CardProps) {
   return (
     <Tag
       className={cn(
-        "glass relative rounded-card p-5 sm:p-6",
-        // Filo de luz en el borde superior (solo visible con acento)
-        "before:pointer-events-none before:absolute before:inset-x-8 before:top-0 before:h-px",
+        "relative isolate bg-line p-5 sm:p-6",
+        "before:absolute before:inset-px before:-z-10 before:bg-sheet",
+        size === "md" ? "chamfer-18 before:chamfer-17" : "chamfer-10 before:chamfer-9",
         accents[accent],
         className,
       )}

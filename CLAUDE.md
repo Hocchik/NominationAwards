@@ -39,7 +39,7 @@ SETUP → NOMINATIONS → NOMINATIONS_CLOSED → FINALISTS_READY → VOTING → 
 
 1. **SETUP** — El admin crea el evento, las categorías (tipo `PRIZE` o `HONORARY`) y genera el link de configuración para el notario. El notario genera **dos pares de llaves** (uno para nominaciones, otro para votación) en su navegador; las públicas se guardan en el evento, las privadas las descarga y guarda él (con respaldo).
 2. **NOMINATIONS** — Se comparte UN solo link/QR de la sala (`/s/[roomCode]`) por WhatsApp. Registro abierto: cada persona escribe su nombre y crea su PIN → queda `PENDING` hasta que el admin lo aprueba. Los aprobados nominan de 3 a 5 personas/referentes por categoría (configurable). El registro sigue abierto hasta el cierre de la votación (para quien no llegó a nominar).
-3. **NOMINATIONS_CLOSED** — El notario ingresa su llave privada de nominaciones en `/admin/cierre-nominaciones`. Todo se descifra y cuenta **en el navegador**; se muestra una pantalla para unificar nombres duplicados (lista alfabética **sin conteos**). Luego el sistema calcula automáticamente el top N por categoría (empates en el último puesto entran todos) y envía al servidor **solo los finalistas**. Los conteos nunca se muestran ni se guardan.
+3. **NOMINATIONS_CLOSED** — Las nominaciones cierran a la hora programada (`nominationsCloseAt`, se aplica al leer el evento) o con el botón de fases. El notario ingresa su llave privada de nominaciones en `/admin/cierre-nominaciones`. Todo se descifra y cuenta **en el navegador**; se muestra una pantalla para unificar nombres duplicados (lista alfabética **sin conteos**). Luego el sistema calcula automáticamente el top N por categoría (empates en el último puesto entran todos) y envía al servidor **solo los finalistas**. Los conteos nunca se muestran ni se guardan.
 4. **FINALISTS_READY** — El admin ve los finalistas (orden aleatorio, sin conteos) y elige qué categorías pasan a la votación: **máximo 15 de tipo `PRIZE`** (configurable) y las `HONORARY` que quiera. Define el orden de revelación (por defecto: honoríficas primero, de premio al final).
 5. **VOTING** — Abre en horario programado (un día antes de la reunión). Un voto por categoría activa, una sola vez por participante. Cifrado en el celular.
 6. **VOTING_CLOSED** — Cierre por horario. El admin solo ve participación (✔/⏳).
@@ -97,6 +97,7 @@ model Event {
   nominationPublicKey  String?
   votePublicKey        String?
   notarySetupTokenHash String?
+  nominationsCloseAt   DateTime?  // las nominaciones cierran solas a esa hora
   votingOpensAt        DateTime?
   votingClosesAt       DateTime?
   showWinnerPercent    Boolean    @default(false)
@@ -181,7 +182,7 @@ El `receiptCode` se genera en el cliente, va dentro de la papeleta cifrada y tam
 |---|---|
 | `/s/[roomCode]` | Entrada a la sala: "Registrarme" (nombre + crear PIN) o "Ya me registré" (elegir nombre + PIN). Muestra estado `PENDING` si aún no está aprobado |
 | `/s/[roomCode]/nominar` | Una tarjeta por categoría con su consigna; autocompletado con los participantes aprobados + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
-| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): finalistas por categoría con foto o iniciales, frase corta, en orden alfabético o aleatorio y **sin conteos** (regla 8), filtros Premio/Honoríficas y cuenta regresiva a la votación. Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones |
+| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): finalistas por categoría con foto o iniciales, frase corta, en orden alfabético o aleatorio y **sin conteos** (regla 8), filtros Premio/Honoríficas y cuenta regresiva a la votación. Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones. Pública para quien tenga el link (sin enviar finalistas al navegador mientras estén boca abajo); con sesión, `/s/[roomCode]` redirige aquí y se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas` |
 | `/s/[roomCode]/votar` | Una categoría por pantalla, tarjetas de finalistas, resumen final y confirmación |
 | `/s/[roomCode]/listo` | "¡Listo!" + código de comprobante + cuenta regresiva a la ceremonia |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación simple del cifrado, el notario, el comprobante y link al repo público |
@@ -225,7 +226,7 @@ Los resultados se calculan en memoria al cargar la llave; no se persisten hasta 
 
 Una sola identidad con dos momentos: **de día** (la web: Nominar, Nominados, Votar) y **de noche** (la premiación en el proyector). La noche usa los mismos colores del día con los papeles cambiados: la tinta pasa a ser el fondo y la hoja pasa a ser la luz. Referencia visual: lienzo de diseño del organizador, página «Ronda 5 · Día y noche».
 
-> **Estado del código:** la Fase 0 todavía usa los tokens provisionales «Gala» (azul noche + dorado, Playfair + Inter) en `src/app/globals.css` y `src/components/ui/`. Se migran a este sistema en el rediseño, al final del plan; mientras tanto, usar siempre los primitivos (`Button`, `Card`, `Chip`) y los tokens, nunca estilos sueltos en las páginas, para que el cambio sea un reemplazo.
+> **Estado del código:** migrado. Los tokens viven en `src/app/globals.css` (`bg-bg`, `bg-sheet`, `text-ink`, `text-ink-soft`, `bg-copper`, `bg-sage`…); `.theme-night` cambia los papeles para los pedacitos de noche y la ceremonia; `chamfer-N` / `chamfer-tl-N` (o `chamfer-[1.5cqw]`) da el chaflán; `.accent-prize` / `.accent-honor` fijan `--accent` para duotono, cartas boca abajo y etiquetas. Usar siempre los primitivos (`Button`/`buttonClasses`, `Card`, `Chip`, `Field`, `Countdown`, piezas de `components/ballot/BallotParts`) y los tokens, nunca colores sueltos en las páginas.
 
 ### Colores
 

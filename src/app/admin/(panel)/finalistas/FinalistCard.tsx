@@ -49,26 +49,26 @@ export function FinalistCard({ finalist, editable }: { finalist: FinalistCardDat
   }
 
   return (
-    <li className="glass space-y-3 rounded-card p-4">
+    <li className="border border-line bg-sheet space-y-3 p-4">
       <div className="flex items-center gap-3">
         {finalist.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- data URL pequeña, sin optimización que hacer
-          <img src={finalist.photoUrl} alt={`Foto de ${finalist.displayName}`} className="size-16 shrink-0 rounded-xl object-cover" />
+          <img src={finalist.photoUrl} alt={`Foto de ${finalist.displayName}`} className="size-16 shrink-0 object-cover" />
         ) : (
-          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-xl bg-surface-strong font-display text-xl">
+          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center bg-sand font-display text-xl">
             {initials(finalist.displayName)}
           </span>
         )}
         <div className="min-w-0">
           <p className="font-semibold">{finalist.displayName}</p>
-          <p className="text-xs text-muted">{finalist.external ? "De fuera del grupo" : "Del grupo"}</p>
+          <p className="text-xs text-ink-soft">{finalist.external ? "De fuera del grupo" : "Del grupo"}</p>
         </div>
       </div>
 
       {editable && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-line px-3 text-sm">
+            <label className="inline-flex min-h-11 cursor-pointer items-center border border-line px-3 text-sm">
               {photoPending ? "Subiendo…" : finalist.photoUrl ? "Cambiar foto" : "Subir foto"}
               <input type="file" accept="image/*" onChange={pickPhoto} disabled={photoPending} className="sr-only" />
             </label>
@@ -86,7 +86,7 @@ export function FinalistCard({ finalist, editable }: { finalist: FinalistCardDat
 
           <form action={formAction} className="space-y-2">
             <input type="hidden" name="id" value={finalist.id} />
-            <label htmlFor={`frase-${finalist.id}`} className="block text-sm text-muted">
+            <label htmlFor={`frase-${finalist.id}`} className="block text-sm text-ink-soft">
               Frase corta (opcional)
             </label>
             <div className="flex gap-2">
@@ -96,7 +96,7 @@ export function FinalistCard({ finalist, editable }: { finalist: FinalistCardDat
                 defaultValue={finalist.blurb ?? ""}
                 maxLength={120}
                 placeholder="«Llega con parlante propio.»"
-                className="glass min-h-11 min-w-0 flex-1 rounded-xl px-3 text-sm text-foreground"
+                className="border border-line bg-sheet min-h-11 min-w-0 flex-1 px-3 text-sm text-ink"
               />
               <Button type="submit" variant="secondary" disabled={pending}>
                 {pending ? "…" : "Guardar"}
@@ -110,7 +110,7 @@ export function FinalistCard({ finalist, editable }: { finalist: FinalistCardDat
           </form>
         </>
       )}
-      {!editable && finalist.blurb && <p className="text-sm text-muted italic">«{finalist.blurb}»</p>}
+      {!editable && finalist.blurb && <p className="text-sm text-ink-soft italic">«{finalist.blurb}»</p>}
     </li>
   );
 }

@@ -26,8 +26,8 @@ export function AdminNav() {
             href={link.href}
             aria-current={current ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center rounded-xl px-4 text-sm font-medium transition-colors",
-              current ? "bg-surface-strong text-foreground" : "text-muted hover:text-foreground",
+              "flex min-h-11 items-center px-4 text-sm font-semibold transition-colors",
+              current ? "bg-ink text-sheet" : "text-ink hover:bg-ink/5",
             )}
           >
             {link.label}
@@ -37,7 +37,7 @@ export function AdminNav() {
       <form action={logoutAction}>
         <button
           type="submit"
-          className="flex min-h-11 items-center rounded-xl px-4 text-sm text-muted transition-colors hover:text-foreground"
+          className="flex min-h-11 items-center px-4 text-sm text-ink-soft transition-colors hover:text-ink"
         >
           Salir
         </button>

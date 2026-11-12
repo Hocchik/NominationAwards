@@ -50,12 +50,17 @@ const optionalDate = z
 
 export const scheduleSchema = z
   .object({
+    nominationsCloseAt: optionalDate,
     votingOpensAt: optionalDate,
     votingClosesAt: optionalDate,
   })
   .refine((d) => !d.votingOpensAt || !d.votingClosesAt || d.votingClosesAt > d.votingOpensAt, {
     path: ["votingClosesAt"],
     message: "El cierre debe ser después de la apertura.",
+  })
+  .refine((d) => !d.nominationsCloseAt || !d.votingOpensAt || d.votingOpensAt > d.nominationsCloseAt, {
+    path: ["votingOpensAt"],
+    message: "La votación debe abrir después del cierre de nominaciones.",
   });
 
 export const categorySchema = z.object({

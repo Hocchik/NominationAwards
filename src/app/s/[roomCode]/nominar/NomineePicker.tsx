@@ -17,11 +17,17 @@ export function NomineePicker({
   picked,
   disabled,
   selfName,
+  step,
+  accent,
   onAdd,
 }: {
   candidates: Candidate[];
   picked: Nominee[];
   disabled: boolean;
+  /** Número del próximo nombre («4 · Escribe un nombre»). */
+  step: number;
+  /** Color de la categoría para el «+» de alguien de fuera. */
+  accent: "copper" | "sage";
   /** Nombre de quien nomina: no puede agregarse a sí mismo ni como «de fuera». */
   selfName: string;
   onAdd: (nominee: Nominee) => void;
@@ -78,8 +84,11 @@ export function NomineePicker({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={`${id}-campo`} className="block text-sm font-medium">
-        {disabled ? "Llegaste al máximo de nombres en esta categoría" : "Escribe un nombre"}
+      <label
+        htmlFor={`${id}-campo`}
+        className="block font-display text-[10px] font-semibold tracking-[0.14em] text-ink-soft uppercase"
+      >
+        {disabled ? "Llegaste al máximo de nombres en esta categoría" : `${step} · Escribe un nombre`}
       </label>
       <input
         id={`${id}-campo`}
@@ -98,10 +107,10 @@ export function NomineePicker({
           setActive(0);
         }}
         onKeyDown={onKeyDown}
-        className="glass min-h-12 w-full rounded-xl px-4 text-base text-foreground placeholder:text-muted/70 disabled:opacity-50"
+        className="min-h-12 w-full border-0 border-b-2 border-ink bg-transparent px-0.5 text-lg text-ink placeholder:text-ink-soft disabled:opacity-50"
         placeholder="Alguien del grupo o de fuera"
       />
-      <ul id={listId} role="listbox" aria-label="Sugerencias" hidden={!open} className="glass overflow-hidden rounded-xl">
+      <ul id={listId} role="listbox" aria-label="Sugerencias" hidden={!open} className="border border-line bg-raised">
         {options.map((option, i) => (
           <li
             key={option.kind === "participant" ? option.id : `externo-${option.name}`}
@@ -114,18 +123,26 @@ export function NomineePicker({
               choose(option);
             }}
             className={cn(
-              "flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 text-sm",
-              i === active && "bg-surface-strong",
+              "flex min-h-12 cursor-pointer items-center justify-between gap-3 border-b border-line/60 px-3 text-[15px] last:border-b-0",
+              i === active && "bg-sand",
             )}
           >
             {option.kind === "participant" ? (
               <>
-                <span>{option.name}</span>
-                <span className="text-xs text-muted">del grupo</span>
+                <span className="font-semibold">{option.name}</span>
+                <span className="text-xs text-ink-soft italic">del grupo</span>
               </>
             ) : (
-              <span>
-                + Agregar «{option.name}» <span className="text-xs text-muted">(alguien de fuera)</span>
+              <span className="inline-flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className={cn("grid size-[18px] place-items-center text-[13px] font-bold text-ink", accent === "copper" ? "bg-copper" : "bg-sage")}
+                >
+                  +
+                </span>
+                <span>
+                  Usar «<strong>{option.name}</strong>» como alguien de fuera
+                </span>
               </span>
             )}
           </li>

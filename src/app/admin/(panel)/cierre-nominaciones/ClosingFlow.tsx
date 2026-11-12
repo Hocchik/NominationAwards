@@ -131,7 +131,7 @@ export function ClosingFlow({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">Cierre de nominaciones</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Lo hace el notario con su archivo de llaves, idealmente en su propio dispositivo. Las
           papeletas se abren aquí, en el navegador; al servidor solo vuelven los finalistas, sin
           conteos.
@@ -141,13 +141,13 @@ export function ClosingFlow({
       {step === "key" && (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold">1. Carga el archivo de llaves del notario</h2>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-ink-soft">
             Hay {ballotCount === 1 ? "1 papeleta" : `${ballotCount} papeletas`} en la urna. El
             archivo no se sube a ningún lado: se lee en este navegador y la llave se olvida al
             terminar.
           </p>
           {!keys ? (
-            <label className="glass inline-flex min-h-12 cursor-pointer items-center rounded-xl px-5 text-sm font-semibold">
+            <label className="border border-line bg-sheet inline-flex min-h-12 cursor-pointer items-center px-5 text-sm font-semibold">
               Elegir archivo de llaves…
               <input type="file" accept="application/json,.json" onChange={loadKey} className="sr-only" />
             </label>
@@ -166,7 +166,7 @@ export function ClosingFlow({
         <Card className="space-y-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">2. Unifica nombres repetidos</h2>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-ink-soft">
               Todos los nombres que aparecieron, en orden alfabético y sin conteos. Si dos son la
               misma persona (por ejemplo, «Tía Rosa» y «La tía Rosa»), une uno con el otro y sus
               nominaciones se suman.
@@ -178,7 +178,7 @@ export function ClosingFlow({
             )}
           </div>
           {entries.length === 0 ? (
-            <p className="text-sm text-muted">No hay nominaciones.</p>
+            <p className="text-sm text-ink-soft">No hay nominaciones.</p>
           ) : (
             <ul className="divide-y divide-line">
               {entries.map((entry) => {
@@ -187,12 +187,12 @@ export function ClosingFlow({
                   <li key={entry.key} className="flex flex-wrap items-center gap-3 py-3">
                     <span className="min-w-40 flex-1 font-medium">
                       {entry.name}{" "}
-                      <span className="text-xs font-normal text-muted">
+                      <span className="text-xs font-normal text-ink-soft">
                         {entry.participantId ? "del grupo" : "de fuera"}
                       </span>
                     </span>
                     <label className="flex items-center gap-2 text-sm">
-                      <span className="text-muted">Es la misma persona que</span>
+                      <span className="text-ink-soft">Es la misma persona que</span>
                       <select
                         value={merges[entry.key] ?? ""}
                         onChange={(e) =>
@@ -203,22 +203,22 @@ export function ClosingFlow({
                             return next;
                           })
                         }
-                        className="glass min-h-11 rounded-xl px-3 text-sm text-foreground"
+                        className="border border-line bg-sheet min-h-11 px-3 text-sm text-ink"
                       >
-                        <option value="" className="bg-background">
+                        <option value="" className="bg-bg">
                           — nadie más —
                         </option>
                         {entries
                           .filter((other) => other.key !== entry.key)
                           .map((other) => (
-                            <option key={other.key} value={other.key} className="bg-background">
+                            <option key={other.key} value={other.key} className="bg-bg">
                               {other.name}
                             </option>
                           ))}
                       </select>
                     </label>
                     {target !== entry.key && (
-                      <span className="w-full text-xs text-muted">
+                      <span className="w-full text-xs text-ink-soft">
                         Se cuenta como {tally.entries[target]?.name}.
                       </span>
                     )}
@@ -235,27 +235,27 @@ export function ClosingFlow({
         <Card className="space-y-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">3. Revisa los finalistas</h2>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-ink-soft">
               Los {finalistsPerCategory} más nominados de cada categoría, en orden alfabético. Si
               hubo empate en el último puesto, entran todos los empatados.
             </p>
           </div>
           <ol className="space-y-3">
             {finalists.map(({ category, list }) => (
-              <li key={category.id} className="rounded-xl border border-line px-4 py-3">
+              <li key={category.id} className=" border border-line px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{category.name}</span>
-                  <Chip size="sm" tone={category.type === "PRIZE" ? "gold" : "honor"}>
+                  <Chip size="sm" tone={category.type === "PRIZE" ? "copper" : "sage"}>
                     {category.type === "PRIZE" ? "Premio" : "Honorífica"}
                   </Chip>
                 </div>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-sm text-ink-soft">
                   {list.length ? list.map((e) => e.name).join(" · ") : "Sin nominaciones: no tendrá finalistas."}
                 </p>
               </li>
             ))}
           </ol>
-          <p className="text-xs text-muted">
+          <p className="text-xs text-ink-soft">
             Al guardar, el evento pasa a «Finalistas listos». Los conteos no se guardan en ningún
             lado: si cierras esta pestaña antes, habrá que volver a cargar la llave.
           </p>

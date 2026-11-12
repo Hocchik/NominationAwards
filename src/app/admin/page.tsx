@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
       <Card className="space-y-6">
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-semibold">Panel del organizador</h1>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-ink-soft">
             Desde aquí se prepara el evento. Aun con esta contraseña nadie puede ver qué nominó o
             votó cada persona.
           </p>

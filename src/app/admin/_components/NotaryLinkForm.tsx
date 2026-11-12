@@ -22,7 +22,7 @@ export function NotaryLinkForm({ hasPendingLink }: { hasPendingLink: boolean }) 
           Envíale este link <strong>solo al notario</strong>, por un chat privado. Funciona una
           sola vez y no se vuelve a mostrar.
         </p>
-        <p className="glass rounded-xl px-4 py-3 text-sm break-all">{state.link}</p>
+        <p className="border border-line bg-sheet px-4 py-3 text-sm break-all">{state.link}</p>
         <CopyButton text={state.link} />
       </div>
     );
@@ -31,7 +31,7 @@ export function NotaryLinkForm({ hasPendingLink }: { hasPendingLink: boolean }) 
   return (
     <form action={formAction} className="space-y-3">
       {hasPendingLink && (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Ya generaste un link que el notario aún no usó. Si se perdió, genera otro: el anterior
           deja de funcionar.
         </p>

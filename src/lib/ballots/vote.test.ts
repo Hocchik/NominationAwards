@@ -45,7 +45,7 @@ describe("papeleta de voto", () => {
 describe("horario de la votación", () => {
   const opens = new Date("2026-11-22T23:00:00Z");
   const closes = new Date("2026-11-23T07:00:00Z");
-  const base = { votingOpensAt: opens, votingClosesAt: closes, readyToOpen: true };
+  const base = { nominationsCloseAt: null, votingOpensAt: opens, votingClosesAt: closes, readyToOpen: true };
 
   it("abre sola a la hora programada", () => {
     expect(scheduledPhase({ ...base, phase: "FINALISTS_READY", now: new Date("2026-11-22T22:59:59Z") })).toBeNull();
@@ -67,6 +67,6 @@ describe("horario de la votación", () => {
 
   it("no toca otras fases ni eventos sin horario", () => {
     expect(scheduledPhase({ ...base, phase: "NOMINATIONS", now: closes })).toBeNull();
-    expect(scheduledPhase({ phase: "VOTING", now: closes, votingOpensAt: null, votingClosesAt: null, readyToOpen: true })).toBeNull();
+    expect(scheduledPhase({ ...base, phase: "VOTING", now: closes, votingOpensAt: null, votingClosesAt: null })).toBeNull();
   });
 });

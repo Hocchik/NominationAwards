@@ -6,6 +6,7 @@ import { getCurrentEvent, getPhaseContext, getRoomUrl } from "@/lib/event/querie
 import {
   canEditFinalistsCount,
   canEditMaxPrize,
+  canEditNominationsClose,
   canEditSchedule,
   canEditStructure,
   canEditVoteRules,
@@ -52,7 +53,7 @@ async function EventPanel() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <p className="text-sm text-muted">Evento</p>
+        <p className="text-sm text-ink-soft">Evento</p>
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">{event.name}</h1>
       </div>
 
@@ -91,11 +92,13 @@ async function EventPanel() {
         />
       </SectionCard>
 
-      <SectionCard id="horario" title="Horario de la votación">
+      <SectionCard id="horario" title="Horarios">
         <ScheduleForm
+          nominationsCloseAt={event.nominationsCloseAt?.toISOString() ?? null}
           opensAt={event.votingOpensAt?.toISOString() ?? null}
           closesAt={event.votingClosesAt?.toISOString() ?? null}
           editable={canEditSchedule(event.phase)}
+          nominationsCloseEditable={canEditNominationsClose(event.phase)}
         />
       </SectionCard>
     </div>

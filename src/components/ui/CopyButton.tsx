@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export function CopyButton({ text, label = "Copiar link" }: { text: string; label?: string }) {
+export function CopyButton({
+  text,
+  label = "Copiar link",
+  className,
+}: {
+  text: string;
+  label?: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -19,7 +27,7 @@ export function CopyButton({ text, label = "Copiar link" }: { text: string; labe
 
   return (
     <>
-      <Button variant="secondary" onClick={copy}>
+      <Button variant="secondary" onClick={copy} className={className}>
         {copied ? "¡Copiado!" : label}
       </Button>
       <span aria-live="polite" className="sr-only">

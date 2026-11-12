@@ -118,7 +118,7 @@ export function NotarySetup({
           archivo: guárdalo bien, lo vas a necesitar para abrir las nominaciones y en la ceremonia.
         </p>
         <PrintList prints={prints} />
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-soft">
           El organizador verá estas mismas huellas en su panel. Ya puedes cerrar esta página.
         </p>
       </Card>
@@ -128,9 +128,9 @@ export function NotarySetup({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-sm text-muted">{eventName}</p>
+        <p className="text-sm text-ink-soft">{eventName}</p>
         <h1 className="font-display text-3xl font-semibold">Llaves del notario</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           El grupo te eligió para custodiar las llaves que abren las papeletas. Ni el organizador
           ni el servidor podrán ver lo que nominó o votó cada persona: solo se abren con tu
           archivo, y siempre en tu navegador.
@@ -138,7 +138,7 @@ export function NotarySetup({
       </div>
 
       <Step number={1} title="Genera tus llaves" active={!keys} done={Boolean(keys)}>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Se crean dos llaves en este dispositivo: una para las nominaciones y otra para la
           votación. Nada sale de aquí todavía.
         </p>
@@ -151,7 +151,7 @@ export function NotarySetup({
       </Step>
 
       <Step number={2} title="Descarga tu archivo" active={Boolean(keys) && !downloaded} done={downloaded}>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Contiene tus llaves privadas. Guárdalo en dos lugares (por ejemplo, tu computador y una
           memoria USB) y no se lo pases a nadie. Si se pierde, las papeletas no se pueden abrir.
         </p>
@@ -163,12 +163,12 @@ export function NotarySetup({
       </Step>
 
       <Step number={3} title="Comprueba el archivo" active={downloaded && !verified} done={verified}>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Vuelve a elegir el archivo que descargaste. Así sabemos que se guardó bien antes de
           seguir.
         </p>
         {downloaded && !verified && (
-          <label className="glass inline-flex min-h-12 cursor-pointer items-center rounded-xl px-5 text-sm font-semibold">
+          <label className="border border-line bg-sheet inline-flex min-h-12 cursor-pointer items-center px-5 text-sm font-semibold">
             Elegir archivo…
             <input type="file" accept="application/json,.json" onChange={verify} className="sr-only" />
           </label>
@@ -183,7 +183,7 @@ export function NotarySetup({
             checked={backedUp}
             onChange={(e) => setBackedUp(e.target.checked)}
             disabled={!verified}
-            className="mt-0.5 size-5 shrink-0 accent-gold"
+            className="mt-0.5 size-5 shrink-0 accent-copper"
           />
           Guardé el archivo y una copia de respaldo en otro lugar.
         </label>
@@ -242,12 +242,12 @@ function PrintList({ prints }: { prints: Fingerprints }) {
   return (
     <dl className="grid gap-2 text-sm sm:grid-cols-2">
       <div>
-        <dt className="text-muted">Huella · nominaciones</dt>
-        <dd className="font-mono text-base tracking-wider">{prints.nomination}</dd>
+        <dt className="text-ink-soft">Huella · nominaciones</dt>
+        <dd className="font-display text-sm font-bold tracking-[0.12em]">{prints.nomination}</dd>
       </div>
       <div>
-        <dt className="text-muted">Huella · votación</dt>
-        <dd className="font-mono text-base tracking-wider">{prints.vote}</dd>
+        <dt className="text-ink-soft">Huella · votación</dt>
+        <dd className="font-display text-sm font-bold tracking-[0.12em]">{prints.vote}</dd>
       </div>
     </dl>
   );

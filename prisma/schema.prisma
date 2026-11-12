@@ -55,6 +55,7 @@ model Event {
   nominationPublicKey  String?
   votePublicKey        String?
   notarySetupTokenHash String?
+  nominationsCloseAt   DateTime? // a esa hora las nominaciones cierran solas
   votingOpensAt        DateTime?
   votingClosesAt       DateTime?
   showWinnerPercent    Boolean    @default(false)

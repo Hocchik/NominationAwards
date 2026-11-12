@@ -31,9 +31,9 @@ async function FinalistsPanel() {
     return (
       <Card className="space-y-2">
         <h1 className="font-display text-2xl font-semibold">Finalistas</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Aparecen después del{" "}
-          <Link href="/admin/cierre-nominaciones" className="text-gold underline underline-offset-4">
+          <Link href="/admin/cierre-nominaciones" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
             cierre de nominaciones
           </Link>
           .
@@ -60,20 +60,20 @@ async function FinalistsPanel() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">Finalistas</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           En la votación: {activePrize} de premio (máximo {event.maxPrizeCategories}) ·{" "}
           {activeHonorary} {activeHonorary === 1 ? "honorífica" : "honoríficas"}. Los finalistas
           están en orden alfabético y sin conteos.
         </p>
         {!votingRulesEditable && (
-          <p className="text-sm text-muted">La votación ya empezó: las categorías activas y su orden quedan fijos.</p>
+          <p className="text-sm text-ink-soft">La votación ya empezó: las categorías activas y su orden quedan fijos.</p>
         )}
       </div>
 
       <SectionCard
         id="activas"
         title="Categorías en la votación"
-        description="Activa las que pasan a la votación final. Las de premio tienen tope; las honoríficas no."
+        description="Activa las que pasan a la votación final. Las de premio tienen tope; las honoríficas no. Al activar una, sus nominados se publican en la página de Nominados de la sala: carga antes las fotos y frases."
       >
         <ul className="divide-y divide-line">
           {categories.map((category) => {
@@ -84,10 +84,10 @@ async function FinalistsPanel() {
               <li key={category.id} className="flex flex-wrap items-center gap-3 py-3">
                 <span className="min-w-40 flex-1">
                   <span className="font-medium">{category.name}</span>{" "}
-                  <Chip size="sm" tone={isPrize ? "gold" : "honor"}>
+                  <Chip size="sm" tone={isPrize ? "copper" : "sage"}>
                     {isPrize ? "Premio" : "Honorífica"}
                   </Chip>
-                  <span className="block text-xs text-muted">
+                  <span className="block text-xs text-ink-soft">
                     {empty
                       ? "Sin finalistas"
                       : category.finalists.length === 1
@@ -109,7 +109,7 @@ async function FinalistsPanel() {
                     </Button>
                   </form>
                 ) : (
-                  <span className="text-sm text-muted">{category.activeForVote ? "✔ En la votación" : "No participa"}</span>
+                  <span className="text-sm text-ink-soft">{category.activeForVote ? "✔ En la votación" : "No participa"}</span>
                 )}
               </li>
             );
@@ -125,8 +125,8 @@ async function FinalistsPanel() {
         >
           <ol className="space-y-2">
             {active.map((category, index) => (
-              <li key={category.id} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2">
-                <span className="w-6 text-sm text-muted tabular-nums">{index + 1}</span>
+              <li key={category.id} className="flex items-center gap-3 border border-line px-3 py-2">
+                <span className="w-6 text-sm text-ink-soft tabular-nums">{index + 1}</span>
                 <span className="flex-1 text-sm font-medium">{category.name}</span>
                 {votingRulesEditable && (
                   <>

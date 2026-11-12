@@ -19,7 +19,7 @@ export function SectionCard({
         <h2 id={id} className="font-display text-xl font-semibold sm:text-2xl">
           {title}
         </h2>
-        {description && <p className="text-sm text-muted">{description}</p>}
+        {description && <p className="text-sm text-ink-soft">{description}</p>}
       </div>
       {children}
     </Card>

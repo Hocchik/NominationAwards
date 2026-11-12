@@ -38,7 +38,7 @@ async function NotaryContent({ params }: { params: Promise<{ setupToken: string 
     return (
       <Card className="space-y-2">
         <h1 className="font-display text-2xl font-semibold">Este link no está disponible</h1>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Ya se usó, fue reemplazado por otro o no es válido. Si te toca custodiar las llaves y
           aún no las generaste, pide al organizador un link nuevo.
         </p>

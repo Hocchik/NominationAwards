@@ -41,7 +41,7 @@ export function EntryForms({
       </div>
       {tab === "register" ? (
         registration ? (
-          <p className="text-sm text-muted">{registration}</p>
+          <p className="text-sm text-ink-soft">{registration}</p>
         ) : (
           <RegisterForm roomCode={roomCode} />
         )
@@ -67,8 +67,8 @@ function TabButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "min-h-12 rounded-xl border px-4 text-sm font-semibold transition-colors",
-        active ? "border-gold/60 bg-gold/10 text-foreground" : "border-line text-muted",
+        "min-h-12 px-4 text-sm font-bold transition-colors",
+        active ? "bg-ink text-sheet" : "border border-line-strong text-ink hover:bg-ink/5",
       )}
     >
       {children}
@@ -122,7 +122,7 @@ function LoginForm({ roomCode, names }: { roomCode: string; names: string[] }) {
   const [newPinState, newPinAction, newPinPending] = useActionState(setNewPinAction, initial);
 
   if (names.length === 0) {
-    return <p className="text-sm text-muted">Todavía no hay nadie registrado en esta sala.</p>;
+    return <p className="text-sm text-ink-soft">Todavía no hay nadie registrado en esta sala.</p>;
   }
 
   // El admin restableció el PIN de este nombre: se crea uno nuevo.
@@ -163,7 +163,7 @@ function LoginForm({ roomCode, names }: { roomCode: string; names: string[] }) {
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="roomCode" value={roomCode} />
       <div className="space-y-1.5">
-        <label htmlFor="ingreso-nombre" className="block text-sm font-medium">
+        <label htmlFor="ingreso-nombre" className="block text-sm font-semibold">
           Tu nombre
         </label>
         <select
@@ -171,13 +171,13 @@ function LoginForm({ roomCode, names }: { roomCode: string; names: string[] }) {
           name="name"
           required
           defaultValue={state.values?.name ?? ""}
-          className="glass min-h-12 w-full rounded-xl px-4 text-base text-foreground"
+          className="min-h-12 w-full border border-line-strong bg-raised px-4 text-base text-ink"
         >
           <option value="" disabled>
             Elige tu nombre…
           </option>
           {names.map((n) => (
-            <option key={n} value={n} className="bg-background">
+            <option key={n} value={n}>
               {n}
             </option>
           ))}

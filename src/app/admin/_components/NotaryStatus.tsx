@@ -15,15 +15,15 @@ export async function NotaryStatus({ event }: { event: Event }) {
         <p className="text-success">✓ El notario configuró sus llaves.</p>
         <dl className="grid gap-2 sm:grid-cols-2">
           <div>
-            <dt className="text-muted">Huella · nominaciones</dt>
-            <dd className="font-mono text-base tracking-wider">{nomination}</dd>
+            <dt className="text-ink-soft">Huella · nominaciones</dt>
+            <dd className="font-display text-sm font-bold tracking-[0.12em]">{nomination}</dd>
           </div>
           <div>
-            <dt className="text-muted">Huella · votación</dt>
-            <dd className="font-mono text-base tracking-wider">{vote}</dd>
+            <dt className="text-ink-soft">Huella · votación</dt>
+            <dd className="font-display text-sm font-bold tracking-[0.12em]">{vote}</dd>
           </div>
         </dl>
-        <p className="text-xs text-muted">
+        <p className="text-xs text-ink-soft">
           Deben coincidir con las que vio el notario. Las llaves privadas quedan solo en manos
           del notario: ni el servidor ni tú pueden abrir las papeletas.
         </p>
@@ -42,7 +42,7 @@ export async function NotaryStatus({ event }: { event: Event }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted">
+      <p className="text-sm text-ink-soft">
         El notario es una persona de confianza del grupo (no tú). Con este link genera en su
         navegador dos llaves: una para abrir las nominaciones y otra para abrir los votos. Al
         servidor solo llegan las públicas.

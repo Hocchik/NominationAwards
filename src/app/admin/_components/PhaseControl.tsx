@@ -46,13 +46,13 @@ export function PhaseControl({ phase, blockers }: PhaseControlProps) {
             key={p}
             aria-current={i === current ? "step" : undefined}
             className={cn(
-              "rounded-xl border px-3 py-2 text-sm",
-              i < current && "border-line text-muted line-through decoration-muted/50",
-              i === current && "border-gold/60 bg-gold/10 font-semibold text-foreground",
-              i > current && "border-line/60 text-muted",
+              "border px-3 py-2 text-sm",
+              i < current && "border-line text-ink-soft line-through decoration-ink-soft/50",
+              i === current && "border-ink bg-ink font-semibold text-sheet [&_span]:text-sheet/75",
+              i > current && "border-line/60 text-ink-soft",
             )}
           >
-            <span className="block text-xs font-normal text-muted no-underline">{i + 1}</span>
+            <span className="block text-xs font-normal text-ink-soft no-underline">{i + 1}</span>
             {PHASE_LABELS[p]}
           </li>
         ))}
@@ -60,27 +60,27 @@ export function PhaseControl({ phase, blockers }: PhaseControlProps) {
 
       <div className="space-y-1">
         <p className="font-display text-xl font-semibold">Ahora: {PHASE_LABELS[phase]}</p>
-        <p className="text-sm text-muted">{PHASE_HINTS[phase]}</p>
+        <p className="text-sm text-ink-soft">{PHASE_HINTS[phase]}</p>
       </div>
 
       {mode === "flow" && (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-soft">
           Esta fase termina en{" "}
-          <Link href="/admin/cierre-nominaciones" className="text-gold underline underline-offset-4">
+          <Link href="/admin/cierre-nominaciones" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
             Cierre de nominaciones
           </Link>
           : el notario abre las papeletas en su navegador y, al guardar los finalistas, el evento
           pasa solo a «Finalistas listos».
         </p>
       )}
-      {mode === "end" && <p className="text-sm text-muted">El evento terminó.</p>}
+      {mode === "end" && <p className="text-sm text-ink-soft">El evento terminó.</p>}
 
       {mode === "button" && next && (
         <div className="space-y-4">
           {blockers.length > 0 && (
             <div className="space-y-1 text-sm">
               <p className="font-medium">Para avanzar falta:</p>
-              <ul className="list-disc space-y-1 pl-5 text-muted">
+              <ul className="list-disc space-y-1 pl-5 text-ink-soft">
                 {blockers.map((blocker) => (
                   <li key={blocker}>{blocker}</li>
                 ))}
@@ -89,7 +89,7 @@ export function PhaseControl({ phase, blockers }: PhaseControlProps) {
           )}
 
           {confirming ? (
-            <form action={formAction} className="space-y-4 rounded-xl border border-gold/40 p-4">
+            <form action={formAction} className="space-y-4 border-[1.5px] border-ink bg-raised p-4">
               <input type="hidden" name="from" value={phase} />
               <p className="text-sm">
                 ¿Pasar a <strong>«{PHASE_LABELS[next]}»</strong>? {PHASE_HINTS[next]}{" "}

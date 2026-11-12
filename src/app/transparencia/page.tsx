@@ -14,7 +14,7 @@ function Point({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card as="section" className="space-y-2">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="space-y-2 text-sm text-muted">{children}</div>
+      <div className="space-y-2 text-sm text-ink-soft">{children}</div>
     </Card>
   );
 }
@@ -24,9 +24,9 @@ export default function TransparencyPage() {
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-10">
       <Logo />
       <div className="space-y-3">
-        <h1 className="font-display text-4xl font-semibold">¿Quién puede ver mi voto?</h1>
-        <p className="font-display text-3xl text-gold">Nadie.</p>
-        <p className="text-muted">
+        <h1 className="font-display text-4xl leading-tight font-extrabold">¿Quién puede ver mi voto?</h1>
+        <p className="inline-block bg-copper px-3 py-1 font-display text-3xl font-extrabold text-ink uppercase chamfer-10">Nadie.</p>
+        <p className="text-ink-soft">
           Ni el organizador, ni quien administra el servidor, ni el notario por separado. Así
           funciona, paso a paso:
         </p>
@@ -81,7 +81,7 @@ export default function TransparencyPage() {
       <Point title="6. El código es público">
         <p>
           Cualquiera puede revisar cómo funciona la app, línea por línea:{" "}
-          <a href={REPO_URL} className="text-gold underline underline-offset-4" rel="noreferrer" target="_blank">
+          <a href={REPO_URL} className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4" rel="noreferrer" target="_blank">
             {REPO_URL.replace("https://", "")}
           </a>
           .

@@ -2,9 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { Button } from "@/components/ui/Button";
+import {
+  BallotIndex,
+  CategoryHeading,
+  CheckBox,
+  DoubleRule,
+  RoundBar,
+  SealedScreen,
+  SealNote,
+  StepBar,
+} from "@/components/ballot/BallotParts";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Chip } from "@/components/ui/Chip";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { LocalDateTime } from "@/components/ui/LocalDateTime";
 import type { CategoryType } from "@/generated/prisma/enums";
@@ -36,6 +45,7 @@ type Votes = Record<string, string | null>;
 // Borrador en sessionStorage: sobrevive a una recarga y se borra al cerrar la
 // pestaña o al enviar. Nunca sale de este navegador.
 const draftKey = (roomCode: string) => `voto-borrador-${roomCode}`;
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export function VoteBallotForm({
   roomCode,
@@ -119,176 +129,209 @@ export function VoteBallotForm({
 
   if (receipt) {
     return (
-      <Card className="space-y-5 text-center">
-        <h1 className="font-display text-3xl font-semibold">¡Voto sellado!</h1>
-        <p className="text-sm text-muted">
-          Tu papeleta se cifró en este dispositivo y llegó a la urna. Nadie puede ver qué votaste:
-          se abre en la ceremonia, junto con todas las demás.
-        </p>
-        <div className="space-y-1">
-          <p className="text-sm text-muted">Tu comprobante</p>
-          <p className="font-display text-4xl font-semibold tracking-[0.15em]">{receipt}</p>
-        </div>
-        <p className="text-xs text-muted">
-          Antes de revelar a los ganadores se proyectan todos los comprobantes recibidos: busca el
-          tuyo. Guárdalo (una captura sirve) y no lo compartas; no se vuelve a mostrar.
-        </p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <CopyButton text={receipt} label="Copiar comprobante" />
-          <Link href={`/s/${roomCode}`} className="inline-flex min-h-12 items-center px-4 text-sm text-gold underline underline-offset-4">
-            Volver a la sala
-          </Link>
-        </div>
-      </Card>
+      <SealedScreen
+        title="Voto sellado"
+        text="Tu papeleta se cifró en este dispositivo y llegó a la urna. Nadie puede ver qué marcaste."
+        code={receipt}
+        receiptNote="Se proyecta en la gala"
+        help="Antes de la premiación se proyectan todos los comprobantes recibidos: busca el tuyo. Guárdalo (una captura sirve) y no lo compartas: no se vuelve a mostrar."
+        actions={
+          <>
+            <CopyButton text={receipt} label="Copiar código" className="flex-1" />
+            <Link href={`/s/${roomCode}/nominados`} className={buttonClasses({ className: "flex-1" })}>
+              Ver nominados
+            </Link>
+          </>
+        }
+      />
     );
   }
 
   const reviewing = index >= categories.length;
   const category = categories[index];
   const answered = ids.filter((id) => votes[id] !== undefined).length;
+  const progress = `${answered} de ${categories.length} marcadas`;
 
   return (
-    <div className="space-y-5">
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
       <div className="space-y-2">
-        <p className="text-sm text-muted">
-          {eventName} · Votación final
+        <RoundBar
+          label={`${eventName} · Votar`}
+          step={reviewing ? "Revisión" : `${pad(index + 1)} / ${pad(categories.length)}`}
+        />
+        <Card className="space-y-3.5 px-[18px] py-[18px] sm:px-7 sm:py-6">
+          <StepBar
+            done={ids.map((id) => votes[id] !== undefined)}
+            current={reviewing ? -1 : index}
+            label={`Llevas ${progress}`}
+          />
           {closesAt && (
-            <>
-              {" "}· cierra el <LocalDateTime iso={closesAt} />
-            </>
-          )}
-        </p>
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="font-medium">{reviewing ? "Revisión final" : `Categoría ${index + 1} de ${categories.length}`}</span>
-          <span className="text-muted">
-            {answered} de {categories.length} respondidas
-          </span>
-        </div>
-        <div className="h-1.5 rounded-full bg-surface" aria-hidden="true">
-          <div className="h-1.5 rounded-full bg-gold transition-[width]" style={{ width: `${(answered / categories.length) * 100}%` }} />
-        </div>
-      </div>
-
-      {!reviewing && category && (
-        <Card accent={category.type === "PRIZE" ? "prize" : "honor"} className="space-y-5">
-          <div className="space-y-2">
-            <Chip size="sm" tone={category.type === "PRIZE" ? "gold" : "honor"}>
-              {category.type === "PRIZE" ? "Premio" : "Honorífica"}
-            </Chip>
-            <h1 className="font-display text-2xl font-semibold sm:text-3xl">{category.name}</h1>
-            <p className="text-muted">{category.description}</p>
-          </div>
-          <fieldset className="space-y-3">
-            <legend className="mb-1 text-sm">Elige a una persona. Puedes cambiarla hasta sellar.</legend>
-            {category.finalists.map((finalist) => {
-              const selected = votes[category.id] === finalist.id;
-              return (
-                <label
-                  key={finalist.id}
-                  className={cn(
-                    "glass flex min-h-20 cursor-pointer items-center gap-4 rounded-card p-3 transition-colors",
-                    "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gold-soft",
-                    selected && "border-gold/70 bg-gold/10",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name={`voto-${category.id}`}
-                    value={finalist.id}
-                    checked={selected}
-                    onChange={() => choose(category.id, finalist.id)}
-                    className="sr-only"
-                  />
-                  {finalist.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL
-                    <img src={finalist.photoUrl} alt="" className="size-16 shrink-0 rounded-xl object-cover" />
-                  ) : (
-                    <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-xl bg-surface-strong font-display text-xl">
-                      {initials(finalist.name)}
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{finalist.name}</span>
-                    {finalist.blurb && <span className="block text-sm text-muted italic">«{finalist.blurb}»</span>}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={cn("grid size-7 shrink-0 place-items-center rounded-full border-2", selected ? "border-gold bg-gold text-background" : "border-line")}
-                  >
-                    {selected ? "✓" : ""}
-                  </span>
-                </label>
-              );
-            })}
-            {allowAbstention && (
-              <label
-                className={cn(
-                  "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 text-sm",
-                  votes[category.id] === null ? "border-gold/70" : "border-line",
-                )}
-              >
-                <input
-                  type="radio"
-                  name={`voto-${category.id}`}
-                  value="abstencion"
-                  checked={votes[category.id] === null}
-                  onChange={() => choose(category.id, null)}
-                  className="size-4 accent-gold"
-                />
-                Me abstengo en esta categoría
-              </label>
-            )}
-          </fieldset>
-        </Card>
-      )}
-
-      {reviewing && (
-        <Card className="space-y-5">
-          <div className="space-y-1">
-            <h1 className="font-display text-2xl font-semibold">Revisa tu voto</h1>
-            <p className="text-sm text-muted">Al sellarlo se cifra y ya no se puede cambiar.</p>
-          </div>
-          <ol className="space-y-2">
-            {categories.map((c, i) => (
-              <li key={c.id} className={cn("flex items-center justify-between gap-3 rounded-xl border px-4 py-3", issues[c.id] ? "border-danger/50" : "border-line")}>
-                <div className="min-w-0">
-                  <p className="text-sm text-muted">{c.name}</p>
-                  <p className="font-medium">{choiceLabel(c)}</p>
-                  {issues[c.id] && <p className="text-sm text-danger">{issues[c.id]}</p>}
-                </div>
-                <Button variant="ghost" onClick={() => setIndex(i)} aria-label={`Cambiar ${c.name}`}>
-                  Cambiar
-                </Button>
-              </li>
-            ))}
-          </ol>
-          <p className="text-xs text-muted">
-            Tu voto se cifra en este dispositivo con la llave pública del notario y solo se abre en la
-            ceremonia.{" "}
-            <Link href="/transparencia" className="underline underline-offset-4">
-              ¿Cómo funciona?
-            </Link>
-          </p>
-          {error && (
-            <p role="alert" className="text-sm text-danger">
-              {error}
+            <p className="text-xs text-ink-soft">
+              La votación cierra el <LocalDateTime iso={closesAt} />
             </p>
           )}
-          <Button fullWidth size="lg" onClick={submit} disabled={pending || Object.keys(issues).length > 0}>
-            {pending ? "Sellando y enviando…" : "Sellar mi voto"}
-          </Button>
-        </Card>
-      )}
 
-      <div className="flex justify-between gap-3">
-        <Button variant="secondary" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0 || pending}>
-          ← Anterior
-        </Button>
-        {!reviewing && (
-          <Button onClick={() => setIndex((i) => i + 1)}>
-            {index === categories.length - 1 ? "Revisar todo →" : "Siguiente →"}
-          </Button>
-        )}
+          {!reviewing && category && (
+            <>
+              <CategoryHeading
+                type={category.type}
+                eyebrow={`Papeleta · categoría ${pad(index + 1)}`}
+                name={category.name}
+                description={category.description}
+              />
+              <fieldset className={category.type === "PRIZE" ? "accent-prize" : "accent-honor"}>
+                <legend className="mb-2.5 text-[13px] text-ink-soft">Elige a una persona. Puedes cambiarla hasta sellar.</legend>
+                <div className="border-t-2 border-ink">
+                  {category.finalists.map((finalist) => {
+                    const selected = votes[category.id] === finalist.id;
+                    return (
+                      <label
+                        key={finalist.id}
+                        className={cn(
+                          "flex min-h-[92px] cursor-pointer items-center gap-3 border-b border-l-[3px] border-b-line py-2.5 pr-1.5 pl-2.5 transition-colors",
+                          "has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ink",
+                          selected ? "border-l-copper bg-raised" : "border-l-transparent hover:bg-raised/60",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name={`voto-${category.id}`}
+                          value={finalist.id}
+                          checked={selected}
+                          onChange={() => choose(category.id, finalist.id)}
+                          className="sr-only"
+                        />
+                        {finalist.photoUrl ? (
+                          <span className="photo-duotone h-[68px] w-16 shrink-0 overflow-hidden chamfer-10">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
+                            <img src={finalist.photoUrl} alt="" className="size-full object-cover" />
+                          </span>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="grid h-[68px] w-16 shrink-0 place-items-center bg-sand font-display text-xl font-extrabold chamfer-10"
+                          >
+                            {initials(finalist.name)}
+                          </span>
+                        )}
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span className="font-display text-[15px] leading-tight font-bold">{finalist.name}</span>
+                          {finalist.blurb && (
+                            <span className="text-[13px] leading-snug text-ink-soft italic">{finalist.blurb}</span>
+                          )}
+                          {selected && (
+                            <span className="self-start bg-copper px-1.5 py-[3px] font-display text-[9px] font-bold tracking-[0.14em] text-ink uppercase">
+                              Tu voto
+                            </span>
+                          )}
+                        </span>
+                        <CheckBox checked={selected} />
+                      </label>
+                    );
+                  })}
+                  {allowAbstention && (
+                    <label
+                      className={cn(
+                        "flex min-h-14 cursor-pointer items-center gap-3 border-b border-l-[3px] border-b-line py-2 pr-1.5 pl-2.5 text-[15px] transition-colors",
+                        "has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ink",
+                        votes[category.id] === null ? "border-l-ink bg-raised font-semibold" : "border-l-transparent text-ink-soft hover:bg-raised/60",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name={`voto-${category.id}`}
+                        value="abstencion"
+                        checked={votes[category.id] === null}
+                        onChange={() => choose(category.id, null)}
+                        className="sr-only"
+                      />
+                      <span className="flex-1">Me abstengo en esta categoría</span>
+                      <CheckBox checked={votes[category.id] === null} />
+                    </label>
+                  )}
+                </div>
+              </fieldset>
+            </>
+          )}
+
+          {reviewing && (
+            <>
+              <DoubleRule left="Revisión final" right={progress} />
+              <div className="space-y-1">
+                <h1 className="font-display text-[25px] leading-tight font-bold">Revisa tu voto</h1>
+                <p className="text-sm text-ink-soft">Al sellarlo se cifra y ya no se puede cambiar.</p>
+              </div>
+              <ol className="border-t-2 border-ink">
+                {categories.map((c, i) => (
+                  <li key={c.id} className="flex items-center justify-between gap-3 border-b border-line py-3">
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="flex items-center gap-2 text-sm text-ink-soft">
+                        <span aria-hidden="true" className={cn("size-2 shrink-0", c.type === "PRIZE" ? "bg-copper" : "bg-sage")} />
+                        {c.name}
+                      </p>
+                      <p className="font-display text-[15px] font-bold">{choiceLabel(c)}</p>
+                      {issues[c.id] && <p className="text-sm font-semibold text-danger">{issues[c.id]}</p>}
+                    </div>
+                    <Button variant="ghost" onClick={() => setIndex(i)} aria-label={`Cambiar ${c.name}`}>
+                      Cambiar
+                    </Button>
+                  </li>
+                ))}
+              </ol>
+              <SealNote>
+                Tu voto se cifra en este dispositivo con la llave pública del notario y solo se abre en la ceremonia.{" "}
+                <Link href="/transparencia" className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4">
+                  ¿Cómo funciona?
+                </Link>
+              </SealNote>
+              {error && (
+                <p role="alert" className="text-sm font-semibold text-danger">
+                  {error}
+                </p>
+              )}
+              <Button fullWidth size="lg" onClick={submit} disabled={pending || Object.keys(issues).length > 0}>
+                {pending ? "Sellando y enviando…" : "Sellar mi voto"}
+              </Button>
+            </>
+          )}
+
+          <div className="flex flex-col gap-2.5 pt-1">
+            {!reviewing && (
+              <button
+                type="button"
+                onClick={() => setIndex(categories.length)}
+                className="inline-flex min-h-10 items-center self-center text-sm font-semibold underline decoration-copper decoration-2 underline-offset-4"
+              >
+                Revisar mi papeleta · {progress}
+              </button>
+            )}
+            <div className="flex gap-2.5">
+              <Button variant="secondary" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0 || pending}>
+                ← Anterior
+              </Button>
+              {!reviewing && (
+                <Button className="flex-1" onClick={() => setIndex((i) => i + 1)}>
+                  {index === categories.length - 1 ? "Revisar todo →" : "Siguiente →"}
+                </Button>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="lg:sticky lg:top-6 lg:pt-12">
+        <BallotIndex
+          title="Tu papeleta"
+          current={index}
+          onPick={setIndex}
+          items={categories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            type: c.type,
+            status: choiceLabel(c),
+            done: votes[c.id] !== undefined,
+          }))}
+        />
       </div>
     </div>
   );
