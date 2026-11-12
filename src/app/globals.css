@@ -107,6 +107,58 @@
     var(--bg);
 }
 
+/* --- Ceremonia (CLAUDE.md §8) --------------------------------------------- */
+
+@keyframes ceremony-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ceremony-winner {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: brightness(2.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+/* Foco de luz que recorre las tarjetas durante el suspenso */
+@keyframes ceremony-spotlight {
+  from {
+    transform: translateX(-60%);
+  }
+  to {
+    transform: translateX(60%);
+  }
+}
+
+.ceremony-rise {
+  animation: ceremony-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.ceremony-winner {
+  animation: ceremony-winner 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.ceremony-spotlight {
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.28), transparent);
+  animation: ceremony-spotlight 0.9s ease-in-out infinite alternate;
+}
+
 /* Respeta a quien pide menos movimiento en su sistema */
 @media (prefers-reduced-motion: reduce) {
   *,

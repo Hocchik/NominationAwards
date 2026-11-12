@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FormMessage } from "@/components/ui/Field";
@@ -64,8 +65,12 @@ export function PhaseControl({ phase, blockers }: PhaseControlProps) {
 
       {mode === "flow" && (
         <p className="text-sm text-muted">
-          Esta fase termina desde «Cierre de nominaciones» (Fase 5): el notario abre las papeletas
-          en su navegador y, al guardar los finalistas, el evento pasa solo a «Finalistas listos».
+          Esta fase termina en{" "}
+          <Link href="/admin/cierre-nominaciones" className="text-gold underline underline-offset-4">
+            Cierre de nominaciones
+          </Link>
+          : el notario abre las papeletas en su navegador y, al guardar los finalistas, el evento
+          pasa solo a «Finalistas listos».
         </p>
       )}
       {mode === "end" && <p className="text-sm text-muted">El evento terminó.</p>}

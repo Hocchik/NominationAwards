@@ -1,14 +1,43 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import type { Event } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type { PhaseContext } from "./phases";
+import { scheduledPhase } from "./schedule";
 
 // La app maneja un solo evento a la vez (la premiación del grupo).
 
-export function getCurrentEvent(): Promise<Event | null> {
-  return prisma.event.findFirst();
+export async function getCurrentEvent(): Promise<Event | null> {
+  const event = await prisma.event.findFirst();
+  return event && applySchedule(event);
+}
+
+/**
+ * Si el horario de votación ya llegó (o ya pasó), avanza la fase antes de
+ * devolver el evento. El cambio es atómico: si dos visitas llegan a la vez,
+ * solo una lo aplica y la otra lee el resultado.
+ */
+export async function applySchedule(event: Event): Promise<Event> {
+  if (event.phase !== "FINALISTS_READY" && event.phase !== "VOTING") return event;
+  if (!event.votingOpensAt && !event.votingClosesAt) return event;
+
+  await connection(); // la hora se lee en cada petición, nunca en el prerender
+  const readyToOpen =
+    Boolean(event.votePublicKey) &&
+    (await prisma.category.count({ where: { eventId: event.id, activeForVote: true } })) > 0;
+  const next = scheduledPhase({
+    phase: event.phase,
+    now: new Date(),
+    votingOpensAt: event.votingOpensAt,
+    votingClosesAt: event.votingClosesAt,
+    readyToOpen,
+  });
+  if (!next) return event;
+
+  await prisma.event.updateMany({ where: { id: event.id, phase: event.phase }, data: { phase: next } });
+  return (await prisma.event.findUnique({ where: { id: event.id } })) ?? event;
 }
 
 export function getCategories(eventId: string) {

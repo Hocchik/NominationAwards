@@ -76,6 +76,18 @@ describe("envío atómico de papeletas", () => {
     expect(participant.hasNominated).toBe(false);
   });
 
+  it("en la votación, el doble voto simultáneo también deja uno solo", async () => {
+    await prisma.event.update({ where: { id: eventId }, data: { phase: "VOTING" } });
+    const vote = () =>
+      recordBallot({ eventId, participantId: ids.approved2, phase: "VOTE", ciphertext: "QUJD", receiptCode: "XYZ-234" });
+    const results = await Promise.all([vote(), vote()]);
+    expect(results.filter((r) => r.ok)).toHaveLength(1);
+    expect(await prisma.ballot.count({ where: { eventId, phase: "VOTE" } })).toBe(1);
+    const participant = await prisma.participant.findUniqueOrThrow({ where: { id: ids.approved2 } });
+    expect(participant.hasVoted).toBe(true);
+    expect(participant.hasNominated).toBe(false); // votar no toca la marca de nominar
+  });
+
   it("la papeleta guardada no tiene ningún dato del participante", async () => {
     const ballot = await prisma.ballot.findFirstOrThrow({ where: { eventId } });
     expect(Object.keys(ballot).sort()).toEqual(["ciphertext", "eventId", "id", "phase", "receiptCode"]);

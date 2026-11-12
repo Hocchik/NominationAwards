@@ -1,9 +1,12 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
+import { applySchedule } from "@/lib/event/queries";
 
-export function getEventByRoomCode(roomCode: string) {
-  return prisma.event.findUnique({ where: { roomCode: roomCode.toUpperCase() } });
+/** El evento de una sala, con la fase ya al día según el horario de votación. */
+export async function getEventByRoomCode(roomCode: string) {
+  const event = await prisma.event.findUnique({ where: { roomCode: roomCode.toUpperCase() } });
+  return event && applySchedule(event);
 }
 
 /** Registros que ocupan cupo: pendientes y aprobados (los rechazados liberan su lugar). */

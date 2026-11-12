@@ -9,6 +9,9 @@ const LINKS = [
   { href: "/admin/evento", label: "Evento" },
   { href: "/admin/categorias", label: "Categorías" },
   { href: "/admin/participantes", label: "Participantes" },
+  { href: "/admin/cierre-nominaciones", label: "Cierre" },
+  { href: "/admin/finalistas", label: "Finalistas" },
+  { href: "/ceremonia", label: "Ceremonia" },
 ];
 
 export function AdminNav() {

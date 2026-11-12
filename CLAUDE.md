@@ -56,7 +56,7 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 2. **Sin vínculo votante–papeleta.** La tabla `Ballot` NO tiene `participantId`, NO tiene `createdAt`/`updatedAt`, NO tiene IP ni user-agent. El ID es UUID v4 aleatorio.
 3. **Sin marcas de tiempo delatoras.** `Participant` NO tiene `@updatedAt` ni campos de fecha sobre nominar/votar (solo booleanos `hasNominated` / `hasVoted`). `createdAt` del registro sí está permitido.
 4. **Envío atómico.** El envío de una papeleta es UNA transacción (`prisma.$transaction`): verificar participante `APPROVED` y que no haya enviado → marcar booleano → insertar `Ballot`. Si dos dispositivos envían a la vez, solo uno pasa (usar `updateMany` con condición `hasVoted: false` y verificar `count === 1`).
-5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según número de categorías × máximo de nominados, en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB. El servidor rechaza textos cifrados que no midan exactamente eso.
+5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según número de categorías × máximo de nominados, en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB hasta unas 11 categorías activas y de a 1 KB más si hay más (`voteBallotBytes` en `lib/ballots/vote.ts`). El servidor rechaza textos cifrados que no midan exactamente eso.
 6. **Nunca registrar contenido.** No hacer `console.log` de papeletas, payloads descifrados ni conteos. Nada de analytics con eventos de voto.
 7. **Descifrado solo en el navegador del notario/ceremonia.** Las llaves privadas nunca se envían al servidor ni se guardan en `localStorage`. Viven solo en memoria durante la sesión.
 8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. En la ceremonia se muestra solo el ganador (opcional: % redondeado del ganador). Nunca mostrar finalistas con 0 votos ni conteos exactos.
@@ -299,14 +299,14 @@ public/sounds/            # drumroll, fanfare (libres de derechos)
 
 Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcione de punta a punta.
 
-- [ ] **Fase 0 — Base:** Next.js + TS + Tailwind, Prisma + Neon, design system (tokens, fuentes, `Button`, `Card`, `Chip`), layout con fondo de gala, deploy inicial en Vercel, `.env.example`
-- [ ] **Fase 1 — Admin y evento:** login admin, CRUD de evento y categorías, control de fases, link/QR de la sala
-- [ ] **Fase 2 — Notario y cripto:** `lib/crypto` (generación de llaves, seal, open, padding) con **tests unitarios**, página `/notario/[setupToken]`
-- [ ] **Fase 3 — Registro abierto:** entrada a la sala, registro con PIN, login, sesión, anti fuerza bruta, aprobación en admin, participación ✔/⏳
-- [ ] **Fase 4 — Nominaciones:** formulario por categoría con autocompletado, validación min/max, cifrado + envío atómico, comprobante, pantalla de transparencia
-- [ ] **Fase 5 — Cierre y finalistas:** descifrado en navegador, unificación de nombres sin conteos, top N con empates, activación de categorías (máx. 15 PRIZE), orden de revelación, fotos/frases opcionales
-- [ ] **Fase 6 — Votación:** apertura/cierre por horario, flujo de voto, cifrado + envío atómico, comprobante
-- [ ] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, lista de comprobantes, secuencia de revelación completa con sonido y confeti, controles de teclado, empates
+- [ ] **Fase 0 — Base:** Next.js + TS + Tailwind, Prisma + Neon, design system (tokens, fuentes, `Button`, `Card`, `Chip`), layout con fondo de gala, deploy inicial en Vercel, `.env.example` _(todo listo salvo el deploy en Vercel)_
+- [x] **Fase 1 — Admin y evento:** login admin, CRUD de evento y categorías, control de fases, link/QR de la sala
+- [x] **Fase 2 — Notario y cripto:** `lib/crypto` (generación de llaves, seal, open, padding) con **tests unitarios**, página `/notario/[setupToken]`
+- [x] **Fase 3 — Registro abierto:** entrada a la sala, registro con PIN, login, sesión, anti fuerza bruta, aprobación en admin, participación ✔/⏳
+- [x] **Fase 4 — Nominaciones:** formulario por categoría con autocompletado, validación min/max, cifrado + envío atómico, comprobante, pantalla de transparencia
+- [x] **Fase 5 — Cierre y finalistas:** descifrado en navegador, unificación de nombres sin conteos, top N con empates, activación de categorías (máx. 15 PRIZE), orden de revelación, fotos/frases opcionales
+- [x] **Fase 6 — Votación:** apertura/cierre por horario, flujo de voto, cifrado + envío atómico, comprobante
+- [x] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, lista de comprobantes, secuencia de revelación completa con sonido y confeti, controles de teclado, empates
 - [ ] **Fase 8 — Pruebas y ensayo:** test de doble envío concurrente, test de que `Ballot` y `Participant` no tienen campos prohibidos, prueba con 5–10 amigos, ensayo en el proyector real
 
 ---

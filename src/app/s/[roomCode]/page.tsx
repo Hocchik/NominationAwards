@@ -45,7 +45,15 @@ async function Room({ params }: { params: Params }) {
 
   const participant = await getSessionParticipant(event.id);
   if (participant) {
-    return <ParticipantHome participant={participant} phase={event.phase} roomCode={event.roomCode} />;
+    return (
+      <ParticipantHome
+        participant={participant}
+        phase={event.phase}
+        roomCode={event.roomCode}
+        votingOpensAt={event.votingOpensAt?.toISOString() ?? null}
+        votingClosesAt={event.votingClosesAt?.toISOString() ?? null}
+      />
+    );
   }
 
   if (event.phase === "SETUP") {

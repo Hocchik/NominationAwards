@@ -70,7 +70,7 @@ export function ScheduleForm({
       </div>
       <p className="text-xs text-muted">
         {editable
-          ? `Hora de tu dispositivo${timeZone ? ` (${timeZone})` : ""}. Lo normal es abrirla un día antes de la reunión. La apertura y el cierre automáticos llegan en la Fase 6; mientras tanto se avanza con el botón de fases.`
+          ? `Hora de tu dispositivo${timeZone ? ` (${timeZone})` : ""}. Lo normal es abrirla un día antes de la reunión. A esas horas la votación abre y cierra sola (si hay categorías activas); también puedes adelantarla con el botón de fases.`
           : "La votación ya cerró: el horario no se puede cambiar."}
       </p>
       <FormMessage state={state} />
