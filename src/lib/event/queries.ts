@@ -54,6 +54,7 @@ export function getCategories(eventId: string) {
 }
 
 export async function getPhaseContext(event: Event): Promise<PhaseContext> {
+  await connection(); // usa la hora actual: se calcula en cada petición
   const [categoryCount, activePrizeCount, activeHonoraryCount] = await Promise.all([
     prisma.category.count({ where: { eventId: event.id } }),
     prisma.category.count({ where: { eventId: event.id, activeForVote: true, type: "PRIZE" } }),
@@ -67,8 +68,10 @@ export async function getPhaseContext(event: Event): Promise<PhaseContext> {
     maxPrizeCategories: event.maxPrizeCategories,
     hasNominationKey: Boolean(event.nominationPublicKey),
     hasVoteKey: Boolean(event.votePublicKey),
+    nominationsCloseAt: event.nominationsCloseAt,
     votingOpensAt: event.votingOpensAt,
     votingClosesAt: event.votingClosesAt,
+    now: new Date(),
   };
 }
 

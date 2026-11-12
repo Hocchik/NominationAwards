@@ -80,8 +80,11 @@ export interface PhaseContext {
   /** El notario ya subió sus llaves públicas (Fase 2). */
   hasNominationKey: boolean;
   hasVoteKey: boolean;
+  nominationsCloseAt: Date | null;
   votingOpensAt: Date | null;
   votingClosesAt: Date | null;
+  /** La hora de la consulta (se pasa desde afuera para poder probarla). */
+  now: Date;
 }
 
 /**
@@ -93,12 +96,45 @@ export interface PhaseContext {
  * está resuelto antes.
  */
 export function getAdvanceBlockers(ctx: PhaseContext): string[] {
-  // TODO(usuario): decide qué exige cada salto. Algunas preguntas:
-  // - SETUP → NOMINATIONS: ¿categorías mínimas? ¿las dos llaves del notario?
-  //   (sin llave de nominaciones no se puede cifrar ninguna papeleta).
-  // - FINALISTS_READY → VOTING: ¿al menos una categoría activa? ¿respetar
-  //   maxPrizeCategories? ¿horario de votación definido y coherente?
-  // - VOTING → VOTING_CLOSED y las siguientes: ¿algo que exigir, o libre?
-  void ctx;
-  return [];
+  const blockers: string[] = [];
+  const passed = (date: Date | null) => date !== null && date <= ctx.now;
+
+  switch (ctx.phase) {
+    // Abrir la sala: después ya no se pueden crear ni borrar categorías, y sin
+    // las llaves del notario nadie podría sellar su papeleta.
+    case "SETUP":
+      if (ctx.categoryCount === 0) blockers.push("Crea al menos una categoría.");
+      if (!ctx.hasNominationKey || !ctx.hasVoteKey) {
+        blockers.push("Falta que el notario genere sus llaves: sin ellas no se puede sellar ninguna papeleta.");
+      }
+      // Si la hora ya pasó, las nominaciones se cerrarían apenas alguien entre.
+      if (passed(ctx.nominationsCloseAt)) {
+        blockers.push("La hora de cierre de nominaciones ya pasó: cámbiala o bórrala en Horarios.");
+      }
+      break;
+
+    // Abrir la votación a mano: lo mismo que exige la apertura por horario,
+    // más el tope de categorías de premio (pudo bajar después de activarlas).
+    case "FINALISTS_READY":
+      if (ctx.activePrizeCount + ctx.activeHonoraryCount === 0) {
+        blockers.push("Activa al menos una categoría en Finalistas.");
+      }
+      if (ctx.activePrizeCount > ctx.maxPrizeCategories) {
+        const n = ctx.activePrizeCount;
+        blockers.push(
+          `Hay ${n} ${n === 1 ? "categoría de premio activa" : "categorías de premio activas"} y el máximo es ${ctx.maxPrizeCategories}: quita alguna en Finalistas.`,
+        );
+      }
+      if (!ctx.hasVoteKey) blockers.push("Falta la llave de votación del notario.");
+      if (passed(ctx.votingClosesAt)) {
+        blockers.push("La hora de cierre de la votación ya pasó: cámbiala en Horarios.");
+      }
+      break;
+
+    // Cerrar antes de tiempo, pasar a la ceremonia o terminar: decisión del
+    // admin, con la confirmación del botón.
+    default:
+      break;
+  }
+  return blockers;
 }

@@ -78,8 +78,8 @@ export function PhaseControl({ phase, blockers }: PhaseControlProps) {
       {mode === "button" && next && (
         <div className="space-y-4">
           {blockers.length > 0 && (
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">Para avanzar falta:</p>
+            <div role="status" className="space-y-1 border-l-[3px] border-copper bg-raised px-4 py-3 text-sm">
+              <p className="font-semibold">Para avanzar falta:</p>
               <ul className="list-disc space-y-1 pl-5 text-ink-soft">
                 {blockers.map((blocker) => (
                   <li key={blocker}>{blocker}</li>
