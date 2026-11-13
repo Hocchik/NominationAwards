@@ -10,6 +10,7 @@ const STEPS = [
   { title: "Nominar", text: "Llena la papeleta. Se sella en tu navegador, igual que en el evento real." },
   { title: "Nominados", text: "Mira la cartelera con los finalistas de ejemplo, sin conteos." },
   { title: "Votar", text: "Elige un ganador por categoría. Si eres finalista, tu tarjeta sale como «Eres tú»." },
+  { title: "Ganador", text: "Mira cómo se anuncia el ganador de cada categoría en la pantalla de la reunión." },
 ];
 
 export default function DemoPage() {
@@ -44,7 +45,7 @@ export default function DemoPage() {
 
       <p className="border-l-[3px] border-copper bg-raised px-4 py-3 text-sm text-ink-soft">
         <strong className="text-ink">Lo que el demo no muestra:</strong> la parte del organizador (la lista de invitados y el
-        cierre de las nominaciones) y la premiación, que se proyecta en la reunión. En el evento real, los finalistas
+        cierre de las nominaciones) y el resto de la premiación: aquí solo ves cómo se anuncia cada ganador. En el evento real, los finalistas
         salen de lo que nominó el grupo.
       </p>
 

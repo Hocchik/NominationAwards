@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_CANDIDATES, DEMO_CATEGORIES, byName } from "./fixtures";
+import { DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EXAMPLE_WINNERS, byName } from "./fixtures";
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const finalists = DEMO_CATEGORIES.flatMap((c) => c.finalists);
@@ -33,6 +33,15 @@ describe("datos del demo", () => {
 
   it("hay nombres del grupo que son finalistas, para ver la tarjeta «Eres tú»", () => {
     expect(finalists.some((f) => f.participantId !== null)).toBe(true);
+  });
+
+  it("cada categoría tiene ganador de ejemplo, y es uno de sus finalistas", () => {
+    for (const c of DEMO_CATEGORIES) {
+      const winners = DEMO_EXAMPLE_WINNERS[c.id] ?? [];
+      expect(winners.length).toBeGreaterThan(0);
+      const ids = new Set(c.finalists.map((f) => f.id));
+      for (const id of winners) expect(ids.has(id)).toBe(true);
+    }
   });
 
   it("byName ordena alfabéticamente en español sin tocar la lista original", () => {

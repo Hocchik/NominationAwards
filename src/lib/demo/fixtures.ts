@@ -160,6 +160,19 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
   },
 ];
 
+/**
+ * Ganadores de ejemplo para el paso «Ganador» del demo (no salen de ningún
+ * voto). «Siempre llega tarde» empata, para mostrar cómo se ve un premio compartido.
+ */
+export const DEMO_EXAMPLE_WINNERS: Record<string, string[]> = {
+  [C.party]: [F.partyBruno],
+  [C.late]: [F.lateDiego, F.lateFabian],
+  [C.chef]: [F.chefCamila],
+  [C.story]: [F.storyMateo],
+  [C.friend]: [F.friendInes],
+  [C.idol]: [F.idolRosa],
+};
+
 /** Orden alfabético en español, como muestran los finalistas las páginas reales (regla 8). */
 export function byName<T extends { name: string }>(list: readonly T[]): T[] {
   return [...list].sort((a, b) => a.name.localeCompare(b.name, "es"));

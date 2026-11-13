@@ -18,7 +18,7 @@ export function DemoVote() {
       <DemoSent
         title="Ya votaste en el demo"
         text="En el evento real se vota una sola vez. Aquí puedes repetirlo cuantas veces quieras."
-        next={{ href: "/demo/nominados", label: "Ver nominados →" }}
+        next={{ href: "/demo/ganador", label: "Ver al ganador →" }}
         againLabel="Votar de nuevo"
         onAgain={() => {
           reset("vote");
@@ -58,7 +58,7 @@ export function DemoVote() {
         saveVote();
         return { ok: true };
       }}
-      doneLink={{ href: "/demo/nominados", label: "Ver nominados" }}
+      doneLink={{ href: "/demo/ganador", label: "Ver al ganador" }}
     />
   );
 }

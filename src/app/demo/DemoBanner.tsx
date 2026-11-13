@@ -10,6 +10,7 @@ const STEPS = [
   { href: "/demo/nominar", label: "Nominar" },
   { href: "/demo/nominados", label: "Nominados" },
   { href: "/demo/votar", label: "Votar" },
+  { href: "/demo/ganador", label: "Ganador" },
 ] as const;
 
 /** Franja de noche arriba de todo el demo: recuerda que nada se guarda y lleva los pasos. */
