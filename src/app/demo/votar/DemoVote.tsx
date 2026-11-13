@@ -8,17 +8,17 @@ import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";
 import { useDemo } from "../DemoProvider";
 
 export function DemoVote() {
-  const { keys, self, voteCiphertext, saveVote, reset } = useDemo();
-  const [showSent, setShowSent] = useState(() => voteCiphertext !== null);
+  const { keys, self, voteSent, saveVote, reset } = useDemo();
+  const [showSent, setShowSent] = useState(() => voteSent);
 
   if (!self) return <DemoNeedsName action="votar" />;
   if (!keys) return <DemoLoading label="Preparando tu papeleta…" />;
-  if (showSent && voteCiphertext) {
+  if (showSent && voteSent) {
     return (
       <DemoSent
         title="Ya votaste en el demo"
-        text="Tu voto sellado espera en la urna del demo. Ábrela en la ceremonia."
-        next={{ href: "/demo/ceremonia", label: "Ir a la ceremonia →" }}
+        text="En el evento real se vota una sola vez. Aquí puedes repetirlo cuantas veces quieras."
+        next={{ href: "/demo/nominados", label: "Ver nominados →" }}
         againLabel="Votar de nuevo"
         onAgain={() => {
           reset("vote");
@@ -53,12 +53,12 @@ export function DemoVote() {
       publicKey={keys.publicKey}
       ballotBytes={voteBallotBytes(DEMO_CATEGORIES.length)}
       closesAt={null}
-      onSubmit={async (ciphertext) => {
-        // Se guarda sellado en memoria y se suma a la urna de la ceremonia del demo.
-        saveVote(ciphertext);
+      onSubmit={async () => {
+        // Ya va sellado con la llave del demo; no sale del navegador.
+        saveVote();
         return { ok: true };
       }}
-      doneLink={{ href: "/demo/ceremonia", label: "Ir a la ceremonia" }}
+      doneLink={{ href: "/demo/nominados", label: "Ver nominados" }}
     />
   );
 }

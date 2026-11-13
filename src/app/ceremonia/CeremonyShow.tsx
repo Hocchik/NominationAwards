@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, type ReactNode, useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { type ChangeEvent, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LogoMark } from "@/components/ui/Logo";
@@ -9,7 +9,6 @@ import { type VoteResults, openAndTallyVotes } from "@/lib/ballots/openVotes";
 import { celebrate, playDrumroll, playFanfare } from "@/lib/ceremony/effects";
 import { cn } from "@/lib/cn";
 import { parseKeyFile } from "@/lib/crypto/keyFile";
-import type { KeyPair } from "@/lib/crypto/keys";
 import { initials } from "@/lib/initials";
 import { getVoteBallotsAction } from "./actions";
 
@@ -40,25 +39,16 @@ type Slide =
 
 const SUSPENSE_SECONDS = 3;
 
-/** Urna lista para abrir: la llave en memoria y los votos sellados. */
-export type BallotSource = () => Promise<{ keys: KeyPair; ciphertexts: string[] }>;
-
 export function CeremonyShow({
   eventName,
   publicKey,
   showWinnerPercent,
   categories,
-  openBallots,
-  intro,
 }: {
   eventName: string;
   publicKey: string;
   showWinnerPercent: boolean;
   categories: CategoryInfo[];
-  /** Si llega (demo), se abre la urna con un botón en vez del archivo del notario. */
-  openBallots?: BallotSource;
-  /** Texto de la pantalla de inicio; por defecto, el del notario. */
-  intro?: ReactNode;
 }) {
   const [results, setResults] = useState<VoteResults | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,37 +70,30 @@ export function CeremonyShow({
   );
   const slide = slides[Math.min(position, slides.length - 1)];
 
-  // Abre la urna y se queda solo con los ganadores; la llave y los votos
-  // abiertos se descartan al terminar (regla 7).
-  function openWith(load: BallotSource, fallback: string) {
-    setError(null);
-    startTransition(async () => {
-      try {
-        const { keys, ciphertexts } = await load();
-        setResults(
-          await openAndTallyVotes(
-            ciphertexts,
-            keys,
-            categories.map((c) => ({ id: c.id, finalistIds: c.finalists.map((f) => f.id) })),
-          ),
-        );
-      } catch (e) {
-        setError(e instanceof Error ? e.message : fallback);
-      }
-    });
-  }
-
+  // Abre la urna con la llave del notario y se queda solo con los ganadores;
+  // la llave y los votos abiertos se descartan al terminar (regla 7).
   function loadKey(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    openWith(async () => {
-      const parsed = await parseKeyFile(await file.text());
-      if (parsed.vote.publicKey !== publicKey) throw new Error("Este archivo de llaves no corresponde a este evento.");
-      const response = await getVoteBallotsAction();
-      if (!response.ok) throw new Error(response.message);
-      return { keys: parsed.vote, ciphertexts: response.ciphertexts };
-    }, "No se pudo leer el archivo.");
+    setError(null);
+    startTransition(async () => {
+      try {
+        const parsed = await parseKeyFile(await file.text());
+        if (parsed.vote.publicKey !== publicKey) throw new Error("Este archivo de llaves no corresponde a este evento.");
+        const response = await getVoteBallotsAction();
+        if (!response.ok) throw new Error(response.message);
+        setResults(
+          await openAndTallyVotes(
+            response.ciphertexts,
+            parsed.vote,
+            categories.map((c) => ({ id: c.id, finalistIds: c.finalists.map((f) => f.id) })),
+          ),
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "No se pudo leer el archivo.");
+      }
+    });
   }
 
   const next = useCallback(() => setPosition((p) => Math.min(p + 1, slides.length - 1)), [slides.length]);
@@ -159,22 +142,16 @@ export function CeremonyShow({
         <Card className="space-y-5">
           <div className="space-y-1">
             <h1 className="font-display text-3xl font-extrabold">Ceremonia</h1>
-            <div className="text-sm text-ink-soft">
-              {intro ??
-                "El notario carga su archivo de llaves. Los votos se abren en este navegador y solo se guardan en memoria los ganadores."}
-            </div>
+            <p className="text-sm text-ink-soft">
+              El notario carga su archivo de llaves. Los votos se abren en este navegador y solo se
+              guardan en memoria los ganadores.
+            </p>
           </div>
           {!results ? (
-            openBallots ? (
-              <Button size="lg" onClick={() => openWith(openBallots, "No se pudo abrir la urna.")} disabled={pending}>
-                {pending ? "Abriendo la urna…" : "Abrir la urna"}
-              </Button>
-            ) : (
-              <label className="inline-flex min-h-12 cursor-pointer items-center border-[1.5px] border-ink px-5 text-[15px] font-bold transition-colors hover:bg-ink/5 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink">
-                {pending ? "Abriendo votos…" : "Elegir archivo de llaves…"}
-                <input type="file" accept="application/json,.json" onChange={loadKey} disabled={pending} className="sr-only" />
-              </label>
-            )
+            <label className="inline-flex min-h-12 cursor-pointer items-center border-[1.5px] border-ink px-5 text-[15px] font-bold transition-colors hover:bg-ink/5 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink">
+              {pending ? "Abriendo votos…" : "Elegir archivo de llaves…"}
+              <input type="file" accept="application/json,.json" onChange={loadKey} disabled={pending} className="sr-only" />
+            </label>
           ) : (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-success">

@@ -1,14 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  DEMO_CANDIDATES,
-  DEMO_CATEGORIES,
-  DEMO_SELF_NAME,
-  DEMO_SIMULATED_VOTES,
-  DEMO_VOTERS,
-  byName,
-  demoRevealOrder,
-  leaders,
-} from "./fixtures";
+import { DEMO_CANDIDATES, DEMO_CATEGORIES, byName } from "./fixtures";
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const finalists = DEMO_CATEGORIES.flatMap((c) => c.finalists);
@@ -40,32 +31,8 @@ describe("datos del demo", () => {
     }
   });
 
-  it("el visitante no está en el grupo (no puede nominarse)", () => {
-    expect(DEMO_CANDIDATES.map((p) => p.name)).not.toContain(DEMO_SELF_NAME);
-  });
-
-  it("los votos simulados son de finalistas de su categoría y no pasan de los votantes", () => {
-    for (const c of DEMO_CATEGORIES) {
-      const counts = DEMO_SIMULATED_VOTES[c.id];
-      expect(counts).toBeDefined();
-      const ids = new Set(c.finalists.map((f) => f.id));
-      for (const id of Object.keys(counts!)) expect(ids.has(id)).toBe(true);
-      expect(Object.values(counts!).reduce((sum, n) => sum + n, 0)).toBeLessThanOrEqual(DEMO_VOTERS);
-    }
-  });
-
-  it("exactamente una categoría queda empatada arriba", () => {
-    const tied = DEMO_CATEGORIES.filter((c) => leaders(DEMO_SIMULATED_VOTES[c.id] ?? {}).length > 1);
-    expect(tied).toHaveLength(1);
-    expect(leaders(DEMO_SIMULATED_VOTES[tied[0]!.id]!)).toHaveLength(2);
-  });
-
-  it("la revelación pone las honoríficas primero y no pierde categorías", () => {
-    const order = demoRevealOrder();
-    expect(order).toHaveLength(DEMO_CATEGORIES.length);
-    const firstPrize = order.findIndex((c) => c.type === "PRIZE");
-    expect(order.slice(0, firstPrize).every((c) => c.type === "HONORARY")).toBe(true);
-    expect(order.slice(firstPrize).every((c) => c.type === "PRIZE")).toBe(true);
+  it("hay nombres del grupo que son finalistas, para ver la tarjeta «Eres tú»", () => {
+    expect(finalists.some((f) => f.participantId !== null)).toBe(true);
   });
 
   it("byName ordena alfabéticamente en español sin tocar la lista original", () => {

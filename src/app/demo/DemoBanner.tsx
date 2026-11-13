@@ -10,18 +10,16 @@ const STEPS = [
   { href: "/demo/nominar", label: "Nominar" },
   { href: "/demo/nominados", label: "Nominados" },
   { href: "/demo/votar", label: "Votar" },
-  { href: "/demo/ceremonia", label: "Ceremonia" },
-  { href: "/demo/panel", label: "Panel" },
 ] as const;
 
 /** Franja de noche arriba de todo el demo: recuerda que nada se guarda y lleva los pasos. */
 export function DemoBanner() {
   const pathname = usePathname();
-  const { self, nominationSent, voteCiphertext } = useDemo();
+  const { self, nominationSent, voteSent } = useDemo();
   const done: Partial<Record<string, boolean>> = {
     "/demo/entrar": self !== null,
     "/demo/nominar": nominationSent,
-    "/demo/votar": voteCiphertext !== null,
+    "/demo/votar": voteSent,
   };
 
   return (

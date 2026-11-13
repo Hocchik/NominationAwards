@@ -21,17 +21,11 @@ export interface DemoCategory {
   finalists: DemoFinalist[];
 }
 
-/** categoryId → (finalistId → cuántos votos simulados recibe). */
-export type VoteTable = Record<string, Record<string, number>>;
-
 export const DEMO_EVENT_NAME = "Premios de prueba";
 /** Solo nombra los borradores que las papeletas guardan en sessionStorage. */
 export const DEMO_ROOM_CODE = "DEMO";
-export const DEMO_SELF_NAME = "Invitado";
 export const DEMO_RULES: NominationRules = { min: 3, max: 5, allowSkip: true };
 export const DEMO_ALLOW_ABSTENTION = true;
-/** Amigos ficticios que votan en la urna del demo. */
-export const DEMO_VOTERS = 20;
 
 const P = {
   ana: "3a6bcb65-679f-4914-a5b9-50f13d1a4963",
@@ -166,34 +160,7 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
   },
 ];
 
-/**
- * Cómo votan los 20 amigos ficticios. Decide qué tan reñida se ve la
- * ceremonia: «Siempre llega tarde» queda empatada a propósito, para que el
- * voto del visitante pueda desempatarla.
- */
-export const DEMO_SIMULATED_VOTES: VoteTable = {
-  [C.party]: { [F.partyBruno]: 9, [F.partyGabriela]: 6, [F.partyJulian]: 3, [F.partyLucia]: 2 },
-  [C.late]: { [F.lateDiego]: 7, [F.lateFabian]: 7, [F.lateInes]: 4 },
-  [C.chef]: { [F.chefCamila]: 11, [F.chefHugo]: 5, [F.chefElena]: 3 },
-  [C.story]: { [F.storyMateo]: 6, [F.storyAna]: 5, [F.storyBruno]: 5, [F.storyGabriela]: 4 },
-  [C.friend]: { [F.friendInes]: 10, [F.friendHugo]: 8, [F.friendAna]: 2 },
-  [C.idol]: { [F.idolRosa]: 8, [F.idolPepe]: 6, [F.idolRamirez]: 4 },
-};
-
-/** Orden de revelación por defecto (CLAUDE.md §3): honoríficas primero, premios al final. */
-export function demoRevealOrder(): DemoCategory[] {
-  return [...DEMO_CATEGORIES.filter((c) => c.type === "HONORARY"), ...DEMO_CATEGORIES.filter((c) => c.type === "PRIZE")];
-}
-
 /** Orden alfabético en español, como muestran los finalistas las páginas reales (regla 8). */
 export function byName<T extends { name: string }>(list: readonly T[]): T[] {
   return [...list].sort((a, b) => a.name.localeCompare(b.name, "es"));
-}
-
-/** Ids con más votos en una tabla de conteos (más de uno = empate). */
-export function leaders(counts: Record<string, number>): string[] {
-  const values = Object.values(counts);
-  if (values.length === 0) return [];
-  const top = Math.max(...values);
-  return Object.keys(counts).filter((id) => counts[id] === top);
 }

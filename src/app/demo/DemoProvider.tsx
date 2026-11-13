@@ -16,12 +16,11 @@ interface DemoState {
   /** El nombre del grupo ficticio con el que entró el visitante, o null. */
   self: { id: string; name: string } | null;
   nominationSent: boolean;
-  /** El voto sellado del visitante: se suma a la urna de la ceremonia del demo. */
-  voteCiphertext: string | null;
+  voteSent: boolean;
   enter: (name: string) => void;
   leave: () => void;
   saveNomination: () => void;
-  saveVote: (ciphertext: string) => void;
+  saveVote: () => void;
   reset: (part: "nomination" | "vote") => void;
 }
 
@@ -34,7 +33,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [votingOpensAt, setVotingOpensAt] = useState<string | null>(null);
   const [self, setSelf] = useState<DemoState["self"]>(null);
   const [nominationSent, setNominationSent] = useState(false);
-  const [voteCiphertext, setVoteCiphertext] = useState<string | null>(null);
+  const [voteSent, setVoteSent] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,23 +52,23 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     votingOpensAt,
     self,
     nominationSent,
-    voteCiphertext,
+    voteSent,
     enter: (name) => {
       const person = DEMO_CANDIDATES.find((p) => p.name === name);
       if (!person) return;
       // Otro nombre = otra persona: empieza sin haber nominado ni votado.
       setSelf({ id: person.id, name: person.name });
       setNominationSent(false);
-      setVoteCiphertext(null);
+      setVoteSent(false);
     },
     leave: () => {
       setSelf(null);
       setNominationSent(false);
-      setVoteCiphertext(null);
+      setVoteSent(false);
     },
     saveNomination: () => setNominationSent(true),
-    saveVote: setVoteCiphertext,
-    reset: (part) => (part === "nomination" ? setNominationSent(false) : setVoteCiphertext(null)),
+    saveVote: () => setVoteSent(true),
+    reset: (part) => (part === "nomination" ? setNominationSent(false) : setVoteSent(false)),
   };
   return <DemoContext.Provider value={state}>{children}</DemoContext.Provider>;
 }
