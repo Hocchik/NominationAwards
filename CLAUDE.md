@@ -184,7 +184,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 ### Demo y diseño (públicas)
 | Ruta | Pantalla |
 |---|---|
-| `/demo` | Demo para probar sin evento, **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, que muestra solo la pantalla del ganador de cada categoría con ganadores de ejemplo, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
+| `/demo` | Demo para probar sin evento, **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, que muestra solo la pantalla del ganador de cada categoría con ganadores de ejemplo, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `autofill`: botón «Rellenar automáticamente» que llena la papeleta al azar y salta a la revisión, solo en el demo); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
 | `/diseno.html` | Archivo autónomo (`public/diseno.html`) que presenta el sistema «Día y noche». Copia los valores de `globals.css`: actualizarlo si el diseño cambia |
 
 ### Notario

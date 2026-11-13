@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { CategoryType } from "@/generated/prisma/enums";
+import { Button } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 
@@ -9,6 +10,18 @@ import { cn } from "@/lib/cn";
 
 const TYPE_LABEL: Record<CategoryType, string> = { PRIZE: "Premio", HONORARY: "Honorífica" };
 const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Solo en el demo: llena la papeleta de una vez para ver el resto del flujo rápido. */
+export function AutofillBar({ onFill }: { onFill: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border border-dashed border-line-strong px-3 py-2">
+      <span className="text-sm text-ink-soft">¿Solo quieres ver cómo funciona?</span>
+      <Button variant="secondary" onClick={onFill} className="max-sm:w-full">
+        Rellenar automáticamente
+      </Button>
+    </div>
+  );
+}
 
 /** Franja superior: «Ronda 1 · Nominar» y el paso actual («03 / 12»). */
 export function RoundBar({ label, step }: { label: string; step?: string }) {

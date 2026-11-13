@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import {
+  AutofillBar,
   BallotIndex,
   CategoryHeading,
   DoubleRule,
@@ -57,6 +58,7 @@ export function NominationBallot({
   selfName,
   onSubmit,
   doneLink,
+  autofill,
 }: {
   roomCode: string;
   eventName: string;
@@ -70,6 +72,8 @@ export function NominationBallot({
   onSubmit?: (ciphertext: string) => Promise<SubmitResult>;
   /** Botón de la pantalla sellada. Por defecto, «Ver nominados» de la sala. */
   doneLink?: { href: string; label: string };
+  /** Solo el demo: arma una papeleta completa para saltar directo a la revisión. */
+  autofill?: () => Record<string, Nominee[]>;
 }) {
   const [selections, setSelections] = useState<Record<string, Nominee[]>>({});
   const [restored, setRestored] = useState(false);
@@ -154,6 +158,14 @@ export function NominationBallot({
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
       <div className="space-y-2">
+        {autofill && (
+          <AutofillBar
+            onFill={() => {
+              setSelections(autofill());
+              setIndex(categories.length);
+            }}
+          />
+        )}
         <RoundBar
           label={`${eventName} · Nominar`}
           step={reviewing ? "Revisión" : `${pad(index + 1)} / ${pad(categories.length)}`}

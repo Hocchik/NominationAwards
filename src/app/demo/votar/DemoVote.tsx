@@ -59,6 +59,15 @@ export function DemoVote() {
         return { ok: true };
       }}
       doneLink={{ href: "/demo/ganador", label: "Ver al ganador" }}
+      // Un finalista al azar por categoría (nunca la propia tarjeta).
+      autofill={() =>
+        Object.fromEntries(
+          categories.map((c) => {
+            const options = c.finalists.filter((f) => !f.isSelf);
+            return [c.id, options[Math.floor(Math.random() * options.length)]?.id ?? null];
+          }),
+        )
+      }
     />
   );
 }

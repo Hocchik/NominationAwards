@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import {
+  AutofillBar,
   BallotIndex,
   CategoryHeading,
   CheckBox,
@@ -57,6 +58,7 @@ export function VoteBallotForm({
   closesAt,
   onSubmit,
   doneLink,
+  autofill,
 }: {
   roomCode: string;
   eventName: string;
@@ -69,6 +71,8 @@ export function VoteBallotForm({
   onSubmit?: (ciphertext: string) => Promise<SubmitResult>;
   /** Botón de la pantalla «Voto sellado». Por defecto, «Ver nominados» de la sala. */
   doneLink?: { href: string; label: string };
+  /** Solo el demo: marca un voto por categoría para saltar directo a la revisión. */
+  autofill?: () => Votes;
 }) {
   const [votes, setVotes] = useState<Votes>({});
   const [restored, setRestored] = useState(false);
@@ -159,6 +163,14 @@ export function VoteBallotForm({
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
       <div className="space-y-2">
+        {autofill && (
+          <AutofillBar
+            onFill={() => {
+              setVotes(autofill());
+              setIndex(categories.length);
+            }}
+          />
+        )}
         <RoundBar
           label={`${eventName} · Votar`}
           step={reviewing ? "Revisión" : `${pad(index + 1)} / ${pad(categories.length)}`}
