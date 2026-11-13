@@ -6,19 +6,22 @@ import { cn } from "@/lib/cn";
 import { useDemo } from "./DemoProvider";
 
 const STEPS = [
+  { href: "/demo/entrar", label: "Entrar" },
   { href: "/demo/nominar", label: "Nominar" },
   { href: "/demo/nominados", label: "Nominados" },
   { href: "/demo/votar", label: "Votar" },
   { href: "/demo/ceremonia", label: "Ceremonia" },
+  { href: "/demo/panel", label: "Panel" },
 ] as const;
 
 /** Franja de noche arriba de todo el demo: recuerda que nada se guarda y lleva los pasos. */
 export function DemoBanner() {
   const pathname = usePathname();
-  const { nominationReceipt, vote } = useDemo();
+  const { self, nominationSent, voteCiphertext } = useDemo();
   const done: Partial<Record<string, boolean>> = {
-    "/demo/nominar": nominationReceipt !== null,
-    "/demo/votar": vote !== null,
+    "/demo/entrar": self !== null,
+    "/demo/nominar": nominationSent,
+    "/demo/votar": voteCiphertext !== null,
   };
 
   return (
@@ -34,7 +37,7 @@ export function DemoBanner() {
         <Link href="/" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:text-ink hover:underline sm:order-last">
           Salir del demo
         </Link>
-        <nav aria-label="Pasos del demo" className="-mx-2 flex w-full gap-1 overflow-x-auto text-sm font-semibold sm:mx-0 sm:w-auto sm:flex-1">
+        <nav aria-label="Pasos del demo" className="-mx-2 flex w-full gap-0.5 overflow-x-auto text-sm font-semibold sm:mx-0 sm:w-auto sm:flex-1">
           {STEPS.map((step, i) => {
             const current = pathname === step.href;
             return (
@@ -43,7 +46,7 @@ export function DemoBanner() {
                 href={step.href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 shrink-0 items-center gap-1.5 border-b-[3px] px-2",
+                  "flex min-h-11 shrink-0 items-center gap-1.5 border-b-[3px] px-1.5 sm:px-2",
                   current ? "border-copper text-ink" : "border-transparent text-ink-soft hover:text-ink",
                 )}
               >

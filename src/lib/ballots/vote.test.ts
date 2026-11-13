@@ -27,7 +27,7 @@ describe("papeleta de voto", () => {
   });
 
   it("la papeleta trae todas las categorías activas y se puede volver a leer", () => {
-    const ballot = buildVoteBallot({ [uuid(1)]: uuid(12) }, [uuid(1), uuid(2)], "P2X-81B");
+    const ballot = buildVoteBallot({ [uuid(1)]: uuid(12) }, [uuid(1), uuid(2)]);
     expect(ballot.votes).toEqual({ [uuid(1)]: uuid(12), [uuid(2)]: null });
     expect(voteBallotSchema.parse(JSON.parse(JSON.stringify(ballot)))).toEqual(ballot);
   });
@@ -35,7 +35,7 @@ describe("papeleta de voto", () => {
   it("el tamaño fijo alcanza para todas las categorías con voto", () => {
     for (const count of [1, 11, 12, 15, 30]) {
       const ids = Array.from({ length: count }, (_, i) => uuid(100 + i));
-      const ballot = buildVoteBallot(Object.fromEntries(ids.map((id) => [id, uuid(900)])), ids, "P2X-81B");
+      const ballot = buildVoteBallot(Object.fromEntries(ids.map((id) => [id, uuid(900)])), ids);
       expect(() => padPayload({ ...ballot }, voteBallotBytes(count))).not.toThrow();
     }
     expect(voteBallotBytes(5)).toBe(1024);

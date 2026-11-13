@@ -27,8 +27,8 @@ export default function TransparencyPage() {
         <h1 className="font-display text-4xl leading-tight font-extrabold">¿Quién puede ver mi voto?</h1>
         <p className="inline-block bg-copper px-3 py-1 font-display text-3xl font-extrabold text-ink uppercase chamfer-10">Nadie.</p>
         <p className="text-ink-soft">
-          Ni el organizador, ni quien administra el servidor, ni el notario por separado. Así
-          funciona, paso a paso:
+          Tu papeleta se cierra con candado en tu celular y, cuando se abre, ya no lleva tu nombre.
+          Así funciona, paso a paso:
         </p>
       </div>
 
@@ -41,19 +41,24 @@ export default function TransparencyPage() {
         </p>
       </Point>
 
-      <Point title="2. La llave la tiene el notario, no el organizador">
+      <Point title="2. La llave no está en el servidor">
         <p>
-          El grupo elige a una persona de confianza como notario. Esa persona genera las llaves en
-          su propio navegador y guarda la privada en un archivo que nunca se sube al servidor. Las
-          papeletas solo se abren con ese archivo, todas juntas, al cierre de cada ronda.
+          El notario genera las llaves en su propio navegador y guarda la privada en un archivo que
+          nunca se sube al servidor. Las papeletas solo se abren con ese archivo, todas juntas, al
+          cierre de cada ronda.
         </p>
       </Point>
 
-      <Point title="3. La urna no sabe quién mandó cada sobre">
+      <Point title="3. Los sobres pierden tu nombre antes de abrirse">
         <p>
-          La base de datos guarda las papeletas sin tu nombre, sin la hora de envío y sin tu
-          dirección de internet. De ti solo queda un ✔ que indica que ya participaste, para que
-          nadie pueda votar dos veces.
+          Mientras la ronda está abierta, tu sobre lleva tu nombre por fuera, cerrado: así, si
+          alguien entró con tu nombre, el organizador puede botar ese sobre sin abrirlo y tú vuelves a
+          votar. Al cerrar la ronda los nombres se arrancan de todos los sobres, y recién entonces se
+          abren las papeletas.
+        </p>
+        <p>
+          No se guarda la hora de envío ni tu dirección de internet. De ti queda un ✔ que indica que
+          ya participaste, para que nadie pueda votar dos veces.
         </p>
         <p>
           Además, todas las papeletas pesan exactamente lo mismo: el tamaño no delata cuántos
@@ -63,22 +68,14 @@ export default function TransparencyPage() {
 
       <Point title="4. Lo que sí ve el organizador">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Los registros, para aprobarlos.</li>
+          <li>La lista de invitados.</li>
           <li>Si cada persona ya nominó o votó (✔ o ⏳), nunca qué eligió.</li>
           <li>Los finalistas, sin conteos.</li>
           <li>Los ganadores, recién en la ceremonia, al mismo tiempo que todos.</li>
         </ul>
       </Point>
 
-      <Point title="5. Tu comprobante">
-        <p>
-          Al enviar recibes un código como «K7M-29Q». Antes de revelar a los ganadores se
-          proyectan todos los comprobantes recibidos: si ves el tuyo, sabes que tu papeleta se
-          contó. Guárdalo y no lo compartas.
-        </p>
-      </Point>
-
-      <Point title="6. El código es público">
+      <Point title="5. El código es público">
         <p>
           Cualquiera puede revisar cómo funciona la app, línea por línea:{" "}
           <a href={REPO_URL} className="font-semibold text-ink underline decoration-copper decoration-2 underline-offset-4" rel="noreferrer" target="_blank">

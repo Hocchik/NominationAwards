@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/db";
 import { nominationBallotBytes } from "@/lib/ballots/nomination";
-import { isReceiptCode } from "@/lib/ballots/receipt";
 import { recordBallot } from "@/lib/ballots/record";
 import { isBase64, sealedBase64Length } from "@/lib/ballots/sealedSize";
 import { getEventByRoomCode } from "@/lib/participants/queries";
@@ -20,7 +19,6 @@ export interface SubmitResult {
 export async function submitNominationAction(
   roomCode: string,
   ciphertext: string,
-  receiptCode: string,
 ): Promise<SubmitResult> {
   const event = await getEventByRoomCode(roomCode);
   if (!event) return { ok: false, message: "Esta sala no existe." };
@@ -28,12 +26,6 @@ export async function submitNominationAction(
   const participant = await getSessionParticipant(event.id);
   if (!participant) {
     return { ok: false, message: "Tu sesión terminó. Vuelve a entrar a la sala con tu PIN." };
-  }
-  if (participant.status !== "APPROVED") {
-    return { ok: false, message: "Tu registro todavía no está aprobado." };
-  }
-  if (!isReceiptCode(receiptCode)) {
-    return { ok: false, message: "El comprobante no tiene el formato esperado." };
   }
 
   const categoryCount = await prisma.category.count({ where: { eventId: event.id } });
@@ -47,7 +39,6 @@ export async function submitNominationAction(
     participantId: participant.id,
     phase: "NOMINATION",
     ciphertext,
-    receiptCode,
   });
   if (!result.ok) {
     return {

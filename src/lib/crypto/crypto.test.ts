@@ -11,7 +11,6 @@ import { sealPayload } from "./seal";
 const nomination = {
   v: 1,
   kind: "nomination",
-  receipt: "K7M-29Q",
   categories: {
     "cat-1": [
       { type: "participant", id: "p-1" },
@@ -57,11 +56,10 @@ describe("seal → open", () => {
 describe("padding", () => {
   it("dos papeletas distintas producen texto cifrado del mismo tamaño", async () => {
     const keys = await generateKeyPair();
-    const small = { v: 1, kind: "vote", receipt: "P2X-81B", votes: { c1: "f1" } };
+    const small = { v: 1, kind: "vote", votes: { c1: "f1" } };
     const large = {
       v: 1,
       kind: "vote",
-      receipt: "Q9Z-44M",
       votes: Object.fromEntries(Array.from({ length: 15 }, (_, i) => [`categoria-${i}`, `finalista-${i}`])),
     };
     const a = await sealPayload(small, keys.publicKey, VOTE_BALLOT_BYTES);

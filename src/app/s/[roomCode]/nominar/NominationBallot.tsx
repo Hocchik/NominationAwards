@@ -21,10 +21,8 @@ import {
   buildNominationBallot,
   validateNominations,
 } from "@/lib/ballots/nomination";
-import { generateReceiptCode } from "@/lib/ballots/receipt";
 import { cn } from "@/lib/cn";
 import { sealPayload } from "@/lib/crypto/seal";
-import { CopyButton } from "@/components/ui/CopyButton";
 import { type SubmitResult, submitNominationAction } from "./actions";
 import { NomineePicker } from "./NomineePicker";
 
@@ -69,14 +67,14 @@ export function NominationBallot({
   ballotBytes: number;
   selfName: string;
   /** Qué hacer con la papeleta ya sellada. Por defecto se envía al servidor. */
-  onSubmit?: (ciphertext: string, receipt: string) => Promise<SubmitResult>;
+  onSubmit?: (ciphertext: string) => Promise<SubmitResult>;
   /** Botón de la pantalla sellada. Por defecto, «Ver nominados» de la sala. */
   doneLink?: { href: string; label: string };
 }) {
   const [selections, setSelections] = useState<Record<string, Nominee[]>>({});
   const [restored, setRestored] = useState(false);
   const [index, setIndex] = useState(0); // categories.length = pantalla de revisión
-  const [receipt, setReceipt] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -92,13 +90,13 @@ export function NominationBallot({
   }, [roomCode]);
 
   useEffect(() => {
-    if (!restored || receipt) return;
+    if (!restored || sent) return;
     try {
       sessionStorage.setItem(draftKey(roomCode), JSON.stringify(selections));
     } catch {
       // sin almacenamiento: el borrador simplemente no se guarda
     }
-  }, [selections, restored, receipt, roomCode]);
+  }, [selections, restored, sent, roomCode]);
 
   function update(categoryId: string, list: Nominee[]) {
     setSelections((prev) => ({ ...prev, [categoryId]: list }));
@@ -112,12 +110,11 @@ export function NominationBallot({
     setError(null);
     startTransition(async () => {
       try {
-        const code = generateReceiptCode();
-        const ballot = buildNominationBallot(selections, ids, code);
+        const ballot = buildNominationBallot(selections, ids);
         // Se sella aquí, en este dispositivo: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const send = onSubmit ?? ((sealed: string, receiptCode: string) => submitNominationAction(roomCode, sealed, receiptCode));
-        const result = await send(ciphertext, code);
+        const send = onSubmit ?? ((sealed: string) => submitNominationAction(roomCode, sealed));
+        const result = await send(ciphertext);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
           return;
@@ -125,7 +122,7 @@ export function NominationBallot({
         try {
           sessionStorage.removeItem(draftKey(roomCode));
         } catch {}
-        setReceipt(code);
+        setSent(true);
       } catch {
         setError("No se pudo sellar la papeleta en este dispositivo. Intenta de nuevo.");
       }
@@ -134,21 +131,16 @@ export function NominationBallot({
 
   const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
 
-  if (receipt) {
+  if (sent) {
     return (
       <SealedScreen
-        title="Nominaciones selladas"
-        text="Tus fichas se cifraron en este dispositivo y llegaron a la urna. Nadie puede ver a quién nominaste."
-        code={receipt}
-        receiptNote="No se vuelve a mostrar"
-        help="Solo el notario abre la urna, al cierre, junto con todas las demás. Guarda el comprobante (una captura sirve) y no lo compartas."
+        title="¡Listo!"
+        text="Tus nominaciones quedaron guardadas en secreto. Nadie puede ver a quién nominaste."
+        help="Se cerraron con candado en tu celular. Solo se abren al cierre de las nominaciones, todas juntas y ya sin nombre."
         actions={
-          <>
-            <CopyButton text={receipt} label="Copiar código" className="flex-1" />
-            <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
-              {done.label}
-            </Link>
-          </>
+          <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
+            {done.label}
+          </Link>
         }
       />
     );

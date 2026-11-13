@@ -8,6 +8,7 @@ const hoursFromNow = (h: number) => new Date(now.getTime() + h * 3_600_000);
 const ready: PhaseContext = {
   phase: "SETUP",
   categoryCount: 5,
+  guestCount: 30,
   activePrizeCount: 3,
   activeHonoraryCount: 2,
   maxPrizeCategories: 15,
@@ -27,6 +28,10 @@ describe("abrir la sala (Preparación → Nominaciones)", () => {
 
   it("pide al menos una categoría", () => {
     expect(getAdvanceBlockers({ ...ready, categoryCount: 0 })).toEqual(["Crea al menos una categoría."]);
+  });
+
+  it("pide la lista de invitados", () => {
+    expect(getAdvanceBlockers({ ...ready, guestCount: 0 })[0]).toMatch(/lista de invitados/);
   });
 
   it("pide las dos llaves del notario", () => {
@@ -77,7 +82,7 @@ describe("abrir la votación (Finalistas listos → Votación)", () => {
 describe("los demás pasos son decisión del admin", () => {
   it.each(["NOMINATIONS", "VOTING", "VOTING_CLOSED", "CEREMONY"] as const)("%s no tiene requisitos", (phase) => {
     expect(
-      getAdvanceBlockers({ ...ready, phase, categoryCount: 0, activePrizeCount: 0, activeHonoraryCount: 0, hasVoteKey: false }),
+      getAdvanceBlockers({ ...ready, phase, categoryCount: 0, guestCount: 0, activePrizeCount: 0, activeHonoraryCount: 0, hasVoteKey: false }),
     ).toEqual([]);
   });
 });

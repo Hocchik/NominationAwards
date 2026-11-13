@@ -43,14 +43,14 @@ export function canEditWinnerPercent(phase: EventPhase): boolean {
 }
 
 /**
- * Registro abierto (CLAUDE.md §3): desde que abren las nominaciones hasta el
- * cierre de la votación, para quien no alcanzó a nominar.
+ * Entrar por primera vez (elegir tu nombre y crear tu PIN): desde que abren las
+ * nominaciones hasta el cierre de la votación, para quien no alcanzó a nominar.
  */
 export function canRegister(phase: EventPhase): boolean {
   return !isBefore(phase, "NOMINATIONS") && isBefore(phase, "VOTING_CLOSED");
 }
 
-/** Aprobar, rechazar, restablecer PIN o eliminar registros: hasta que cierra la votación. */
+/** Agregar o quitar invitados, restablecer PIN o resetear un envío: hasta que cierra la votación. */
 export function canManageParticipants(phase: EventPhase): boolean {
   return isBefore(phase, "VOTING_CLOSED");
 }

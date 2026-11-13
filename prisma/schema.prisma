@@ -1,7 +1,9 @@
 // Esquema de NominacionesDP — ver CLAUDE.md, secciones 4 (anonimato) y 6 (modelo).
 //
 // REGLAS QUE ESTE ARCHIVO DEBE RESPETAR SIEMPRE:
-// - Ballot: sin participantId, sin createdAt/updatedAt, sin IP ni user-agent.
+// - Ballot: sin createdAt/updatedAt, sin IP ni user-agent. participantId solo
+//   mientras su fase está abierta (el «nombre por fuera del sobre», para poder
+//   resetear un voto hecho por otra persona); se borra al cerrar la fase.
 // - Participant: sin @updatedAt ni fechas sobre nominar/votar (solo booleanos).
 // - Todos los IDs son UUID v4 explícito: uuid(7) y cuid() incrustan la hora
 //   de creación dentro del ID, y eso permitiría ordenar papeletas por llegada.
@@ -24,12 +26,6 @@ enum EventPhase {
   VOTING_CLOSED
   CEREMONY
   FINISHED
-}
-
-enum ParticipantStatus {
-  PENDING
-  APPROVED
-  REJECTED
 }
 
 enum CategoryType {
@@ -67,20 +63,18 @@ model Event {
   ballots      Ballot[]
 }
 
+// Un nombre de la lista de invitados: lo agrega el admin y la persona lo toca
+// en la sala para entrar (sin PIN).
 model Participant {
-  id             String            @id @default(uuid(4))
+  id             String   @id @default(uuid(4))
   eventId        String
-  event          Event             @relation(fields: [eventId], references: [id])
+  event          Event    @relation(fields: [eventId], references: [id])
   displayName    String
   normalizedName String // minúsculas y sin tildes, para detectar duplicados
-  pinHash        String // bcrypt, nunca el PIN en claro
-  pinReset       Boolean           @default(false) // el admin lo restableció: debe crear uno nuevo
-  status         ParticipantStatus @default(PENDING)
-  hasNominated   Boolean           @default(false)
-  hasVoted       Boolean           @default(false)
-  failedAttempts Int               @default(0)
-  lockedUntil    DateTime?
-  createdAt      DateTime          @default(now()) // fecha de REGISTRO: permitida
+  hasNominated   Boolean  @default(false)
+  hasVoted       Boolean  @default(false)
+  sessionVersion Int      @default(0) // sube al resetear su envío: cierra las sesiones abiertas con ese nombre
+  createdAt      DateTime @default(now()) // cuándo se agregó a la lista: permitida
   // SIN @updatedAt (regla de anonimato 3): delataría cuándo nominó o votó.
 
   @@unique([eventId, normalizedName])
@@ -116,14 +110,19 @@ model Finalist {
 }
 
 model Ballot {
-  id          String      @id @default(uuid(4))
-  eventId     String
-  event       Event       @relation(fields: [eventId], references: [id])
-  phase       BallotPhase
-  ciphertext  String // base64 de crypto_box_seal (papeleta con padding fijo)
-  receiptCode String // código de comprobante, p. ej. "K7M-29Q"
-  // SIN participantId, SIN createdAt/updatedAt, SIN IP (regla de anonimato 2).
+  id            String      @id @default(uuid(4))
+  eventId       String
+  event         Event       @relation(fields: [eventId], references: [id])
+  phase         BallotPhase
+  ciphertext    String // base64 de crypto_box_seal (papeleta con padding fijo)
+  // «Nombre por fuera del sobre» (regla de anonimato 2): quién la envió, SOLO
+  // mientras la fase está abierta, para que el admin pueda botar el sobre de
+  // una persona si votó otra en su nombre. Se borra (null) en la misma
+  // transacción que cierra la fase, antes de que el notario abra la urna.
+  participantId String?
+  // SIN createdAt/updatedAt, SIN IP (regla de anonimato 2).
   // Al leer: ordenar por id o barajar, nunca por orden físico (regla 9).
 
+  @@unique([eventId, phase, participantId])
   @@index([eventId, phase])
 }

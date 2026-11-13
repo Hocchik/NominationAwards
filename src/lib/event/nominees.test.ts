@@ -38,7 +38,7 @@ describe("cuenta regresiva", () => {
 });
 
 describe("botón principal de la sala", () => {
-  const approved = { status: "APPROVED" as const, hasNominated: false, hasVoted: false };
+  const approved = { hasNominated: false, hasVoted: false };
 
   it("invita a entrar a quien no tiene sesión mientras haya algo que hacer", () => {
     expect(roomAction("NOMINATIONS", null)).toBe("enter");
@@ -53,10 +53,5 @@ describe("botón principal de la sala", () => {
     expect(roomAction("VOTING", approved)).toBe("vote");
     expect(roomAction("VOTING", { ...approved, hasVoted: true })).toBeNull();
     expect(roomAction("FINALISTS_READY", approved)).toBeNull();
-  });
-
-  it("un registro pendiente o rechazado no tiene botón", () => {
-    expect(roomAction("NOMINATIONS", { ...approved, status: "PENDING" })).toBeNull();
-    expect(roomAction("VOTING", { ...approved, status: "REJECTED" })).toBeNull();
   });
 });

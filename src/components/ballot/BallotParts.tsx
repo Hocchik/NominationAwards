@@ -191,30 +191,15 @@ export function BallotIndex({
   );
 }
 
-/** Comprobante: un pedacito de noche, levemente torcido como un ticket. */
-export function ReceiptCard({ code, note }: { code: string; note: string }) {
-  return (
-    <div className="theme-night flex -rotate-[1.5deg] flex-col items-center gap-1.5 bg-bg px-7 py-3.5 chamfer-12">
-      <span className="font-display text-[10px] font-semibold tracking-[0.18em] text-ink-soft uppercase">Tu comprobante</span>
-      <span className="font-display text-[30px] leading-none font-bold tracking-[0.12em] text-ink">{code}</span>
-      <span className="text-[11px] font-bold tracking-[0.1em] text-copper uppercase">{note}</span>
-    </div>
-  );
-}
-
-/** Pantalla final tras sellar: sobre, explicación, comprobante y acciones. */
+/** Pantalla final tras sellar: sobre, «¡Listo!», por qué nadie lo ve y acciones. */
 export function SealedScreen({
   title,
   text,
-  code,
-  receiptNote,
   help,
   actions,
 }: {
   title: string;
   text: string;
-  code: string;
-  receiptNote: string;
   help: string;
   actions: ReactNode;
 }) {
@@ -231,7 +216,6 @@ export function SealedScreen({
         <h1 className="font-display text-[28px] leading-tight font-extrabold">{title}</h1>
         <p className="mx-auto max-w-[19rem] text-[15px] leading-relaxed text-ink-soft">{text}</p>
       </div>
-      <ReceiptCard code={code} note={receiptNote} />
       <p className="max-w-[20rem] text-[13px] leading-relaxed text-ink-soft">{help}</p>
       <div className="mt-2 flex w-full gap-2.5">{actions}</div>
     </section>

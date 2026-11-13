@@ -52,9 +52,6 @@ async function Vote({ params }: { params: Params }) {
   if (!participant) redirect(`/s/${event.roomCode}`);
 
   const code = event.roomCode;
-  if (participant.status !== "APPROVED") {
-    return <Notice roomCode={code} title="Aún no puedes votar" text="Tu registro todavía no está aprobado por el organizador." />;
-  }
   if (event.phase !== "VOTING") {
     return <Notice roomCode={code} title="La votación no está abierta" text="Revisa la sala para ver cuándo abre o si ya cerró." />;
   }
@@ -84,7 +81,15 @@ async function Vote({ params }: { params: Params }) {
         name: c.name,
         description: c.description,
         type: c.type,
-        finalists: c.finalists.map((f) => ({ id: f.id, name: f.displayName, photoUrl: f.photoUrl, blurb: f.blurb })),
+        // Solo se marca su propia tarjeta (para que no pueda votarse); el
+        // servidor no necesita ver el voto para eso.
+        finalists: c.finalists.map((f) => ({
+          id: f.id,
+          name: f.displayName,
+          photoUrl: f.photoUrl,
+          blurb: f.blurb,
+          isSelf: f.participantId === participant.id,
+        })),
       }))}
       allowAbstention={event.allowVoteAbstention}
       publicKey={event.votePublicKey}

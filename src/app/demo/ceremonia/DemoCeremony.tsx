@@ -24,7 +24,7 @@ const categories = demoRevealOrder().map((c) => ({
 }));
 
 export function DemoCeremony() {
-  const { keys, vote } = useDemo();
+  const { keys, voteCiphertext } = useDemo();
 
   if (!keys) {
     return (
@@ -34,10 +34,10 @@ export function DemoCeremony() {
     );
   }
 
-  const intro = vote ? (
+  const intro = voteCiphertext ? (
     <>
-      Se abren tu voto y los de {DEMO_VOTERS} amigos ficticios, aquí en tu navegador, con la llave del demo. Antes de los
-      ganadores se proyectan los comprobantes: busca el tuyo, <strong className="text-ink">{vote.receipt}</strong>.
+      Se abren tu voto y los de {DEMO_VOTERS} amigos ficticios, aquí en tu navegador, con la llave del demo. Los
+      sobres ya no llevan nombre: se arrancaron al cerrar la votación.
     </>
   ) : (
     <>
@@ -62,7 +62,7 @@ export function DemoCeremony() {
           table: DEMO_SIMULATED_VOTES,
           voters: DEMO_VOTERS,
           ballotBytes: voteBallotBytes(DEMO_CATEGORIES.length),
-          extra: vote?.ciphertext ?? null,
+          extra: voteCiphertext,
         }),
       })}
     />

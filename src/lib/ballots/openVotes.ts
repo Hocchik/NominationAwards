@@ -5,12 +5,12 @@ import { type CategoryResult, tallyVotes } from "./voteTally";
 
 // Abre y cuenta la urna de la votación. Corre SOLO en el navegador de la
 // ceremonia (la real y la del demo): la llave vive en memoria (regla 7) y de
-// aquí salen solo ganadores y comprobantes, nunca conteos (regla 8).
+// aquí salen solo los ganadores y cuántos votaron, nunca conteos (regla 8).
 
 export interface VoteResults {
   byCategory: Record<string, CategoryResult>;
-  /** Comprobantes de las papeletas abiertas, en orden alfabético. */
-  receipts: string[];
+  /** Cuántas papeletas se abrieron (= cuántas personas votaron). */
+  count: number;
   /** Papeletas que no se pudieron abrir o no tienen forma de voto. */
   unreadable: number;
 }
@@ -34,7 +34,7 @@ export async function openAndTallyVotes(
   const tallies = tallyVotes(ballots, categories);
   return {
     byCategory: Object.fromEntries(tallies.map((t) => [t.categoryId, t])),
-    receipts: ballots.map((b) => b.receipt).sort(),
+    count: ballots.length,
     unreadable,
   };
 }

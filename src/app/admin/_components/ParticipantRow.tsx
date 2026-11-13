@@ -2,69 +2,77 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
-import type { ParticipantStatus } from "@/generated/prisma/enums";
-import {
-  approveParticipantAction,
-  deleteParticipantAction,
-  rejectParticipantAction,
-  resetPinAction,
-} from "../participant-actions";
+import type { BallotPhase } from "@/generated/prisma/enums";
+import { cn } from "@/lib/cn";
+import { removeGuestAction, resetBallotAction } from "../participant-actions";
 
 export interface ParticipantRowData {
   id: string;
   displayName: string;
-  status: ParticipantStatus;
   hasNominated: boolean;
   hasVoted: boolean;
-  pinReset: boolean;
-  locked: boolean;
 }
 
-type Confirming = null | "reject" | "reset" | "delete";
+type Confirming = null | "reset" | "remove";
 
-const CONFIRM_TEXT: Record<Exclude<Confirming, null>, (name: string) => string> = {
-  reject: (n) => `¿Rechazar a ${n}? No podrá nominar ni votar.`,
-  reset: (n) => `¿Restablecer el PIN de ${n}? Al entrar creará uno nuevo; tú no lo verás.`,
-  delete: (n) => `¿Eliminar el registro de ${n}? Su nombre queda libre para registrarse otra vez.`,
+const PHASE_WORD: Record<BallotPhase, { noun: string; verb: string }> = {
+  NOMINATION: { noun: "nominación", verb: "nominar" },
+  VOTE: { noun: "voto", verb: "votar" },
 };
 
-const ACTIONS = {
-  reject: rejectParticipantAction,
-  reset: resetPinAction,
-  delete: deleteParticipantAction,
-};
-
-export function ParticipantRow({ p, editable }: { p: ParticipantRowData; editable: boolean }) {
+/**
+ * Un nombre de la lista. «Bloqueado» = ya envió en la urna abierta: solo lo ve
+ * el admin (en la sala todos los nombres se ven iguales).
+ */
+export function ParticipantRow({
+  p,
+  openUrn,
+  editable,
+}: {
+  p: ParticipantRowData;
+  /** Urna abierta ahora (se puede resetear un envío en ella), o null. */
+  openUrn: BallotPhase | null;
+  editable: boolean;
+}) {
   const [confirming, setConfirming] = useState<Confirming>(null);
-  const participated = p.hasNominated || p.hasVoted;
+  const sentInOpenUrn = openUrn === "NOMINATION" ? p.hasNominated : openUrn === "VOTE" ? p.hasVoted : false;
+  const words = openUrn ? PHASE_WORD[openUrn] : null;
+
+  const confirmText =
+    confirming === "reset" && words
+      ? words.noun === "voto"
+        ? `¿Botar el voto de ${p.displayName} sin abrirlo? Podrá votar de nuevo desde la sala.`
+        : `¿Botar la nominación de ${p.displayName} sin abrirla? Podrá nominar de nuevo desde la sala.`
+      : `¿Quitar a ${p.displayName} de la lista?${sentInOpenUrn && words ? ` Su ${words.noun} también se bota.` : ""}`;
 
   return (
-    <li className="space-y-3 border-b border-line py-4 last:border-b-0">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <li className="space-y-3 border-b border-line py-3.5 last:border-b-0">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="font-semibold">{p.displayName}</span>
-        {p.pinReset && <Chip size="sm" tone="neutral">PIN restablecido</Chip>}
-        {p.locked && <Chip size="sm" tone="neutral">Bloqueado 15 min</Chip>}
-        {p.status === "APPROVED" && (
-          <span className="ml-auto flex gap-4 text-sm text-ink-soft">
-            <span>{p.hasNominated ? "✔" : "⏳"} Nominó</span>
-            <span>{p.hasVoted ? "✔" : "⏳"} Votó</span>
+        {sentInOpenUrn && words && (
+          <span className="bg-ink px-2 py-0.5 font-display text-[10px] font-bold tracking-[0.12em] text-sheet uppercase">
+            Bloqueado · ya {words.noun === "voto" ? "votó" : "nominó"}
           </span>
         )}
+        <span className="ml-auto flex gap-4 text-sm text-ink-soft">
+          <span className={cn(p.hasNominated && "text-ink")}>{p.hasNominated ? "✔" : "⏳"} Nominó</span>
+          <span className={cn(p.hasVoted && "text-ink")}>{p.hasVoted ? "✔" : "⏳"} Votó</span>
+        </span>
       </div>
 
       {editable &&
         (confirming ? (
           <form
             action={async (formData) => {
-              await ACTIONS[confirming](formData);
+              await (confirming === "reset" ? resetBallotAction : removeGuestAction)(formData);
               setConfirming(null);
             }}
             className="flex flex-wrap items-center gap-2"
           >
             <input type="hidden" name="id" value={p.id} />
-            <span className="text-sm">{CONFIRM_TEXT[confirming](p.displayName)}</span>
-            <Button type="submit" variant={confirming === "reset" ? "secondary" : "danger"}>
+            {openUrn && <input type="hidden" name="phase" value={openUrn} />}
+            <span className="text-sm">{confirmText}</span>
+            <Button type="submit" variant="danger">
               Sí
             </Button>
             <Button variant="ghost" onClick={() => setConfirming(null)}>
@@ -73,27 +81,14 @@ export function ParticipantRow({ p, editable }: { p: ParticipantRowData; editabl
           </form>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {p.status !== "APPROVED" && (
-              <form action={approveParticipantAction}>
-                <input type="hidden" name="id" value={p.id} />
-                <Button type="submit">Aprobar</Button>
-              </form>
-            )}
-            {p.status !== "REJECTED" && !participated && (
-              <Button variant="secondary" onClick={() => setConfirming("reject")}>
-                Rechazar
+            {sentInOpenUrn && words && (
+              <Button variant="secondary" onClick={() => setConfirming("reset")}>
+                Resetear {words.noun}
               </Button>
             )}
-            {p.status === "APPROVED" && !p.hasVoted && !p.pinReset && (
-              <Button variant="ghost" onClick={() => setConfirming("reset")}>
-                Restablecer PIN
-              </Button>
-            )}
-            {!participated && (
-              <Button variant="ghost" onClick={() => setConfirming("delete")}>
-                Eliminar
-              </Button>
-            )}
+            <Button variant="ghost" onClick={() => setConfirming("remove")}>
+              Quitar de la lista
+            </Button>
           </div>
         ))}
     </li>

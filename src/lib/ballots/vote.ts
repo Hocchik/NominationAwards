@@ -6,7 +6,6 @@ import { z } from "zod";
 export interface VoteBallot {
   v: 1;
   kind: "vote";
-  receipt: string;
   /** categoryId → finalistId, o null si se abstuvo (cuando el evento lo permite). */
   votes: Record<string, string | null>;
 }
@@ -22,7 +21,7 @@ export interface VoteCategory {
  * categorías están activas, que se congelan al abrir la votación (regla 5).
  */
 export function voteBallotBytes(activeCategoryCount: number): number {
-  const BASE = 128; // {"v":1,"kind":"vote","receipt":"XXX-XXX","votes":{},"pad":""}
+  const BASE = 128; // {"v":1,"kind":"vote","votes":{},"pad":""}, con holgura
   const PER_CATEGORY = 80; // "<uuid>":"<uuid>",
   return Math.max(1024, Math.ceil((BASE + activeCategoryCount * PER_CATEGORY) / 1024) * 1024);
 }
@@ -50,12 +49,10 @@ export function validateVotes(
 export function buildVoteBallot(
   votes: Record<string, string | null | undefined>,
   categoryIds: string[],
-  receipt: string,
 ): VoteBallot {
   return {
     v: 1,
     kind: "vote",
-    receipt,
     votes: Object.fromEntries(categoryIds.map((id) => [id, votes[id] ?? null])),
   };
 }
@@ -64,6 +61,5 @@ export function buildVoteBallot(
 export const voteBallotSchema = z.object({
   v: z.literal(1),
   kind: z.literal("vote"),
-  receipt: z.string(),
   votes: z.record(z.string(), z.string().nullable()),
 });

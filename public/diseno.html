@@ -185,8 +185,7 @@
   .env-flap { top: 0; left: 0; right: 0; height: 100px; background: color-mix(in oklab, var(--kraft) 85%, var(--ink)); clip-path: polygon(0 0, 100% 0, 50% 100%); }
   .env-front { bottom: 0; left: 0; right: 0; height: 110px; background: color-mix(in oklab, var(--kraft) 80%, white); clip-path: polygon(0 100%, 50% 18%, 100% 100%); }
   .envelope .seal { position: absolute; top: 68px; left: 93px; width: 64px; height: 64px; }
-  .receipt { --c: 12px; display: grid; justify-items: center; gap: 6px; padding: 14px 28px; transform: rotate(-1.5deg); }
-  .receipt .code { font: 700 28px/1 var(--display); letter-spacing: .12em; color: var(--copper); }
+  .done-title { font: 800 28px/1.1 var(--display); }
 
   /* Cartelera */
   .stage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -335,7 +334,7 @@
         <div class="swatch"><div class="color ch" style="--sw:#5e9488"></div><dt>Salvia</dt><code>--sage · #5E9488</code><dd>Categorías honoríficas</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#d08050"></div><dt>Cobre duotono</dt><code>--copper-duo · #D08050</code><dd>Fotos de premio</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#7fafa4"></div><dt>Salvia duotono</dt><code>--sage-duo · #7FAFA4</code><dd>Fotos honoríficas</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#c9a57b"></div><dt>Kraft</dt><code>--kraft · #C9A57B</code><dd>Sobre de «Voto sellado»</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#c9a57b"></div><dt>Kraft</dt><code>--kraft · #C9A57B</code><dd>Sobre de «¡Listo!»</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#2f6b3a"></div><dt>Éxito</dt><code>--success · #2F6B3A</code><dd>De noche, #8FD19E</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#b3261e"></div><dt>Error</dt><code>--danger · #B3261E</code><dd>De noche, #F2A199</dd></div>
       </dl>
@@ -368,7 +367,7 @@
         <p class="t-h2">Chef del grupo</p>
         <p class="muted">Quién cocina mejor en las juntas. Elige a uno; tu voto se sella en tu dispositivo.</p>
         <p class="t-blurb">«Su ceviche tiene lista de espera.»</p>
-        <p class="t-code">K7M-29Q</p>
+        <p class="t-code">01 · 12 · 30</p>
       </div>
     </div>
   </section>
@@ -480,7 +479,8 @@
               <div class="env-back"></div><div class="env-flap"></div><div class="env-front"></div>
               <svg class="seal"><use href="#seal"/></svg>
             </div>
-            <div class="receipt night ch"><span class="label">Tu comprobante</span><span class="code">K7M-29Q</span><span class="label">Se proyecta en la gala</span></div>
+            <p class="done-title">¡Listo!</p>
+            <p class="muted" style="max-width:19rem">Tu voto quedó guardado en secreto. Nadie puede ver qué marcaste.</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LOCK_MINUTES, MAX_FAILED_ATTEMPTS, afterFailedAttempt, isLocked, minutesLeft } from "./lockout";
+import { parseGuestList } from "./guests";
 import { cleanDisplayName, normalizeName } from "./names";
-import { displayNameSchema, newPinSchema, pinSchema } from "./schemas";
+import { displayNameSchema } from "./schemas";
 
 describe("nombres", () => {
   it("no distingue mayúsculas, tildes ni espacios de más", () => {
@@ -30,45 +30,28 @@ describe("nombres", () => {
   });
 });
 
-describe("PIN", () => {
-  it("acepta de 4 a 6 números y nada más", () => {
-    for (const ok of ["1234", "12345", "123456"]) expect(pinSchema.safeParse(ok).success).toBe(true);
-    for (const bad of ["123", "1234567", "12a4", " 1234", ""]) {
-      expect(pinSchema.safeParse(bad).success).toBe(false);
-    }
+describe("lista de invitados", () => {
+  it("un nombre por línea, limpio y sin líneas vacías", () => {
+    expect(parseGuestList("Ana Torres\n\n  Bruno   Díaz \r\nCamila").names).toEqual(["Ana Torres", "Bruno Díaz", "Camila"]);
   });
 
-  it("pide que los dos PIN coincidan", () => {
-    expect(newPinSchema.safeParse({ pin: "1234", pinConfirm: "1234" }).success).toBe(true);
-    const mismatch = newPinSchema.safeParse({ pin: "1234", pinConfirm: "4321" });
-    expect(mismatch.success).toBe(false);
-  });
-});
-
-describe("bloqueo por intentos fallidos", () => {
-  const now = new Date("2026-11-20T20:00:00Z");
-
-  it(`bloquea al intento ${MAX_FAILED_ATTEMPTS} por ${LOCK_MINUTES} minutos`, () => {
-    let state: { failedAttempts: number; lockedUntil: Date | null } = { failedAttempts: 0, lockedUntil: null };
-    for (let i = 1; i < MAX_FAILED_ATTEMPTS; i++) {
-      state = afterFailedAttempt(state.failedAttempts, now);
-      expect(state.lockedUntil).toBeNull();
-      expect(state.failedAttempts).toBe(i);
-    }
-    state = afterFailedAttempt(state.failedAttempts, now);
-    expect(state.failedAttempts).toBe(0);
-    expect(state.lockedUntil?.getTime()).toBe(now.getTime() + LOCK_MINUTES * 60_000);
+  it("quita viñetas y números del inicio", () => {
+    expect(parseGuestList("1. Ana\n2) Bruno\n- Camila\n• Diego\n* Elena").names).toEqual([
+      "Ana",
+      "Bruno",
+      "Camila",
+      "Diego",
+      "Elena",
+    ]);
   });
 
-  it("el bloqueo vence solo", () => {
-    const until = new Date(now.getTime() + 15 * 60_000);
-    expect(isLocked(until, now)).toBe(true);
-    expect(isLocked(until, new Date(until.getTime() + 1))).toBe(false);
-    expect(isLocked(null, now)).toBe(false);
+  it("no repite nombres aunque cambien mayúsculas o tildes", () => {
+    expect(parseGuestList("José Pérez\njose perez\nJOSÉ PÉREZ").names).toEqual(["José Pérez"]);
   });
 
-  it("informa los minutos que faltan, redondeando hacia arriba", () => {
-    expect(minutesLeft(new Date(now.getTime() + 61_000), now)).toBe(2);
-    expect(minutesLeft(new Date(now.getTime() + 1_000), now)).toBe(1);
+  it("separa lo que no sirve como nombre", () => {
+    const result = parseGuestList(`A\nAna\n${"x".repeat(41)}`);
+    expect(result.names).toEqual(["Ana"]);
+    expect(result.invalid).toHaveLength(2);
   });
 });

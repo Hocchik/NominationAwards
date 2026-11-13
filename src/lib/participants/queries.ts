@@ -9,15 +9,18 @@ export async function getEventByRoomCode(roomCode: string) {
   return event && applySchedule(event);
 }
 
-/** Registros que ocupan cupo: pendientes y aprobados (los rechazados liberan su lugar). */
-export function countActiveRegistrations(eventId: string): Promise<number> {
-  return prisma.participant.count({ where: { eventId, status: { not: "REJECTED" } } });
+/** Cuántos nombres tiene la lista de invitados (el cupo es Event.capacity). */
+export function countGuests(eventId: string): Promise<number> {
+  return prisma.participant.count({ where: { eventId } });
 }
 
-/** Nombres para "Ya me registré": pendientes y aprobados, en orden alfabético. */
-export async function listLoginNames(eventId: string): Promise<string[]> {
+/**
+ * Nombres de la lista de invitados, en orden alfabético, para elegir el tuyo
+ * al entrar. Solo los nombres: nada que diga quién ya entró o votó.
+ */
+export async function listGuestNames(eventId: string): Promise<string[]> {
   const rows = await prisma.participant.findMany({
-    where: { eventId, status: { not: "REJECTED" } },
+    where: { eventId },
     select: { displayName: true },
     orderBy: { normalizedName: "asc" },
   });

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { getCurrentEvent } from "@/lib/event/queries";
+import { unlinkClosedUrns } from "@/lib/event/transition";
 
 // Cierre de nominaciones (CLAUDE.md §3, paso 3). Antes de tocar este archivo,
 // releer la sección 4: el servidor entrega papeletas cifradas y recibe SOLO
@@ -18,6 +19,9 @@ export async function getNominationBallotsAction(): Promise<
   if (!event || event.phase !== "NOMINATIONS_CLOSED") {
     return { ok: false, message: "Las nominaciones todavía no están cerradas." };
   }
+  // Antes de entregarlos para abrirlos, ningún sobre puede llevar nombre
+  // (regla 2): ya se arrancaron al cerrar; esto es solo una red de seguridad.
+  await unlinkClosedUrns(prisma, event.id, event.phase);
   // Orden por id (UUID aleatorio), nunca por orden de llegada (regla 9).
   const ballots = await prisma.ballot.findMany({
     where: { eventId: event.id, phase: "NOMINATION" },
@@ -84,6 +88,7 @@ export async function saveFinalistsAction(
         data: { phase: "FINALISTS_READY" },
       });
       if (moved.count !== 1) throw new Error("phase-changed");
+      await unlinkClosedUrns(tx, event.id, "FINALISTS_READY");
       await tx.finalist.deleteMany({ where: { category: { eventId: event.id } } });
       if (rows.length) await tx.finalist.createMany({ data: rows });
     });

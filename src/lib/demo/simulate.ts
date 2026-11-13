@@ -1,4 +1,3 @@
-import { generateReceiptCode } from "@/lib/ballots/receipt";
 import type { VoteBallot } from "@/lib/ballots/vote";
 import type { KeyPair } from "@/lib/crypto/keys";
 import { sealPayload } from "@/lib/crypto/seal";
@@ -10,13 +9,9 @@ import type { VoteTable } from "./fixtures";
 /**
  * Convierte la tabla en papeletas: el votante i lleva, en cada categoría, el
  * voto i de esa columna; si la columna ya se acabó, se abstiene. Siempre da
- * los mismos votos; solo cambian los comprobantes.
+ * los mismos votos.
  */
-export function simulatedBallots(
-  table: VoteTable,
-  voters: number,
-  receipt: () => string = generateReceiptCode,
-): VoteBallot[] {
+export function simulatedBallots(table: VoteTable, voters: number): VoteBallot[] {
   const columns = Object.entries(table).map(
     ([categoryId, counts]) =>
       [categoryId, Object.entries(counts).flatMap(([finalistId, n]) => Array<string>(n).fill(finalistId))] as const,
@@ -24,7 +19,6 @@ export function simulatedBallots(
   return Array.from({ length: voters }, (_, i) => ({
     v: 1 as const,
     kind: "vote" as const,
-    receipt: receipt(),
     votes: Object.fromEntries(columns.map(([categoryId, list]) => [categoryId, list[i] ?? null])),
   }));
 }

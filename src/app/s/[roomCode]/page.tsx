@@ -4,14 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
-import { canRegister } from "@/lib/event/rules";
-import {
-  countActiveRegistrations,
-  getEventByRoomCode,
-  listLoginNames,
-} from "@/lib/participants/queries";
+import { getEventByRoomCode, listGuestNames } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
-import { EntryForms } from "./EntryForms";
+import { EntryFlow } from "./EntryFlow";
 
 export const metadata: Metadata = {
   title: "Sala",
@@ -22,7 +17,7 @@ type Params = Promise<{ roomCode: string }>;
 
 export default function RoomPage({ params }: { params: Params }) {
   return (
-    <main className="mx-auto w-full max-w-md flex-1 space-y-8 px-4 py-10">
+    <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-10">
       <Logo />
       <Suspense
         fallback={
@@ -52,21 +47,13 @@ async function Room({ params }: { params: Params }) {
       <Card className="space-y-2">
         <h1 className="font-display text-2xl font-bold">{event.name}</h1>
         <p className="text-sm text-ink-soft">
-          La sala todavía no abre. Cuando empiecen las nominaciones podrás registrarte aquí mismo.
+          La sala todavía no abre. Cuando empiecen las nominaciones podrás entrar aquí mismo.
         </p>
       </Card>
     );
   }
 
-  const [names, active] = await Promise.all([
-    listLoginNames(event.id),
-    countActiveRegistrations(event.id),
-  ]);
-  const registration = !canRegister(event.phase)
-    ? "El registro ya cerró. Si te registraste antes, entra con «Ya me registré»."
-    : active >= event.capacity
-      ? "La sala está llena. Habla con el organizador."
-      : null;
+  const names = await listGuestNames(event.id);
 
   return (
     <Card className="space-y-6">
@@ -74,16 +61,16 @@ async function Room({ params }: { params: Params }) {
         <p className="text-sm text-ink-soft">Te damos la bienvenida a</p>
         <h1 className="font-display text-3xl leading-tight font-extrabold">{event.name}</h1>
         <p className="text-sm text-ink-soft">
-          Nominaciones y votación anónimas: nadie, ni el organizador, puede ver lo que elijas.
+          Toca tu nombre para entrar. Lo que elijas es secreto: se cierra con candado en tu celular y se abre sin tu nombre.
         </p>
       </div>
-      <EntryForms roomCode={event.roomCode} names={names} registration={registration} />
+      <EntryFlow roomCode={event.roomCode} names={names} />
       <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-soft">
         <Link href={`/s/${event.roomCode}/nominados`} className="flex min-h-11 items-center underline underline-offset-4">
           Ver los nominados
         </Link>
         <Link href="/transparencia" className="flex min-h-11 items-center underline underline-offset-4">
-          ¿Quién puede ver lo que elijo? Nadie.
+          ¿Quién puede ver lo que elijo?
         </Link>
       </div>
     </Card>

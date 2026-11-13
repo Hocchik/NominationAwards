@@ -10,7 +10,6 @@ import {
   nominationBallotSchema,
   validateNominations,
 } from "./nomination";
-import { generateReceiptCode, isReceiptCode } from "./receipt";
 import { isBase64, sealedBase64Length } from "./sealedSize";
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -18,20 +17,6 @@ const candidates = [
   { id: uuid(1), name: "Ana Prueba" },
   { id: uuid(2), name: "José Pérez" },
 ];
-
-describe("comprobante", () => {
-  it("tiene el formato XXX-XXX y no usa caracteres confusos", () => {
-    for (let i = 0; i < 200; i++) {
-      const code = generateReceiptCode();
-      expect(isReceiptCode(code)).toBe(true);
-      expect(code).not.toMatch(/[01OIL]/);
-    }
-  });
-
-  it("rechaza códigos mal formados", () => {
-    for (const bad of ["K7M29Q", "k7m-29q", "K7M-29O", "K7M-291", 42]) expect(isReceiptCode(bad)).toBe(false);
-  });
-});
 
 describe("tamaño fijo de la papeleta de nominación", () => {
   it("cabe el peor caso: todas las casillas con nombres externos del largo máximo", () => {
@@ -42,7 +27,7 @@ describe("tamaño fijo de la papeleta de nominación", () => {
       for (const id of ids) {
         selections[id] = Array.from({ length: max }, () => ({ type: "external", name: ugly }));
       }
-      const ballot = buildNominationBallot(selections, ids, "K7M-29Q");
+      const ballot = buildNominationBallot(selections, ids);
       const bytes = nominationBallotBytes(categories, max);
       expect(() => padPayload({ ...ballot }, bytes)).not.toThrow();
       expect(bytes % 1024).toBe(0);
@@ -102,7 +87,7 @@ describe("reglas de nominación", () => {
   });
 
   it("la papeleta solo incluye categorías con nombres y se puede volver a leer", () => {
-    const ballot = buildNominationBallot({ [ids[0]]: three, [ids[1]]: [] }, ids, "K7M-29Q");
+    const ballot = buildNominationBallot({ [ids[0]]: three, [ids[1]]: [] }, ids);
     expect(Object.keys(ballot.categories)).toEqual([ids[0]]);
     expect(nominationBallotSchema.parse(JSON.parse(JSON.stringify(ballot)))).toEqual(ballot);
   });

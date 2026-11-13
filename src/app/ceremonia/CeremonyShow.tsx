@@ -34,7 +34,7 @@ interface CategoryInfo {
 
 type Slide =
   | { kind: "cover" }
-  | { kind: "receipts" }
+  | { kind: "turnout" }
   | { kind: "category"; index: number; step: "intro" | "finalists" | "suspense" | "winner" }
   | { kind: "end" };
 
@@ -70,7 +70,7 @@ export function CeremonyShow({
   const slides = useMemo<Slide[]>(
     () => [
       { kind: "cover" },
-      { kind: "receipts" },
+      { kind: "turnout" },
       ...categories.flatMap((_, index) =>
         (["intro", "finalists", "suspense", "winner"] as const).map((step): Slide => ({ kind: "category", index, step })),
       ),
@@ -178,7 +178,7 @@ export function CeremonyShow({
           ) : (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-success">
-                ✓ Votos abiertos: {results.receipts.length}.
+                ✓ Votos abiertos: {results.count}.
                 {results.unreadable > 0 && ` ${results.unreadable} no se pudieron abrir.`}
               </p>
               <p className="text-xs text-ink-soft">
@@ -333,24 +333,19 @@ function SlideView({
     );
   }
 
-  if (slide.kind === "receipts") {
+  // Cuántos votaron, sin nada más: los sobres ya no llevan nombre (regla 2).
+  if (slide.kind === "turnout") {
     return (
-      <div className="ceremony-rise relative z-10 w-full space-y-[2cqw] text-center">
-        <h1 className="font-display text-[4cqw] font-extrabold uppercase">Comprobantes recibidos</h1>
+      <div className="ceremony-rise relative z-10 w-full space-y-[1.5cqw] text-center">
+        <p className="font-display text-[1.4cqw] font-semibold tracking-[0.3em] text-copper uppercase">La urna está abierta</p>
+        <p className="font-display text-[14cqw] leading-none font-extrabold tabular-nums">{results.count}</p>
+        <h1 className="font-display text-[3.4cqw] font-extrabold uppercase">
+          {results.count === 1 ? "persona votó" : "personas votaron"}
+        </h1>
         <p className="text-[1.6cqw] text-ink-soft">
-          {results.receipts.length} votos. Busca el tuyo: si está aquí, tu voto se contó.
+          Cada voto se abrió aquí, sin nombre.
           {results.unreadable > 0 && ` (${results.unreadable} no se pudieron abrir.)`}
         </p>
-        <ul className="mx-auto flex max-w-[80cqw] flex-wrap justify-center gap-[0.8cqw]">
-          {results.receipts.map((code, i) => (
-            <li
-              key={`${code}-${i}`}
-              className="bg-sheet px-[1.4cqw] py-[0.7cqw] font-display text-[1.7cqw] font-bold tracking-[0.12em] chamfer-[0.7cqw]"
-            >
-              {code}
-            </li>
-          ))}
-        </ul>
       </div>
     );
   }

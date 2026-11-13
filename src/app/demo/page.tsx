@@ -7,10 +7,12 @@ import { DEMO_VOTERS } from "@/lib/demo/fixtures";
 export const metadata: Metadata = { title: "Demo" };
 
 const STEPS = [
-  { title: "Nominar", text: "Llena la papeleta con un grupo inventado. Se sella en tu navegador, igual que en el evento real." },
+  { title: "Entrar", text: "Toca tu nombre en la lista de invitados. Sin contraseñas ni PIN." },
+  { title: "Nominar", text: "Llena la papeleta. Se sella en tu navegador, igual que en el evento real." },
   { title: "Nominados", text: "Mira la cartelera con los finalistas de ejemplo, sin conteos." },
-  { title: "Votar", text: "Elige un ganador por categoría y guarda tu comprobante." },
+  { title: "Votar", text: "Elige un ganador por categoría. Si eres finalista, tu tarjeta sale como «Eres tú»." },
   { title: "Ceremonia", text: `Abre la urna y mira la revelación con tu voto y los de ${DEMO_VOTERS} amigos ficticios.` },
+  { title: "Panel", text: "Mira cómo ve el organizador quién ya votó, y cómo resetea un voto hecho con el nombre de otro." },
 ];
 
 export default function DemoPage() {
@@ -25,7 +27,7 @@ export default function DemoPage() {
           Así funciona la premiación
         </h1>
         <p className="max-w-xl text-lg text-pretty text-ink-soft">
-          Recorre las cuatro etapas con un grupo inventado. La papeleta, el cifrado y el conteo son los de verdad; el
+          Recorre todo con un grupo inventado. La papeleta, el cifrado y el conteo son los de verdad; el
           grupo y sus votos son simulados. Nada sale de tu navegador.
         </p>
       </section>
@@ -44,12 +46,12 @@ export default function DemoPage() {
       </ol>
 
       <p className="border-l-[3px] border-copper bg-raised px-4 py-3 text-sm text-ink-soft">
-        <strong className="text-ink">Lo que el demo se salta:</strong> el registro con PIN, la aprobación del organizador
-        y el notario que abre las nominaciones. En el evento real, los finalistas salen de lo que nominó el grupo.
+        <strong className="text-ink">Lo que el demo se salta:</strong> el organizador cargando la lista de invitados y el
+        notario que abre las nominaciones. En el evento real, los finalistas salen de lo que nominó el grupo.
       </p>
 
       <div className="flex flex-wrap gap-3">
-        <Link href="/demo/nominar" className={buttonClasses({ size: "lg", className: "max-sm:w-full" })}>
+        <Link href="/demo/entrar" className={buttonClasses({ size: "lg", className: "max-sm:w-full" })}>
           Empezar →
         </Link>
         <Link href="/transparencia" className={buttonClasses({ variant: "secondary", size: "lg", className: "max-sm:w-full" })}>

@@ -53,9 +53,6 @@ async function Nominate({ params }: { params: Params }) {
   if (!participant) redirect(`/s/${event.roomCode}`);
 
   const code = event.roomCode;
-  if (participant.status !== "APPROVED") {
-    return <Notice roomCode={code} title="Aún no puedes nominar" text="Tu registro todavía no está aprobado por el organizador." />;
-  }
   if (event.phase !== "NOMINATIONS") {
     return <Notice roomCode={code} title="Las nominaciones no están abiertas" text="Revisa la sala para ver en qué etapa va la premiación." />;
   }
@@ -66,10 +63,11 @@ async function Nominate({ params }: { params: Params }) {
     return <Notice roomCode={code} title="Todavía no se puede nominar" text="Falta que el notario configure sus llaves. Avísale al organizador." />;
   }
 
+  // Todo el grupo de la lista de invitados (haya entrado o no), menos uno mismo.
   const [categories, approved] = await Promise.all([
     getCategories(event.id),
     prisma.participant.findMany({
-      where: { eventId: event.id, status: "APPROVED", id: { not: participant.id } }, // no autonominarse
+      where: { eventId: event.id, id: { not: participant.id } }, // no autonominarse
       select: { id: true, displayName: true },
       orderBy: { normalizedName: "asc" },
     }),

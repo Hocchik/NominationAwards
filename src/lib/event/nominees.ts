@@ -1,4 +1,4 @@
-import type { EventPhase, ParticipantStatus } from "@/generated/prisma/enums";
+import type { EventPhase } from "@/generated/prisma/enums";
 import { isBefore } from "./phases";
 
 // Página de Nominados («Cartelera», CLAUDE.md §7 y §9). Aquí solo se decide
@@ -50,11 +50,10 @@ export type RoomAction = "nominate" | "vote" | "enter" | null;
 /** El botón principal de la sala para quien está mirando. */
 export function roomAction(
   phase: EventPhase,
-  participant: { status: ParticipantStatus; hasNominated: boolean; hasVoted: boolean } | null,
+  participant: { hasNominated: boolean; hasVoted: boolean } | null,
 ): RoomAction {
   if (phase === "SETUP" || !isBefore(phase, "VOTING_CLOSED")) return null;
   if (!participant) return "enter";
-  if (participant.status !== "APPROVED") return null;
   if (phase === "NOMINATIONS" && !participant.hasNominated) return "nominate";
   if (phase === "VOTING" && !participant.hasVoted) return "vote";
   return null;

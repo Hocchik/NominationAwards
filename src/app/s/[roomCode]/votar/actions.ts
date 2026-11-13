@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { isReceiptCode } from "@/lib/ballots/receipt";
 import { recordBallot } from "@/lib/ballots/record";
 import { isBase64, sealedBase64Length } from "@/lib/ballots/sealedSize";
 import { voteBallotBytes } from "@/lib/ballots/vote";
@@ -19,7 +18,6 @@ export interface SubmitResult {
 export async function submitVoteAction(
   roomCode: string,
   ciphertext: string,
-  receiptCode: string,
 ): Promise<SubmitResult> {
   // getEventByRoomCode aplica el horario: si la votación ya cerró, la fase
   // cambia aquí mismo y recordBallot rechaza el voto.
@@ -29,12 +27,6 @@ export async function submitVoteAction(
   const participant = await getSessionParticipant(event.id);
   if (!participant) {
     return { ok: false, message: "Tu sesión terminó. Vuelve a entrar a la sala con tu PIN." };
-  }
-  if (participant.status !== "APPROVED") {
-    return { ok: false, message: "Tu registro no está aprobado." };
-  }
-  if (!isReceiptCode(receiptCode)) {
-    return { ok: false, message: "El comprobante no tiene el formato esperado." };
   }
 
   const active = await prisma.category.count({ where: { eventId: event.id, activeForVote: true } });
@@ -48,7 +40,6 @@ export async function submitVoteAction(
     participantId: participant.id,
     phase: "VOTE",
     ciphertext,
-    receiptCode,
   });
   if (!result.ok) {
     return {

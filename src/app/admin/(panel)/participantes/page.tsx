@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { getCurrentEvent } from "@/lib/event/queries";
 import { canManageParticipants } from "@/lib/event/rules";
-import { isLocked } from "@/lib/participants/lockout";
+import { openUrn } from "@/lib/event/urns";
+import { AddGuestsForm } from "../../_components/AddGuestsForm";
 import { PanelLoading } from "../../_components/PanelLoading";
-import { ParticipantRow, type ParticipantRowData } from "../../_components/ParticipantRow";
+import { ParticipantRow } from "../../_components/ParticipantRow";
 import { SectionCard } from "../../_components/SectionCard";
 
 export const metadata: Metadata = { title: "Participantes" };
@@ -21,6 +21,8 @@ export default function ParticipantsPage() {
     </Suspense>
   );
 }
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 async function ParticipantsPanel() {
   await requireAdmin();
@@ -40,87 +42,60 @@ async function ParticipantsPanel() {
     );
   }
 
-  // Orden alfabético: el orden de registro no aporta nada aquí.
-  const rows = await prisma.participant.findMany({
+  // Orden alfabético: el orden en que se agregaron no aporta nada.
+  const guests = await prisma.participant.findMany({
     where: { eventId: event.id },
+    select: { id: true, displayName: true, hasNominated: true, hasVoted: true },
     orderBy: { normalizedName: "asc" },
   });
-  await connection();
-  const now = new Date();
-  const toRow = (p: (typeof rows)[number]): ParticipantRowData => ({
-    id: p.id,
-    displayName: p.displayName,
-    status: p.status,
-    hasNominated: p.hasNominated,
-    hasVoted: p.hasVoted,
-    pinReset: p.pinReset,
-    locked: isLocked(p.lockedUntil, now),
-  });
-
-  const pending = rows.filter((p) => p.status === "PENDING").map(toRow);
-  const approved = rows.filter((p) => p.status === "APPROVED").map(toRow);
-  const rejected = rows.filter((p) => p.status === "REJECTED").map(toRow);
-  const nominated = approved.filter((p) => p.hasNominated).length;
-  const voted = approved.filter((p) => p.hasVoted).length;
+  const nominated = guests.filter((p) => p.hasNominated).length;
+  const voted = guests.filter((p) => p.hasVoted).length;
   const editable = canManageParticipants(event.phase);
+  const urn = openUrn(event.phase);
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">Participantes</h1>
         <p className="text-sm text-ink-soft">
-          {plural(approved.length, "aprobado", "aprobados")} ·{" "}
-          {plural(pending.length, "pendiente", "pendientes")} · cupo {event.capacity}. Nominaron{" "}
-          {nominated} de {approved.length} · votaron {voted} de {approved.length}.
+          {plural(guests.length, "invitado", "invitados")} de un cupo de {event.capacity}. Nominaron {nominated} de{" "}
+          {guests.length} · votaron {voted} de {guests.length}.
         </p>
         <p className="text-xs text-ink-soft">
-          Solo ves si cada persona ya nominó o votó, nunca qué eligió.
+          Solo ves quién ya nominó o votó, nunca qué eligió. En la sala todos los nombres se ven iguales.
         </p>
-        {!editable && (
-          <p className="text-sm text-ink-soft">La votación cerró: los registros ya no se modifican.</p>
-        )}
+        {!editable && <p className="text-sm text-ink-soft">La votación cerró: la lista ya no se modifica.</p>}
       </div>
 
-      <SectionCard
-        id="pendientes"
-        title={`Pendientes (${pending.length})`}
-        description="Revisa que no haya duplicados (por ejemplo, «Juan» y «Juancho») antes de aprobar."
-      >
-        <ParticipantList rows={pending} editable={editable} empty="No hay registros pendientes." />
-      </SectionCard>
-
-      <SectionCard id="aprobados" title={`Aprobados (${approved.length})`}>
-        <ParticipantList rows={approved} editable={editable} empty="Todavía no apruebas a nadie." />
-      </SectionCard>
-
-      {rejected.length > 0 && (
-        <SectionCard id="rechazados" title={`Rechazados (${rejected.length})`}>
-          <ParticipantList rows={rejected} editable={editable} empty="" />
+      {editable && (
+        <SectionCard
+          id="agregar"
+          title="Agregar invitados"
+          description="Cada persona entra tocando su nombre en la sala. Puedes sumar o quitar nombres hasta que cierre la votación."
+        >
+          <AddGuestsForm />
         </SectionCard>
       )}
+
+      <SectionCard
+        id="lista"
+        title={`Lista de invitados (${guests.length})`}
+        description={
+          urn
+            ? `Si alguien ${urn === "VOTE" ? "votó" : "nominó"} con el nombre de otra persona, usa «Resetear»: su sobre se bota sin abrirlo y la persona real puede volver a hacerlo. Al cerrar, los sobres pierden el nombre y ya no se puede resetear.`
+            : undefined
+        }
+      >
+        {guests.length === 0 ? (
+          <p className="text-sm text-ink-soft">Todavía no hay nadie en la lista.</p>
+        ) : (
+          <ul>
+            {guests.map((p) => (
+              <ParticipantRow key={p.id} p={p} openUrn={urn} editable={editable} />
+            ))}
+          </ul>
+        )}
+      </SectionCard>
     </div>
-  );
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
-function ParticipantList({
-  rows,
-  editable,
-  empty,
-}: {
-  rows: ParticipantRowData[];
-  editable: boolean;
-  empty: string;
-}) {
-  if (rows.length === 0) return <p className="text-sm text-ink-soft">{empty}</p>;
-  return (
-    <ul>
-      {rows.map((p) => (
-        <ParticipantRow key={p.id} p={p} editable={editable} />
-      ))}
-    </ul>
   );
 }

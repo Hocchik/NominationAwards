@@ -9,7 +9,6 @@ const part = (id: string): Nominee => ({ type: "participant", id });
 const ballot = (categories: Record<string, Nominee[]>): NominationBallot => ({
   v: 1,
   kind: "nomination",
-  receipt: "AAA-BBB",
   categories,
 });
 

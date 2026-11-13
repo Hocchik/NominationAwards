@@ -19,12 +19,16 @@ function modelBody(name: string): string {
 }
 
 describe("esquema de la base de datos", () => {
-  it("Ballot no guarda nada que vincule la papeleta con quien la envió", () => {
+  it("Ballot no guarda la hora, la IP ni una relación con el participante", () => {
     const ballot = modelBody("Ballot");
-    for (const forbidden of ["participantId", "participant", "createdAt", "updatedAt", "ip", "userAgent"]) {
+    for (const forbidden of ["participant", "createdAt", "updatedAt", "ip", "userAgent"]) {
       expect(ballot).not.toMatch(new RegExp(`^\\s*${forbidden}\\s`, "m"));
     }
-    expect(ballot).not.toMatch(/@updatedAt|now\(\)|DateTime/);
+    expect(ballot).not.toMatch(/@updatedAt|now\(\)|DateTime|@relation\(fields: \[participantId\]/);
+  });
+
+  it("el «nombre por fuera del sobre» es opcional: se borra al cerrar la urna (regla 2)", () => {
+    expect(modelBody("Ballot")).toMatch(/^\s*participantId\s+String\?\s*$/m);
   });
 
   it("Participant no tiene updatedAt ni fechas de nominar o votar", () => {

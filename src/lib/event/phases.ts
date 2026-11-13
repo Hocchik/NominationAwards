@@ -27,8 +27,8 @@ export const PHASE_LABELS: Record<EventPhase, string> = {
 };
 
 export const PHASE_HINTS: Record<EventPhase, string> = {
-  SETUP: "Creas las categorías y el notario genera sus llaves.",
-  NOMINATIONS: "El grupo se registra y nomina desde el link de la sala.",
+  SETUP: "Creas las categorías, cargas la lista de invitados y el notario genera sus llaves.",
+  NOMINATIONS: "Cada uno entra tocando su nombre en el link de la sala y nomina.",
   NOMINATIONS_CLOSED: "El notario abre las nominaciones y se calculan los finalistas.",
   FINALISTS_READY: "Eliges qué categorías pasan a la votación y su orden.",
   VOTING: "Cada participante vota una vez por categoría.",
@@ -73,6 +73,8 @@ export interface PhaseContext {
   phase: EventPhase;
   /** Total de categorías creadas. */
   categoryCount: number;
+  /** Nombres en la lista de invitados. */
+  guestCount: number;
   /** Categorías de premio / honoríficas marcadas para la votación. */
   activePrizeCount: number;
   activeHonoraryCount: number;
@@ -104,6 +106,7 @@ export function getAdvanceBlockers(ctx: PhaseContext): string[] {
     // las llaves del notario nadie podría sellar su papeleta.
     case "SETUP":
       if (ctx.categoryCount === 0) blockers.push("Crea al menos una categoría.");
+      if (ctx.guestCount === 0) blockers.push("Agrega la lista de invitados en Participantes: cada uno entra tocando su nombre.");
       if (!ctx.hasNominationKey || !ctx.hasVoteKey) {
         blockers.push("Falta que el notario genere sus llaves: sin ellas no se puede sellar ninguna papeleta.");
       }

@@ -6,6 +6,7 @@ import type { Event } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type { PhaseContext } from "./phases";
 import { scheduledPhase } from "./schedule";
+import { movePhase } from "./transition";
 
 // La app maneja un solo evento a la vez (la premiación del grupo).
 
@@ -42,7 +43,9 @@ export async function applySchedule(event: Event): Promise<Event> {
   });
   if (!next) return event;
 
-  await prisma.event.updateMany({ where: { id: event.id, phase: event.phase }, data: { phase: next } });
+  // Al cerrar una urna por horario, sus sobres pierden el nombre en la misma
+  // transacción (regla 2), igual que con el botón del panel.
+  await movePhase(event.id, event.phase, next);
   return (await prisma.event.findUnique({ where: { id: event.id } })) ?? event;
 }
 
@@ -55,14 +58,16 @@ export function getCategories(eventId: string) {
 
 export async function getPhaseContext(event: Event): Promise<PhaseContext> {
   await connection(); // usa la hora actual: se calcula en cada petición
-  const [categoryCount, activePrizeCount, activeHonoraryCount] = await Promise.all([
+  const [categoryCount, guestCount, activePrizeCount, activeHonoraryCount] = await Promise.all([
     prisma.category.count({ where: { eventId: event.id } }),
+    prisma.participant.count({ where: { eventId: event.id } }),
     prisma.category.count({ where: { eventId: event.id, activeForVote: true, type: "PRIZE" } }),
     prisma.category.count({ where: { eventId: event.id, activeForVote: true, type: "HONORARY" } }),
   ]);
   return {
     phase: event.phase,
     categoryCount,
+    guestCount,
     activePrizeCount,
     activeHonoraryCount,
     maxPrizeCategories: event.maxPrizeCategories,

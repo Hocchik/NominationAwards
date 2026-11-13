@@ -14,10 +14,8 @@ import {
 } from "@/components/ballot/BallotParts";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { CopyButton } from "@/components/ui/CopyButton";
 import { LocalDateTime } from "@/components/ui/LocalDateTime";
 import type { CategoryType } from "@/generated/prisma/enums";
-import { generateReceiptCode } from "@/lib/ballots/receipt";
 import { buildVoteBallot, validateVotes } from "@/lib/ballots/vote";
 import { cn } from "@/lib/cn";
 import { sealPayload } from "@/lib/crypto/seal";
@@ -29,6 +27,8 @@ interface FinalistInfo {
   name: string;
   photoUrl: string | null;
   blurb: string | null;
+  /** Es quien está votando: su tarjeta se muestra pero no se puede elegir. */
+  isSelf?: boolean;
 }
 
 interface CategoryInfo {
@@ -66,21 +66,22 @@ export function VoteBallotForm({
   ballotBytes: number;
   closesAt: string | null;
   /** Qué hacer con el voto ya sellado. Por defecto se envía al servidor. */
-  onSubmit?: (ciphertext: string, receipt: string) => Promise<SubmitResult>;
+  onSubmit?: (ciphertext: string) => Promise<SubmitResult>;
   /** Botón de la pantalla «Voto sellado». Por defecto, «Ver nominados» de la sala. */
   doneLink?: { href: string; label: string };
 }) {
   const [votes, setVotes] = useState<Votes>({});
   const [restored, setRestored] = useState(false);
   const [index, setIndex] = useState(0); // categories.length = revisión
-  const [receipt, setReceipt] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const ids = useMemo(() => categories.map((c) => c.id), [categories]);
   const issues = validateVotes(
     votes,
-    categories.map((c) => ({ id: c.id, finalistIds: c.finalists.map((f) => f.id) })),
+    // Nadie puede votarse a sí mismo: su propia tarjeta no cuenta como opción.
+    categories.map((c) => ({ id: c.id, finalistIds: c.finalists.filter((f) => !f.isSelf).map((f) => f.id) })),
     allowAbstention,
   );
 
@@ -93,11 +94,11 @@ export function VoteBallotForm({
   }, [roomCode]);
 
   useEffect(() => {
-    if (!restored || receipt) return;
+    if (!restored || sent) return;
     try {
       sessionStorage.setItem(draftKey(roomCode), JSON.stringify(votes));
     } catch {}
-  }, [votes, restored, receipt, roomCode]);
+  }, [votes, restored, sent, roomCode]);
 
   function choose(categoryId: string, choice: string | null) {
     setVotes((prev) => ({ ...prev, [categoryId]: choice }));
@@ -114,12 +115,11 @@ export function VoteBallotForm({
     setError(null);
     startTransition(async () => {
       try {
-        const code = generateReceiptCode();
-        const ballot = buildVoteBallot(votes, ids, code);
+        const ballot = buildVoteBallot(votes, ids);
         // Se sella aquí: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const send = onSubmit ?? ((sealed: string, receiptCode: string) => submitVoteAction(roomCode, sealed, receiptCode));
-        const result = await send(ciphertext, code);
+        const send = onSubmit ?? ((sealed: string) => submitVoteAction(roomCode, sealed));
+        const result = await send(ciphertext);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
           return;
@@ -127,7 +127,7 @@ export function VoteBallotForm({
         try {
           sessionStorage.removeItem(draftKey(roomCode));
         } catch {}
-        setReceipt(code);
+        setSent(true);
       } catch {
         setError("No se pudo sellar el voto en este dispositivo. Intenta de nuevo.");
       }
@@ -136,21 +136,16 @@ export function VoteBallotForm({
 
   const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
 
-  if (receipt) {
+  if (sent) {
     return (
       <SealedScreen
-        title="Voto sellado"
-        text="Tu papeleta se cifró en este dispositivo y llegó a la urna. Nadie puede ver qué marcaste."
-        code={receipt}
-        receiptNote="Se proyecta en la gala"
-        help="Antes de la premiación se proyectan todos los comprobantes recibidos: busca el tuyo. Guárdalo (una captura sirve) y no lo compartas: no se vuelve a mostrar."
+        title="¡Listo!"
+        text="Tu voto quedó guardado en secreto. Nadie puede ver qué marcaste."
+        help="Se cerró con candado en tu celular. Solo se abre en la ceremonia, junto con todos los demás y ya sin nombre."
         actions={
-          <>
-            <CopyButton text={receipt} label="Copiar código" className="flex-1" />
-            <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
-              {done.label}
-            </Link>
-          </>
+          <Link href={done.href} className={buttonClasses({ className: "flex-1" })}>
+            {done.label}
+          </Link>
         }
       />
     );
@@ -192,6 +187,7 @@ export function VoteBallotForm({
                 <legend className="mb-2.5 text-[13px] text-ink-soft">Elige a una persona. Puedes cambiarla hasta sellar.</legend>
                 <div className="border-t-2 border-ink">
                   {category.finalists.map((finalist) => {
+                    if (finalist.isSelf) return <SelfRow key={finalist.id} finalist={finalist} />;
                     const selected = votes[category.id] === finalist.id;
                     return (
                       <label
@@ -342,6 +338,27 @@ export function VoteBallotForm({
           }))}
         />
       </div>
+    </div>
+  );
+}
+
+/** Tu propia tarjeta: se ve, para que sepas que estás nominado, pero no se puede elegir. */
+function SelfRow({ finalist }: { finalist: FinalistInfo }) {
+  return (
+    <div className="flex min-h-[92px] items-center gap-3 border-b border-l-[3px] border-b-line border-l-transparent py-2.5 pr-1.5 pl-2.5 opacity-60">
+      <span
+        aria-hidden="true"
+        className="grid h-[68px] w-16 shrink-0 place-items-center bg-sand font-display text-xl font-extrabold chamfer-10"
+      >
+        {initials(finalist.name)}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="font-display text-[15px] leading-tight font-bold">{finalist.name}</span>
+        <span className="text-[13px] leading-snug text-ink-soft">No puedes votarte a ti mismo.</span>
+      </span>
+      <span className="shrink-0 bg-ink px-2 py-1 font-display text-[9px] font-bold tracking-[0.14em] text-sheet uppercase">
+        Eres tú
+      </span>
     </div>
   );
 }

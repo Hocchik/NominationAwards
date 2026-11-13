@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { VoteBallot } from "./vote";
 import { tallyVotes } from "./voteTally";
 
-const ballot = (votes: Record<string, string | null>): VoteBallot => ({ v: 1, kind: "vote", receipt: "AAA-BBB", votes });
+const ballot = (votes: Record<string, string | null>): VoteBallot => ({ v: 1, kind: "vote", votes });
 const categories = [
   { id: "c1", finalistIds: ["a", "b", "c"] },
   { id: "c2", finalistIds: ["x", "y"] },

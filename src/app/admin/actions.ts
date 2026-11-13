@@ -14,6 +14,7 @@ import { prisma } from "@/lib/db";
 import { ADVANCE_MODE, PHASES, PHASE_LABELS, getAdvanceBlockers, nextPhase } from "@/lib/event/phases";
 import { getBaseUrl, getCategories, getCurrentEvent, getPhaseContext } from "@/lib/event/queries";
 import { generateRoomCode } from "@/lib/event/roomCode";
+import { movePhase } from "@/lib/event/transition";
 import { createSetupToken } from "@/lib/notary";
 import {
   canEditCategoryText,
@@ -204,12 +205,9 @@ export async function advancePhaseAction(
   }
 
   // Solo avanza si la fase sigue siendo la misma: si dos pestañas confirman a
-  // la vez, una sola gana y la otra no salta dos fases.
-  const result = await prisma.event.updateMany({
-    where: { id: event.id, phase: from.data },
-    data: { phase: to },
-  });
-  if (result.count !== 1) {
+  // la vez, una sola gana y la otra no salta dos fases. Al cerrar una urna,
+  // sus sobres pierden el nombre en la misma transacción (regla 2).
+  if (!(await movePhase(event.id, from.data, to))) {
     return { ok: false, message: "La fase cambió mientras tanto. Recarga la página." };
   }
   refresh();

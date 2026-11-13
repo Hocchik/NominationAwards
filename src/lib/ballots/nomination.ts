@@ -9,7 +9,6 @@ export type Nominee = { type: "participant"; id: string } | { type: "external"; 
 export interface NominationBallot {
   v: 1;
   kind: "nomination";
-  receipt: string;
   categories: Record<string, Nominee[]>;
 }
 
@@ -28,7 +27,7 @@ export const EXTERNAL_NAME_MAX = 40;
  * externos del largo máximo.
  */
 export function nominationBallotBytes(categoryCount: number, maxNominations: number): number {
-  const BASE = 128; // {"v":1,"kind":"nomination","receipt":"XXX-XXX","categories":{},"pad":""}
+  const BASE = 128; // {"v":1,"kind":"nomination","categories":{},"pad":""}, con holgura
   const PER_CATEGORY = 48; // "<uuid>":[],
   // {"type":"external","name":"…"}, con 40 unidades de texto de hasta 3 bytes
   // cada una en UTF-8, más comillas escapadas: holgadamente bajo 200.
@@ -91,20 +90,18 @@ export function validateNominations(
 export function buildNominationBallot(
   selections: Record<string, Nominee[]>,
   categoryIds: string[],
-  receipt: string,
 ): NominationBallot {
   const categories: Record<string, Nominee[]> = {};
   for (const id of categoryIds) {
     if (selections[id]?.length) categories[id] = selections[id];
   }
-  return { v: 1, kind: "nomination", receipt, categories };
+  return { v: 1, kind: "nomination", categories };
 }
 
 /** Para leer papeletas ya abiertas (cierre de nominaciones, Fase 5). */
 export const nominationBallotSchema = z.object({
   v: z.literal(1),
   kind: z.literal("nomination"),
-  receipt: z.string(),
   categories: z.record(
     z.string(),
     z.array(
