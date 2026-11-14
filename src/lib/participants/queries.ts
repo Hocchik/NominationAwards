@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { applySchedule } from "@/lib/event/queries";
+import type { GuestEntry } from "./guests";
 
 /** El evento de una sala, con la fase ya al día según el horario de votación. */
 export async function getEventByRoomCode(roomCode: string) {
@@ -15,14 +16,14 @@ export function countGuests(eventId: string): Promise<number> {
 }
 
 /**
- * Nombres de la lista de invitados, en orden alfabético, para elegir el tuyo
- * al entrar. Solo los nombres: nada que diga quién ya entró o votó.
+ * La lista de invitados, en orden alfabético, para elegir tu nombre al entrar
+ * (con apodos, para el buscador). Nada que diga quién ya entró o votó.
  */
-export async function listGuestNames(eventId: string): Promise<string[]> {
+export async function listGuests(eventId: string): Promise<GuestEntry[]> {
   const rows = await prisma.participant.findMany({
     where: { eventId },
-    select: { displayName: true },
+    select: { displayName: true, aliases: true },
     orderBy: { normalizedName: "asc" },
   });
-  return rows.map((row) => row.displayName);
+  return rows.map((row) => ({ name: row.displayName, aliases: row.aliases }));
 }

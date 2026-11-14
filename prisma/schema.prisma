@@ -71,6 +71,7 @@ model Participant {
   event          Event    @relation(fields: [eventId], references: [id])
   displayName    String
   normalizedName String // minúsculas y sin tildes, para detectar duplicados
+  aliases        String[] @default([]) // apodos («Gabo»): el buscador de la sala también los encuentra
   hasNominated   Boolean  @default(false)
   hasVoted       Boolean  @default(false)
   sessionVersion Int      @default(0) // sube al resetear su envío: cierra las sesiones abiertas con ese nombre

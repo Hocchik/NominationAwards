@@ -4,16 +4,17 @@ import { useActionState, useState } from "react";
 import { ConfirmName } from "@/components/room/ConfirmName";
 import { NameGrid } from "@/components/room/NameGrid";
 import { type FormState, initialFormState } from "@/lib/forms";
+import type { GuestEntry } from "@/lib/participants/guests";
 import { enterAction } from "./actions";
 
 /** Entrar a la sala: tocas tu nombre de la lista, confirmas que eres tú y listo. */
-export function EntryFlow({ roomCode, names }: { roomCode: string; names: string[] }) {
+export function EntryFlow({ roomCode, guests }: { roomCode: string; guests: GuestEntry[] }) {
   const [name, setName] = useState<string | null>(null);
 
-  if (names.length === 0) {
+  if (guests.length === 0) {
     return <p className="text-sm text-ink-soft">El organizador todavía no carga la lista de invitados.</p>;
   }
-  if (name === null) return <NameGrid names={names} onPick={setName} />;
+  if (name === null) return <NameGrid guests={guests} onPick={setName} />;
   // key: al cambiar de nombre, la confirmación empieza de cero.
   return <Confirm key={name} roomCode={roomCode} name={name} onBack={() => setName(null)} />;
 }

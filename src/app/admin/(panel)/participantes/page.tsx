@@ -45,7 +45,7 @@ async function ParticipantsPanel() {
   // Orden alfabético: el orden en que se agregaron no aporta nada.
   const guests = await prisma.participant.findMany({
     where: { eventId: event.id },
-    select: { id: true, displayName: true, hasNominated: true, hasVoted: true },
+    select: { id: true, displayName: true, aliases: true, hasNominated: true, hasVoted: true },
     orderBy: { normalizedName: "asc" },
   });
   const nominated = guests.filter((p) => p.hasNominated).length;
@@ -71,7 +71,7 @@ async function ParticipantsPanel() {
         <SectionCard
           id="agregar"
           title="Agregar invitados"
-          description="Cada persona entra tocando su nombre en la sala. Puedes sumar o quitar nombres hasta que cierre la votación."
+          description="Cada persona entra tocando su nombre en la sala. Mejor con nombre y apellido; los apodos van entre paréntesis y el buscador también los encuentra. Puedes sumar o quitar nombres hasta que cierre la votación."
         >
           <AddGuestsForm />
         </SectionCard>

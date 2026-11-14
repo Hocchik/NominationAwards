@@ -6,10 +6,10 @@ import { useState } from "react";
 import { ConfirmName } from "@/components/room/ConfirmName";
 import { NameGrid } from "@/components/room/NameGrid";
 import { buttonClasses } from "@/components/ui/Button";
-import { DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EVENT_NAME } from "@/lib/demo/fixtures";
+import { DEMO_ALIASES, DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EVENT_NAME } from "@/lib/demo/fixtures";
 import { useDemo } from "../DemoProvider";
 
-const names = DEMO_CANDIDATES.map((p) => p.name);
+const guests = DEMO_CANDIDATES.map((p) => ({ name: p.name, aliases: DEMO_ALIASES[p.id] ?? [] }));
 /** Nombres que son finalistas en alguna categoría: con ellos se ve la tarjeta «Eres tú». */
 const finalistNames = new Set(DEMO_CATEGORIES.flatMap((c) => c.finalists.filter((f) => f.participantId).map((f) => f.name)));
 
@@ -59,9 +59,9 @@ export function DemoEnter() {
     <div className="space-y-4">
       <p className="text-sm text-ink-soft">
         En el demo eliges a alguien del grupo ficticio de {DEMO_EVENT_NAME}. Prueba con{" "}
-        {[...finalistNames].slice(0, 2).join(" o ")}: son finalistas, así que al votar verás su tarjeta como «Eres tú».
+        {[...finalistNames].slice(0, 2).join(" o ")}: son finalistas, así que al votar verás su tarjeta como «Eres tú». El buscador también entiende apodos: prueba con «Gabi».
       </p>
-      <NameGrid names={names} onPick={setPicked} />
+      <NameGrid guests={guests} onPick={setPicked} />
     </div>
   );
 }

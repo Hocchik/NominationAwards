@@ -15,12 +15,12 @@ export function AddGuestsForm() {
         id="invitados"
         name="names"
         label="Nombres, uno por línea"
-        hint="Puedes pegar la lista del grupo de WhatsApp. Los que ya están se saltan solos."
+        hint="Apodos entre paréntesis: «Gabriel Mendoza (Gabo)». Si el nombre ya está, solo se le suman los apodos nuevos."
         rows={6}
         defaultValue={state.ok ? "" : state.values?.names}
         key={state.ok ? state.message : "editando"}
         errors={state.errors?.names}
-        placeholder={"Ana Torres\nBruno Díaz\nCamila Rojas"}
+        placeholder={"Gabriel Mendoza (Gabo)\nAna Torres\nBruno Díaz (Brunito)"}
       />
       <FormMessage state={state} />
       <Button type="submit" disabled={pending}>

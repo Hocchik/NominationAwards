@@ -4,16 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { BallotPhase } from "@/generated/prisma/enums";
 import { cn } from "@/lib/cn";
-import { removeGuestAction, resetBallotAction } from "../participant-actions";
+import { removeGuestAction, resetBallotAction, setAliasesAction } from "../participant-actions";
 
 export interface ParticipantRowData {
   id: string;
   displayName: string;
+  aliases: string[];
   hasNominated: boolean;
   hasVoted: boolean;
 }
 
-type Confirming = null | "reset" | "remove";
+type Confirming = null | "reset" | "remove" | "aliases";
 
 const PHASE_WORD: Record<BallotPhase, { noun: string; verb: string }> = {
   NOMINATION: { noun: "nominación", verb: "nominar" },
@@ -48,7 +49,10 @@ export function ParticipantRow({
   return (
     <li className="space-y-3 border-b border-line py-3.5 last:border-b-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <span className="font-semibold">{p.displayName}</span>
+        <span className="font-semibold">
+          {p.displayName}
+          {p.aliases.length > 0 && <span className="font-normal text-ink-soft"> · {p.aliases.join(", ")}</span>}
+        </span>
         {sentInOpenUrn && words && (
           <span className="bg-ink px-2 py-0.5 font-display text-[10px] font-bold tracking-[0.12em] text-sheet uppercase">
             Bloqueado · ya {words.noun === "voto" ? "votó" : "nominó"}
@@ -60,7 +64,34 @@ export function ParticipantRow({
         </span>
       </div>
 
+      {editable && confirming === "aliases" && (
+        <form
+          action={async (formData) => {
+            await setAliasesAction(formData);
+            setConfirming(null);
+          }}
+          className="flex flex-wrap items-end gap-2"
+        >
+          <input type="hidden" name="id" value={p.id} />
+          <label className="min-w-0 flex-1 space-y-1 text-sm">
+            <span className="block font-semibold">Apodos de {p.displayName}</span>
+            <input
+              name="aliases"
+              defaultValue={p.aliases.join(", ")}
+              placeholder="Gabo, Gabito"
+              autoFocus
+              className="min-h-12 w-full border border-line-strong bg-raised px-4 text-base text-ink placeholder:text-ink-soft"
+            />
+          </label>
+          <Button type="submit">Guardar</Button>
+          <Button variant="ghost" onClick={() => setConfirming(null)}>
+            Cancelar
+          </Button>
+        </form>
+      )}
+
       {editable &&
+        confirming !== "aliases" &&
         (confirming ? (
           <form
             action={async (formData) => {
@@ -86,6 +117,9 @@ export function ParticipantRow({
                 Resetear {words.noun}
               </Button>
             )}
+            <Button variant="ghost" onClick={() => setConfirming("aliases")}>
+              {p.aliases.length ? "Editar apodos" : "Agregar apodos"}
+            </Button>
             <Button variant="ghost" onClick={() => setConfirming("remove")}>
               Quitar de la lista
             </Button>

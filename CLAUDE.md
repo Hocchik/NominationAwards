@@ -67,8 +67,8 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 
 ## 5. Lista de invitados y acceso
 
-- Link único compartido: `/s/[roomCode]`. El admin carga la **lista de invitados** en `/admin/participantes` (pega nombres, uno por línea; únicos sin distinguir mayúsculas/tildes; tope `Event.capacity`). Puede sumar o quitar nombres hasta que cierra la votación. No se puede abrir la sala sin lista.
-- Entrada **sin PIN** (decisión del usuario, 2026-11-12): tarjetas con los nombres a la vista + buscador; se toca el nombre, se confirma «Sí, soy yo» y queda una cookie httpOnly firmada en ese dispositivo. Todas las tarjetas se ven iguales: nada dice quién ya entró o votó.
+- Link único compartido: `/s/[roomCode]`. El admin carga la **lista de invitados** en `/admin/participantes` (pega nombres, uno por línea, de preferencia nombre y apellido, con apodos entre paréntesis: «Gabriel Mendoza (Gabo)»; únicos sin distinguir mayúsculas/tildes; tope `Event.capacity`). Los apodos se editan por invitado; si se pega un nombre que ya está, solo se le suman los apodos nuevos. Puede sumar o quitar nombres hasta que cierra la votación. No se puede abrir la sala sin lista.
+- Entrada **sin PIN** (decisión del usuario, 2026-11-12): tarjetas con los nombres a la vista + buscador que también encuentra apodos (busca «gabo» y aparece la tarjeta «Gabriel Mendoza» con «Gabo» debajo); se toca el nombre, se confirma «Sí, soy yo» y queda una cookie httpOnly firmada en ese dispositivo. Todas las tarjetas se ven iguales: nada dice quién ya entró o votó.
 - Sin PIN, cualquiera puede tocar cualquier nombre. La defensa es el panel: el admin ve «bloqueado» a quien ya nominó/votó en la urna abierta y puede **resetear** su envío: el sobre se bota sin abrirlo, la persona vuelve a poder enviar y `sessionVersion` sube (se cierran las sesiones abiertas con ese nombre). Solo mientras la urna está abierta (regla 2).
 - Quitar a alguien de la lista también bota su sobre de la urna abierta; los de urnas ya cerradas no se pueden identificar y siguen contando.
 - Nadie puede nominarse ni votarse a sí mismo: el celular no lo ofrece como opción (en Votar su tarjeta sale como «Eres tú»). Se aplica antes de sellar, sin que el servidor vea el voto; alguien que edite el código de la página podría saltárselo.
@@ -110,6 +110,7 @@ model Participant {             // un nombre de la lista de invitados
   event          Event    @relation(fields: [eventId], references: [id])
   displayName    String
   normalizedName String
+  aliases        String[] @default([])  // apodos para el buscador
   hasNominated   Boolean  @default(false)
   hasVoted       Boolean  @default(false)
   sessionVersion Int      @default(0)  // sube al resetear su envío

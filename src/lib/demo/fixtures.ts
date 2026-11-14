@@ -57,6 +57,13 @@ export const DEMO_CANDIDATES: Candidate[] = [
   { id: P.mateo, name: "Mateo Salazar" },
 ];
 
+/** Apodos del grupo ficticio: el buscador de la entrada también los encuentra. */
+export const DEMO_ALIASES: Record<string, string[]> = {
+  [P.gabriela]: ["Gabi"],
+  [P.julian]: ["Juli"],
+  [P.fabian]: ["Fabi"],
+};
+
 const C = {
   party: "f8572abf-0d8e-4d25-b9e4-64ed1d57eb39",
   late: "5074c316-03cc-4f74-810f-a95e53496394",

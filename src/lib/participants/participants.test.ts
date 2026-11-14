@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseGuestList } from "./guests";
+import { matchesGuest, mergeAliases, parseGuestList } from "./guests";
 import { cleanDisplayName, normalizeName } from "./names";
 import { displayNameSchema } from "./schemas";
 
@@ -31,27 +31,51 @@ describe("nombres", () => {
 });
 
 describe("lista de invitados", () => {
+  const names = (text: string) => parseGuestList(text).guests.map((g) => g.name);
+
   it("un nombre por línea, limpio y sin líneas vacías", () => {
-    expect(parseGuestList("Ana Torres\n\n  Bruno   Díaz \r\nCamila").names).toEqual(["Ana Torres", "Bruno Díaz", "Camila"]);
+    expect(names("Ana Torres\n\n  Bruno   Díaz \r\nCamila")).toEqual(["Ana Torres", "Bruno Díaz", "Camila"]);
   });
 
   it("quita viñetas y números del inicio", () => {
-    expect(parseGuestList("1. Ana\n2) Bruno\n- Camila\n• Diego\n* Elena").names).toEqual([
-      "Ana",
-      "Bruno",
-      "Camila",
-      "Diego",
-      "Elena",
-    ]);
+    expect(names("1. Ana\n2) Bruno\n- Camila\n• Diego\n* Elena")).toEqual(["Ana", "Bruno", "Camila", "Diego", "Elena"]);
   });
 
   it("no repite nombres aunque cambien mayúsculas o tildes", () => {
-    expect(parseGuestList("José Pérez\njose perez\nJOSÉ PÉREZ").names).toEqual(["José Pérez"]);
+    expect(names("José Pérez\njose perez\nJOSÉ PÉREZ")).toEqual(["José Pérez"]);
   });
 
   it("separa lo que no sirve como nombre", () => {
     const result = parseGuestList(`A\nAna\n${"x".repeat(41)}`);
-    expect(result.names).toEqual(["Ana"]);
+    expect(result.guests.map((g) => g.name)).toEqual(["Ana"]);
     expect(result.invalid).toHaveLength(2);
+  });
+
+  it("lee los apodos entre paréntesis", () => {
+    expect(parseGuestList("Gabriel Mendoza (Gabo, Gabito)\nAna Torres").guests).toEqual([
+      { name: "Gabriel Mendoza", aliases: ["Gabo", "Gabito"] },
+      { name: "Ana Torres", aliases: [] },
+    ]);
+  });
+
+  it("junta los apodos de un nombre repetido y no repite apodos ni el nombre", () => {
+    expect(parseGuestList("Gabriel Mendoza (Gabo)\ngabriel mendoza (GABO, Mendo, Gabriel Mendoza)").guests).toEqual([
+      { name: "Gabriel Mendoza", aliases: ["Gabo", "Mendo"] },
+    ]);
+  });
+
+  it("suma apodos nuevos a los que ya había", () => {
+    expect(mergeAliases(["Gabo"], ["gabo", "Gabito"], "Gabriel Mendoza")).toEqual(["Gabo", "Gabito"]);
+  });
+});
+
+describe("buscador de la sala", () => {
+  const gabo = { name: "Gabriel Mendoza", aliases: ["Gabo"] };
+
+  it("encuentra por nombre, por apellido o por apodo, sin importar tildes", () => {
+    expect(matchesGuest(gabo, "mendoza")).toEqual({ match: true });
+    expect(matchesGuest(gabo, "GABO")).toEqual({ match: true, alias: "Gabo" });
+    expect(matchesGuest(gabo, "Gabrièl")).toEqual({ match: true });
+    expect(matchesGuest(gabo, "lucia")).toEqual({ match: false });
   });
 });

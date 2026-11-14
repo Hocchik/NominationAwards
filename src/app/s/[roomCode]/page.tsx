@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
-import { getEventByRoomCode, listGuestNames } from "@/lib/participants/queries";
+import { getEventByRoomCode, listGuests } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { EntryFlow } from "./EntryFlow";
 
@@ -53,7 +53,7 @@ async function Room({ params }: { params: Params }) {
     );
   }
 
-  const names = await listGuestNames(event.id);
+  const guests = await listGuests(event.id);
 
   return (
     <Card className="space-y-6">
@@ -64,7 +64,7 @@ async function Room({ params }: { params: Params }) {
           Toca tu nombre para entrar. Lo que elijas es secreto: se cierra con candado en tu celular y se abre sin tu nombre.
         </p>
       </div>
-      <EntryFlow roomCode={event.roomCode} names={names} />
+      <EntryFlow roomCode={event.roomCode} guests={guests} />
       <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-soft">
         <Link href={`/s/${event.roomCode}/nominados`} className="flex min-h-11 items-center underline underline-offset-4">
           Ver los nominados
