@@ -197,7 +197,7 @@ function SlideView({
     return (
       <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
         <p className="inline-flex items-center gap-[0.8cqw] font-display text-[1.3cqw] font-semibold tracking-[0.3em] text-copper uppercase">
-          <LogoMark className="h-[2cqw] w-[1.8cqw]" /> Esta noche
+          <LogoMark className="h-[3.2cqw]" /> Esta noche
         </p>
         <h1 className="font-display text-[7cqw] leading-[0.95] font-extrabold uppercase">{eventName}</h1>
         <p className="text-[2cqw] text-ink-soft">La premiación está por comenzar</p>

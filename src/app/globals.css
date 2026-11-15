@@ -237,22 +237,15 @@
 
 /* --- Carga entre pantallas (components/ui/Loader.tsx) --------------------- */
 
-@keyframes loader-gem {
+@keyframes loader-breathe {
   0%,
   100% {
     transform: translateY(0);
+    opacity: 0.7;
   }
   50% {
-    transform: translateY(-3px);
-  }
-}
-@keyframes loader-cone {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 0.85;
+    transform: translateY(-4px);
+    opacity: 1;
   }
 }
 @keyframes loader-bar {
@@ -263,18 +256,14 @@
     transform: translateX(300%);
   }
 }
-.loader-gem {
-  animation: loader-gem 1.4s ease-in-out infinite;
-}
-.loader-cone {
-  animation: loader-cone 1.4s ease-in-out infinite;
-}
 .loader-bar span {
   animation: loader-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
-/* La pantalla de carga aparece suave, y solo si la espera dura un poco */
+/* La pantalla de carga aparece suave (solo si la espera dura un poco) y la estatuilla respira */
 .loader-mark {
-  animation: loader-in 0.4s ease 0.15s both;
+  animation:
+    loader-in 0.4s ease 0.15s both,
+    loader-breathe 1.6s ease-in-out 0.55s infinite;
 }
 @keyframes loader-in {
   from {

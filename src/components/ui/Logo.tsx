@@ -1,17 +1,14 @@
 import { cn } from "@/lib/cn";
 import { EVENT_NAME } from "@/lib/brand";
+import { StatuetteMark } from "./Statuette";
 
 /**
- * Marca (CLAUDE.md §9): rombo + cono, un trofeo abstracto. Toma el color del
- * texto (currentColor), así sirve en cobre, en salvia o en una carta boca abajo.
+ * Marca (CLAUDE.md §9): la estatuilla de Premios del Grupo, sin rostro y con los
+ * brazos cruzados en X. Toma el color del texto (currentColor); el tamaño se da
+ * con el alto (`h-…`) y el ancho sale solo de su proporción.
  */
 export function LogoMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 18 20" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M9 0l3 3-3 3-3-3z" />
-      <path d="M6.5 7.5h5L18 20H0z" fillOpacity="0.6" />
-    </svg>
-  );
+  return <StatuetteMark className={className} />;
 }
 
 export function Logo({ className, name = EVENT_NAME }: { className?: string; name?: string }) {
@@ -22,7 +19,7 @@ export function Logo({ className, name = EVENT_NAME }: { className?: string; nam
         className,
       )}
     >
-      <LogoMark className="h-5 w-[18px] text-copper" />
+      <LogoMark className="h-9 text-copper" />
       {name}
     </span>
   );

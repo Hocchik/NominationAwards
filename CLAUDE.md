@@ -274,7 +274,7 @@ Noche (`.theme-night`): en el tema claro `--bg #0A0A0A`, `--sheet #161513`, `--i
 - **Tipografía:** solo **Unbounded** (600/700/800: títulos, números, etiquetas, botones) y **Schibsted Grotesk** (400/600/700 e itálica: texto, nombres, frase del nominado), vía `next/font`.
 - **Forma:** esquina cortada en diagonal (chaflán) en tarjetas, botones, etiquetas y fotos: `clip-path: polygon(N 0, 100% 0, 100% calc(100% - N), calc(100% - N) 100%, 0 100%, 0 N)`. Para un borde fino con chaflán, envolver en un contenedor con el color del borde y 1px de padding.
 - **Fotos:** siempre en duotono (acento de premio para PRIZE, de honorífica para HONORARY) para igualar fotos de distinta calidad; sin foto, iniciales en `--ink` sobre `--sand`.
-- **Logo:** rombo + cono (trofeo abstracto) en el acento de premio + nombre del evento.
+- **Logo:** la **estatuilla de Premios del Grupo** (decisión del usuario, 2026-11-15; lienzo, ronda 19 · B01): figura sin rostro, brazos cruzados en X con los puños sobre los brazos y pedestal redondo, en el acento de premio + nombre del evento. Una sola tinta con calados entre los brazos (`components/ui/Statuette.tsx`, `LogoMark`); la usan la cabecera, las papeletas, la ceremonia, la carga y el favicon (`app/icon.svg`).
 - **Trofeos de la ceremonia:** copa facetada para PRIZE y laurel con estrella para HONORARY (`components/ceremony/trophyShapes.ts`), en los tonos del acento.
 - **Fondo:** haces de luz suaves en diagonal (de día, blanco translúcido; de noche, luz de `--sheet` muy tenue). Respetar `prefers-reduced-motion`.
 - **Accesibilidad:** contraste AA (por eso la regla de los acentos), foco visible, botones de mín. 48px de alto, animaciones reducidas si el usuario lo pide.
@@ -340,7 +340,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 
 ## 13. Decisiones pendientes (preguntar al usuario antes de asumir)
 
-- Nombre del evento y del grupo (identidad visual)
+- ~~Nombre del evento y del grupo (identidad visual)~~ **Decidido (2026-11-15):** «Premios del Grupo», con la estatuilla de brazos cruzados como logo (§9).
 - Fecha de la reunión (para programar fases)
 - ~~¿Quién será el notario?~~ **Decidido (2026-11-12):** el mismo organizador.
 - ~~¿Se permite omitir una categoría al nominar o votar (abstención)?~~ **Decidido (por ahora):** sí en ambos casos; queda configurable por evento (`allowNominationSkip`, `allowVoteAbstention`) por si cambia. Nadie puede nominarse a sí mismo.

@@ -29,7 +29,7 @@ export function AutofillBar({ onFill }: { onFill: () => void }) {
 export function RoundBar({ label, step, adminDoor = false }: { label: string; step?: string; adminDoor?: boolean }) {
   const brand = (
     <span className="inline-flex items-center gap-2 font-display text-[11px] font-semibold tracking-[0.14em] uppercase">
-      <LogoMark className="h-[18px] w-4 text-copper" />
+      <LogoMark className="h-7 text-copper" />
       {label}
     </span>
   );
