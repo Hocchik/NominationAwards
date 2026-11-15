@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { buttonClasses } from "@/components/ui/Button";
 import { Suspense } from "react";
 import { Loader } from "@/components/ui/Loader";
@@ -33,6 +34,8 @@ export default function HomePage() {
 }
 
 async function Home() {
+  // Siempre en el momento: depende de la fase, la hora y quién entró (sin prerender).
+  await connection();
   const event = await getCurrentEvent();
   const view = event ? homeView(event.phase) : "closed";
   if (!event || view === "closed") {

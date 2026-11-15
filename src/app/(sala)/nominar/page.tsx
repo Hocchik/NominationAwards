@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Loader } from "@/components/ui/Loader";
 import { prisma } from "@/lib/db";
@@ -25,6 +26,8 @@ export default function NominatePage() {
 
 
 async function Nominate() {
+  // Siempre en el momento: depende de la fase, la hora y quién entró (sin prerender).
+  await connection();
   const event = await getCurrentEvent();
   if (!event) return <SalaNotice title="La sala todavía no abre" text="Vuelve cuando el organizador la abra." back={false} />;
 
