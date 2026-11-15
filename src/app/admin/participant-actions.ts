@@ -101,12 +101,20 @@ const resetSchema = z.object({ id: z.string().min(1), phase: z.enum(["NOMINATION
  * Bota el sobre de una persona sin abrirlo (si entró otra en su nombre) y la
  * deja enviar de nuevo. Solo mientras esa urna sigue abierta.
  */
-export async function resetBallotAction(formData: FormData): Promise<void> {
+export async function resetBallotAction(formData: FormData): Promise<{ ok: boolean; message?: string }> {
   const event = await editableEvent();
   const parsed = resetSchema.safeParse({ id: formData.get("id"), phase: formData.get("phase") });
-  if (!event || !parsed.success) return;
-  await discardBallot({ eventId: event.id, participantId: parsed.data.id, phase: parsed.data.phase });
+  if (!event || !parsed.success) return { ok: false, message: "La lista ya no se puede modificar." };
+  const result = await discardBallot({ eventId: event.id, participantId: parsed.data.id, phase: parsed.data.phase });
   refresh();
+  if (result.ok) return { ok: true };
+  return {
+    ok: false,
+    message:
+      result.reason === "closed"
+        ? "Esa urna ya cerró: los sobres perdieron el nombre y ya no se puede resetear (regla de anonimato)."
+        : "No se encontró su sobre: puede que ya se haya reseteado. Recarga la página.",
+  };
 }
 
 /** Quita un nombre de la lista; si ya envió en la urna abierta, ese sobre se bota. */

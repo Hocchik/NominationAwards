@@ -36,6 +36,7 @@ export function ParticipantRow({
   editable: boolean;
 }) {
   const [confirming, setConfirming] = useState<Confirming>(null);
+  const [error, setError] = useState<string | null>(null);
   const sentInOpenUrn = openUrn === "NOMINATION" ? p.hasNominated : openUrn === "VOTE" ? p.hasVoted : false;
   const words = openUrn ? PHASE_WORD[openUrn] : null;
 
@@ -95,7 +96,12 @@ export function ParticipantRow({
         (confirming ? (
           <form
             action={async (formData) => {
-              await (confirming === "reset" ? resetBallotAction : removeGuestAction)(formData);
+              if (confirming === "reset") {
+                const result = await resetBallotAction(formData);
+                setError(result.ok ? null : (result.message ?? "No se pudo resetear."));
+              } else {
+                await removeGuestAction(formData);
+              }
               setConfirming(null);
             }}
             className="flex flex-wrap items-center gap-2"
@@ -125,6 +131,11 @@ export function ParticipantRow({
             </Button>
           </div>
         ))}
+      {error && (
+        <p role="alert" className="text-sm font-semibold text-danger">
+          {error}
+        </p>
+      )}
     </li>
   );
 }

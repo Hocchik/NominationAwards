@@ -91,6 +91,17 @@ describe("envío atómico y sobres con nombre", () => {
     expect(camila.hasNominated).toBe(false); // votar no toca la marca de nominar
   });
 
+  it("resetear un voto lo bota sin abrirlo, no toca las nominaciones y deja votar de nuevo", async () => {
+    const before = await prisma.participant.findUniqueOrThrow({ where: { id: ids.camila } });
+    expect(await discardBallot({ eventId, participantId: ids.camila, phase: "VOTE" })).toEqual({ ok: true });
+    const after = await prisma.participant.findUniqueOrThrow({ where: { id: ids.camila } });
+    expect(after.hasVoted).toBe(false);
+    expect(after.sessionVersion).toBe(before.sessionVersion + 1); // se cierra la sesión del «chistoso»
+    expect(await prisma.ballot.count({ where: { eventId, phase: "VOTE" } })).toBe(0);
+    expect(await prisma.ballot.count({ where: { eventId, phase: "NOMINATION" } })).toBe(2);
+    expect(await send(ids.camila, "VOTE")).toEqual({ ok: true });
+  });
+
   it("quitar a alguien de la lista bota su sobre de la urna abierta; los ya cerrados siguen", async () => {
     await send(ids.bruno, "VOTE");
     await removeGuest({ eventId, participantId: ids.bruno });

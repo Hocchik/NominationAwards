@@ -39,7 +39,7 @@ async function Nominate() {
     return <SalaNotice title="Las nominaciones no están abiertas" text="Revisa la sala para ver en qué etapa va la premiación." />;
   }
   if (participant.hasNominated) {
-    return <SalaNotice title="Ya enviaste tus nominaciones" text="Solo se puede una vez. Los nominados se conocerán cuando cierren las nominaciones." />;
+    return <SalaNotice title="Ya enviaste tus nominaciones" text="Solo se puede una vez. Los nominados se conocerán cuando cierren las nominaciones. ¿No fuiste tú? Alguien entró con tu nombre: escríbele al organizador para que bote esa nominación sin abrirla y puedas nominar de nuevo." />;
   }
   if (!event.nominationPublicKey) {
     return <SalaNotice title="Todavía no se puede nominar" text="Falta que el notario configure sus llaves. Avísale al organizador." />;

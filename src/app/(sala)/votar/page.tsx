@@ -39,7 +39,7 @@ async function Vote() {
     return <SalaNotice title="La votación no está abierta" text="Revisa la sala para ver cuándo abre o si ya cerró." />;
   }
   if (participant.hasVoted) {
-    return <SalaNotice title="Ya votaste" text="Solo se puede una vez. Los ganadores se revelan en la ceremonia." />;
+    return <SalaNotice title="Ya votaste" text="Solo se puede una vez. Los ganadores se revelan en la ceremonia. ¿No fuiste tú? Alguien entró con tu nombre: escríbele al organizador para que bote ese voto sin abrirlo y puedas votar de nuevo." />;
   }
   if (!event.votePublicKey) {
     return <SalaNotice title="Todavía no se puede votar" text="Falta la llave de votación del notario. Avísale al organizador." />;
