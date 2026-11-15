@@ -41,7 +41,7 @@ export function DemoNominees() {
       revealNote="Se revela pronto"
       groupPhotos={SAMPLE_PHOTOS}
       countdown={votingOpensAt ? { title: "La votación abre en", target: votingOpensAt } : null}
-      vote={{ href: "/demo/votar", label: "Votar →" }}
+      vote={{ href: "/demo/votar", label: "Votar →", loadingLabel: "Preparando tu papeleta…" }}
       closing={{ lead: `${totalFinalists} nominados en ${board.length} categorías.`, em: "Ahora te toca", tail: "elegir al ganador." }}
     />
   );

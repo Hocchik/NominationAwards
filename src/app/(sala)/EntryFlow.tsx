@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { ConfirmName } from "@/components/room/ConfirmName";
 import { NameGrid } from "@/components/room/NameGrid";
+import { LoaderOverlay } from "@/components/ui/Loader";
 import { type FormState, initialFormState } from "@/lib/forms";
 import type { GuestEntry } from "@/lib/participants/guests";
 import { enterAction } from "./actions";
@@ -23,18 +24,22 @@ export function EntryFlow({ next, guests }: { next: EntryTarget; guests: GuestEn
 function Confirm({ next, name, onBack }: { next: EntryTarget; name: string; onBack: () => void }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(enterAction, initialFormState);
   return (
-    <ConfirmName
-      name={name}
-      pending={pending}
-      message={state.ok ? undefined : state.message}
-      formAction={formAction}
-      onBack={onBack}
-      hidden={
-        <>
-          <input type="hidden" name="next" value={next} />
-          <input type="hidden" name="name" value={name} />
-        </>
-      }
-    />
+    <>
+      {/* Al confirmar: la carga mientras entra y pasa a la papeleta */}
+      {pending && <LoaderOverlay label="Entrando a la sala…" />}
+      <ConfirmName
+        name={name}
+        pending={pending}
+        message={state.ok ? undefined : state.message}
+        formAction={formAction}
+        onBack={onBack}
+        hidden={
+          <>
+            <input type="hidden" name="next" value={next} />
+            <input type="hidden" name="name" value={name} />
+          </>
+        }
+      />
+    </>
   );
 }

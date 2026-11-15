@@ -22,3 +22,15 @@ export function Loader({ label = "Cargando…", className }: { label?: string; c
     </div>
   );
 }
+
+/**
+ * La misma carga, a pantalla completa y encima de todo: mientras se envía una
+ * papeleta o se pasa de una pantalla a otra desde un botón.
+ */
+export function LoaderOverlay({ label }: { label: string }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-bg/95 backdrop-blur-sm">
+      <Loader label={label} className="min-h-0" />
+    </div>
+  );
+}

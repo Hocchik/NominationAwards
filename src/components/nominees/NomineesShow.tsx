@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { Countdown } from "@/components/ui/Countdown";
+import { LoaderLink } from "@/components/ui/LoaderLink";
 import { cn } from "@/lib/cn";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
 import { initials } from "@/lib/initials";
@@ -39,6 +40,8 @@ export interface BoardCategory {
 export interface VoteCta {
   label: string;
   href: string | null;
+  /** Si viene, el botón muestra la carga antes de ir a votar (el demo, que no espera al servidor). */
+  loadingLabel?: string;
 }
 
 /** Frase final de la entrada: «{lead} <em>{em}</em> {tail}». */
@@ -236,6 +239,13 @@ export function NomineesShow({
 }
 
 function VoteButton({ vote, size, className }: { vote: VoteCta; size?: "lg"; className?: string }) {
+  if (vote.href && vote.loadingLabel) {
+    return (
+      <LoaderLink href={vote.href} label={vote.loadingLabel} className={buttonClasses({ size, className })}>
+        {vote.label}
+      </LoaderLink>
+    );
+  }
   if (vote.href) {
     return (
       <Link href={vote.href} className={buttonClasses({ size, className })}>

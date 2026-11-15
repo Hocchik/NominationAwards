@@ -5,6 +5,7 @@ import { VoteBallotForm } from "@/app/(sala)/votar/VoteBallotForm";
 import { voteBallotBytes } from "@/lib/ballots/vote";
 import { DEMO_ALLOW_ABSTENTION, DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";
+import { demoPause } from "@/lib/demo/pause";
 import { useDemo } from "../DemoProvider";
 
 export function DemoVote() {
@@ -54,7 +55,9 @@ export function DemoVote() {
       ballotBytes={voteBallotBytes(DEMO_CATEGORIES.length)}
       closesAt={null}
       onSubmit={async () => {
-        // Ya va sellado con la llave del demo; no sale del navegador.
+        // Ya va sellado con la llave del demo; no sale del navegador. La pausa
+        // deja ver la carga, como cuando se envía en el evento real.
+        await demoPause();
         saveVote();
         return { ok: true };
       }}

@@ -5,6 +5,7 @@ import { NominationBallot } from "@/app/(sala)/nominar/NominationBallot";
 import { nominationBallotBytes } from "@/lib/ballots/nomination";
 import { DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, DEMO_RULES } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";
+import { demoPause } from "@/lib/demo/pause";
 import { useDemo } from "../DemoProvider";
 
 const categories = DEMO_CATEGORIES.map(({ id, name, description, type }) => ({ id, name, description, type }));
@@ -49,7 +50,9 @@ export function DemoNominate() {
       ballotBytes={nominationBallotBytes(DEMO_CATEGORIES.length, DEMO_RULES.max)}
       selfName={self.name}
       onSubmit={async () => {
-        // Ya va sellada con la llave del demo; no sale del navegador.
+        // Ya va sellada con la llave del demo; no sale del navegador. La pausa
+        // deja ver la carga, como cuando se envía en el evento real.
+        await demoPause();
         saveNomination();
         return { ok: true };
       }}

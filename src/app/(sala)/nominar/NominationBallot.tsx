@@ -13,6 +13,7 @@ import {
 } from "@/components/ballot/BallotParts";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoaderOverlay } from "@/components/ui/Loader";
 import type { CategoryType } from "@/generated/prisma/enums";
 import {
   type Candidate,
@@ -157,6 +158,8 @@ export function NominationBallot({
 
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
+      {/* Mientras se sella y se envía: la carga a pantalla completa */}
+      {pending && <LoaderOverlay label="Sellando tus nominaciones…" />}
       <div className="space-y-2">
         {autofill && (
           <AutofillBar

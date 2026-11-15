@@ -15,6 +15,7 @@ import {
 } from "@/components/ballot/BallotParts";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoaderOverlay } from "@/components/ui/Loader";
 import { LocalDateTime } from "@/components/ui/LocalDateTime";
 import type { CategoryType } from "@/generated/prisma/enums";
 import { buildVoteBallot, validateVotes } from "@/lib/ballots/vote";
@@ -162,6 +163,8 @@ export function VoteBallotForm({
 
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
+      {/* Mientras se sella y se envía: la carga a pantalla completa */}
+      {pending && <LoaderOverlay label="Sellando tu voto…" />}
       <div className="space-y-2">
         {autofill && (
           <AutofillBar

@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmName } from "@/components/room/ConfirmName";
 import { NameGrid } from "@/components/room/NameGrid";
 import { buttonClasses } from "@/components/ui/Button";
+import { LoaderOverlay } from "@/components/ui/Loader";
+import { LoaderLink } from "@/components/ui/LoaderLink";
 import { DEMO_ALIASES, DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EVENT_NAME } from "@/lib/demo/fixtures";
+import { demoPause } from "@/lib/demo/pause";
 import { useDemo } from "../DemoProvider";
 
 const guests = DEMO_CANDIDATES.map((p) => ({ name: p.name, aliases: DEMO_ALIASES[p.id] ?? [] }));
@@ -18,6 +20,7 @@ export function DemoEnter() {
   const { self, enter, leave } = useDemo();
   const router = useRouter();
   const [picked, setPicked] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
 
   if (self && picked === null) {
     return (
@@ -26,9 +29,9 @@ export function DemoEnter() {
           Entraste como <strong className="text-ink">{self.name}</strong>.
         </p>
         <div className="flex flex-wrap gap-2.5">
-          <Link href="/demo/nominar" className={buttonClasses({ className: "max-sm:w-full" })}>
+          <LoaderLink href="/demo/nominar" label="Preparando tu papeleta…" className={buttonClasses({ className: "max-sm:w-full" })}>
             Ir a nominar →
-          </Link>
+          </LoaderLink>
           <button
             type="button"
             onClick={leave}
@@ -43,15 +46,24 @@ export function DemoEnter() {
 
   if (picked) {
     return (
-      <ConfirmName
-        name={picked}
-        pending={false}
-        formAction={() => {
-          enter(picked);
-          router.push("/demo/nominar");
-        }}
-        onBack={() => setPicked(null)}
-      />
+      <>
+        <ConfirmName
+          name={picked}
+          pending={entering}
+          formAction={() => {
+            // Igual que en la sala real: «Entrando…» y la carga antes de la papeleta.
+            // La pausa va fuera de la acción: React aplica los cambios de estado de
+            // una acción recién cuando termina, y la carga no se vería.
+            setEntering(true);
+            void demoPause(1300).then(() => {
+              enter(picked);
+              router.push("/demo/nominar");
+            });
+          }}
+          onBack={() => setPicked(null)}
+        />
+        {entering && <LoaderOverlay label="Entrando a la sala…" />}
+      </>
     );
   }
 
