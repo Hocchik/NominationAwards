@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { NominationBallot } from "@/app/s/[roomCode]/nominar/NominationBallot";
+import { NominationBallot } from "@/app/(sala)/nominar/NominationBallot";
 import { nominationBallotBytes } from "@/lib/ballots/nomination";
 import { DEMO_CANDIDATES, DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, DEMO_RULES } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";

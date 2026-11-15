@@ -38,7 +38,7 @@ SETUP → NOMINATIONS → NOMINATIONS_CLOSED → FINALISTS_READY → VOTING → 
 ```
 
 1. **SETUP** — El admin crea el evento, las categorías (tipo `PRIZE` o `HONORARY`), carga la **lista de invitados** y genera el link de configuración para el notario. El notario genera **dos pares de llaves** (uno para nominaciones, otro para votación) en su navegador; las públicas se guardan en el evento, las privadas las descarga y guarda él (con respaldo).
-2. **NOMINATIONS** — Se comparte UN solo link/QR de la sala (`/s/[roomCode]`) por WhatsApp. Cada persona toca su nombre en la lista de invitados y entra (sin PIN ni aprobación). Nomina de 3 a 5 personas/referentes por categoría (configurable). El admin puede sumar o quitar invitados hasta el cierre de la votación.
+2. **NOMINATIONS** — Se comparte UN solo link/QR: la raíz del sitio (`/`), por WhatsApp. Mientras están abiertas, la raíz solo muestra la entrada y la papeleta de nominar (no hay pestaña de Nominados). Cada persona toca su nombre en la lista de invitados y entra (sin PIN ni aprobación). Nomina de 3 a 5 personas/referentes por categoría (configurable). El admin puede sumar o quitar invitados hasta el cierre de la votación.
 3. **NOMINATIONS_CLOSED** — Las nominaciones cierran a la hora programada (`nominationsCloseAt`, se aplica al leer el evento) o con el botón de fases. El notario ingresa su llave privada de nominaciones en `/admin/cierre-nominaciones`. Todo se descifra y cuenta **en el navegador**; se muestra una pantalla para unificar nombres duplicados (lista alfabética **sin conteos**). Luego el sistema calcula automáticamente el top N por categoría (empates en el último puesto entran todos) y envía al servidor **solo los finalistas**. Los conteos nunca se muestran ni se guardan.
 4. **FINALISTS_READY** — El admin ve los finalistas (orden aleatorio, sin conteos) y elige qué categorías pasan a la votación: **máximo 15 de tipo `PRIZE`** (configurable) y las `HONORARY` que quiera. Define el orden de revelación (por defecto: honoríficas primero, de premio al final).
 5. **VOTING** — Abre en horario programado (un día antes de la reunión). Un voto por categoría activa, una sola vez por participante. Cifrado en el celular.
@@ -67,7 +67,7 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 
 ## 5. Lista de invitados y acceso
 
-- Link único compartido: `/s/[roomCode]`. El admin carga la **lista de invitados** en `/admin/participantes` (pega nombres, uno por línea, de preferencia nombre y apellido, con apodos entre paréntesis: «Gabriel Mendoza (Gabo)»; únicos sin distinguir mayúsculas/tildes; tope `Event.capacity`). Los apodos se editan por invitado; si se pega un nombre que ya está, solo se le suman los apodos nuevos. Puede sumar o quitar nombres hasta que cierra la votación. No se puede abrir la sala sin lista.
+- Link único compartido: la raíz del sitio (`/`; los links viejos `/s/CÓDIGO/...` redirigen). No hay ningún link visible al panel: se entra por `/admin` o tocando el logo 5 veces seguidas en 2 s (`components/room/AdminDoor.tsx`; decisión del usuario, 2026-11-14). El admin carga la **lista de invitados** en `/admin/participantes` (pega nombres, uno por línea, de preferencia nombre y apellido, con apodos entre paréntesis: «Gabriel Mendoza (Gabo)»; únicos sin distinguir mayúsculas/tildes; tope `Event.capacity`). Los apodos se editan por invitado; si se pega un nombre que ya está, solo se le suman los apodos nuevos. Puede sumar o quitar nombres hasta que cierra la votación. No se puede abrir la sala sin lista.
 - Entrada **sin PIN** (decisión del usuario, 2026-11-12): tarjetas con los nombres a la vista + buscador que también encuentra apodos (busca «gabo» y aparece la tarjeta «Gabriel Mendoza» con «Gabo» debajo); se toca el nombre, se confirma «Sí, soy yo» y queda una cookie httpOnly firmada en ese dispositivo. Todas las tarjetas se ven iguales: nada dice quién ya entró o votó.
 - Sin PIN, cualquiera puede tocar cualquier nombre. La defensa es el panel: el admin ve «bloqueado» a quien ya nominó/votó en la urna abierta y puede **resetear** su envío: el sobre se bota sin abrirlo, la persona vuelve a poder enviar y `sessionVersion` sube (se cierran las sesiones abiertas con ese nombre). Solo mientras la urna está abierta (regla 2).
 - Quitar a alguien de la lista también bota su sobre de la urna abierta; los de urnas ya cerradas no se pueden identificar y siguen contando.
@@ -187,16 +187,17 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 ### Participante (mobile-first, con vista de PC)
 | Ruta | Pantalla |
 |---|---|
-| `/s/[roomCode]` | Entrada a la sala: tarjetas con los nombres de la lista de invitados + buscador; se toca el nombre y se confirma «Sí, soy yo» (sin PIN) |
-| `/s/[roomCode]/nominar` | Una tarjeta por categoría con su consigna; autocompletado con la lista de invitados (menos uno mismo) + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
-| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): siempre de noche; entrada con las fotos grupales y un capítulo por categoría con foto o iniciales, nombre y apodo, en orden alfabético y **sin conteos** (regla 8), y cuenta regresiva a la votación (ver §9). Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones. Pública para quien tenga el link (sin enviar finalistas al navegador mientras estén boca abajo); con sesión, `/s/[roomCode]` redirige aquí y se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas` |
-| `/s/[roomCode]/votar` | Una categoría por pantalla, tarjetas de finalistas (la propia sale como «Eres tú» y no se puede elegir), resumen final y confirmación. Al enviar: «¡Listo! Tu voto quedó guardado en secreto» |
+| `/` | La sala (decisión del usuario, 2026-11-14: todo en la raíz). Según la fase (`homeView` en `lib/event/nominees.ts`): SETUP → «la sala todavía no abre»; NOMINATIONS → entrada con la lista de invitados y luego a `/nominar` (quien ya nominó ve «¡Listo!» con la cuenta regresiva al cierre); desde NOMINATIONS_CLOSED → **Nominados**, la vista que queda el resto del evento. La ceremonia nunca aparece aquí |
+| `/entrar?ir=nominar\|votar` | Tarjetas con los nombres de la lista de invitados + buscador; se toca el nombre, se confirma «Sí, soy yo» (sin PIN) y sigue a nominar o votar |
+| `/nominar` | Una tarjeta por categoría con su consigna; autocompletado con la lista de invitados (menos uno mismo) + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
+| Nominados (en `/`) | Siempre de noche (`components/nominees/NomineesShow.tsx`): entrada con las fotos grupales y un capítulo por categoría con foto o iniciales, nombre y apodo, en orden alfabético y **sin conteos** (regla 8) (ver §9). Botón **Votar** (`voteButton`): visible pero apagado hasta que abre la votación (con cuenta regresiva), activo mientras está abierta (`votingOpensAt`–`votingClosesAt`, lo fija el admin), «✔ Ya votaste» y «Votación cerrada» después. Antes de que existan finalistas: cartas boca abajo. Pública (sin enviar finalistas al navegador mientras estén boca abajo); con sesión se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas`. `/nominados` redirige a `/` |
+| `/votar` | Una categoría por pantalla, tarjetas de finalistas (la propia sale como «Eres tú» y no se puede elegir), resumen final y confirmación. Al enviar: «¡Listo! Tu voto quedó guardado en secreto» |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación del cifrado, la llave del notario, los sobres que pierden el nombre al cerrar y link al repo público |
 
 ### Demo y diseño (públicas)
 | Ruta | Pantalla |
 |---|---|
-| `/demo` | Demo para probar sin evento, **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, rotulado «Ceremonia (ejemplo)»: muestra la pantalla del ganador de cada categoría con ganadores de ejemplo y aclara que quien vota no ve la ceremonia —en el evento real solo el admin la abre a cierta hora y la proyecta (decisión del usuario, 2026-11-14)—, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `autofill`: botón «Rellenar automáticamente» que llena la papeleta al azar y salta a la revisión, solo en el demo); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
+| `/demo` | Demo para probar sin evento (la sala no lo enlaza; se comparte el link aparte), **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, rotulado «Ceremonia (ejemplo)»: muestra la pantalla del ganador de cada categoría con ganadores de ejemplo y aclara que quien vota no ve la ceremonia —en el evento real solo el admin la abre a cierta hora y la proyecta (decisión del usuario, 2026-11-14)—, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `autofill`: botón «Rellenar automáticamente» que llena la papeleta al azar y salta a la revisión, solo en el demo); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
 | `/diseno.html` | Archivo autónomo (`public/diseno.html`) que presenta el sistema «Día y noche». Copia los valores de `globals.css`: actualizarlo si el diseño cambia |
 
 ### Notario
@@ -246,7 +247,7 @@ Una sola identidad con dos momentos: **de día** (la web: Nominar, Nominados, Vo
 
 ### Dos temas: claro y oscuro (decisión del usuario, 2026-11-14)
 
-Cada persona elige con el botón `ThemeToggle` (en la portada, la sala, Nominados, las papeletas, el demo y el panel). La elección se guarda solo en su dispositivo (`localStorage` «tema»); si nunca eligió, manda su sistema. Un script en `layout.tsx` pone `data-theme` en `<html>` antes de pintar. La ceremonia siempre es de noche.
+Cada persona elige con el botón `ThemeToggle` (en la entrada de la sala, las papeletas, el demo y el panel; Nominados es siempre de noche). La elección se guarda solo en su dispositivo (`localStorage` «tema»); si nunca eligió, manda su sistema. Un script en `layout.tsx` pone `data-theme` en `<html>` antes de pintar. La ceremonia siempre es de noche.
 
 | Token | Claro · «Oro y carmín» | Oscuro · «Gala nocturna» | Uso |
 |---|---|---|---|
@@ -293,7 +294,7 @@ Noche (`.theme-night`): en el tema claro `--bg #0A0A0A`, `--sheet #161513`, `--i
 ```
 src/
   app/
-    s/[roomCode]/(page, nominados, nominar, votar)
+    (sala)/(page, entrar, nominar, votar)   # la sala vive en la raíz
     notario/[setupToken]/
     admin/(evento, categorias, participantes, cierre-nominaciones, finalistas)
     ceremonia/

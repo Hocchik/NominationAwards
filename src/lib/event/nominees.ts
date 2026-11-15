@@ -45,16 +45,36 @@ export function boardCountdown(event: {
   }
 }
 
-export type RoomAction = "nominate" | "vote" | "enter" | null;
+/**
+ * Qué muestra la página principal (/) según la fase:
+ * - closed: la sala aún no abre (SETUP).
+ * - nominate: mientras las nominaciones están abiertas, solo se nomina.
+ * - nominees: desde que cierran, la página es la de Nominados (con el botón de
+ *   votar). La ceremonia nunca aparece aquí: solo la ve el admin.
+ */
+export type HomeView = "closed" | "nominate" | "nominees";
 
-/** El botón principal de la sala para quien está mirando. */
-export function roomAction(
-  phase: EventPhase,
-  participant: { hasNominated: boolean; hasVoted: boolean } | null,
-): RoomAction {
-  if (phase === "SETUP" || !isBefore(phase, "VOTING_CLOSED")) return null;
-  if (!participant) return "enter";
-  if (phase === "NOMINATIONS" && !participant.hasNominated) return "nominate";
-  if (phase === "VOTING" && !participant.hasVoted) return "vote";
-  return null;
+export function homeView(phase: EventPhase): HomeView {
+  if (phase === "SETUP") return "closed";
+  if (phase === "NOMINATIONS") return "nominate";
+  return "nominees";
+}
+
+/**
+ * El botón «Votar» de Nominados:
+ * - soon: todavía no abre (se ve, pero no se puede tocar).
+ * - open: abierta; `needsEntry` si primero hay que tocar tu nombre.
+ * - done: ya votaste.
+ * - closed: la votación terminó.
+ */
+export type VoteButton = { state: "soon" } | { state: "open"; needsEntry: boolean } | { state: "done" } | { state: "closed" };
+
+export function voteButton(phase: EventPhase, participant: { hasVoted: boolean } | null): VoteButton | null {
+  if (isBefore(phase, "NOMINATIONS_CLOSED")) return null;
+  if (isBefore(phase, "VOTING")) return { state: "soon" };
+  if (phase === "VOTING") {
+    if (!participant) return { state: "open", needsEntry: true };
+    return participant.hasVoted ? { state: "done" } : { state: "open", needsEntry: false };
+  }
+  return { state: "closed" };
 }

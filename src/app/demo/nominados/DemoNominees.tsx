@@ -1,6 +1,6 @@
 "use client";
 
-import { type BoardCategory, NomineesShow } from "@/app/s/[roomCode]/nominados/NomineesShow";
+import { type BoardCategory, NomineesShow } from "@/components/nominees/NomineesShow";
 import { DEMO_ALIASES, DEMO_CATEGORIES, byName } from "@/lib/demo/fixtures";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
 import { useDemo } from "../DemoProvider";
@@ -41,7 +41,7 @@ export function DemoNominees() {
       revealNote="Se revela pronto"
       groupPhotos={SAMPLE_PHOTOS}
       countdown={votingOpensAt ? { title: "La votación abre en", target: votingOpensAt } : null}
-      cta={{ href: "/demo/votar", label: "Ir a votar →" }}
+      vote={{ href: "/demo/votar", label: "Votar →" }}
       closing={{ lead: `${totalFinalists} nominados en ${board.length} categorías.`, em: "Ahora te toca", tail: "elegir al ganador." }}
     />
   );

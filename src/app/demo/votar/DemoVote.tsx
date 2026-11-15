@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { VoteBallotForm } from "@/app/s/[roomCode]/votar/VoteBallotForm";
+import { VoteBallotForm } from "@/app/(sala)/votar/VoteBallotForm";
 import { voteBallotBytes } from "@/lib/ballots/vote";
 import { DEMO_ALLOW_ABSTENTION, DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";

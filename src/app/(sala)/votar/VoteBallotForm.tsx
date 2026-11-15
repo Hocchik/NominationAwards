@@ -122,7 +122,7 @@ export function VoteBallotForm({
         const ballot = buildVoteBallot(votes, ids);
         // Se sella aquí: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const send = onSubmit ?? ((sealed: string) => submitVoteAction(roomCode, sealed));
+        const send = onSubmit ?? ((sealed: string) => submitVoteAction(sealed));
         const result = await send(ciphertext);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
@@ -138,7 +138,7 @@ export function VoteBallotForm({
     });
   }
 
-  const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
+  const done = doneLink ?? { href: "/", label: "Ver nominados" };
 
   if (sent) {
     return (
@@ -172,6 +172,7 @@ export function VoteBallotForm({
           />
         )}
         <RoundBar
+          adminDoor={!onSubmit}
           label={`${eventName} · Votar`}
           step={reviewing ? "Revisión" : `${pad(index + 1)} / ${pad(categories.length)}`}
         />

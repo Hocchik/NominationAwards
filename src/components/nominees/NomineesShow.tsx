@@ -35,6 +35,12 @@ export interface BoardCategory {
   finalists: BoardFinalist[];
 }
 
+/** El botón Votar: sin `href` se ve pero no se puede tocar (todavía no abre, ya votaste o cerró). */
+export interface VoteCta {
+  label: string;
+  href: string | null;
+}
+
 /** Frase final de la entrada: «{lead} <em>{em}</em> {tail}». */
 export interface ClosingLine {
   lead: string;
@@ -82,7 +88,7 @@ export function NomineesShow({
   revealNote,
   groupPhotos,
   countdown,
-  cta,
+  vote,
   closing,
   strip,
 }: {
@@ -96,7 +102,7 @@ export function NomineesShow({
   revealNote: string;
   groupPhotos: GroupPhotoView[];
   countdown: { title: string; target: string } | null;
-  cta: { href: string; label: string } | null;
+  vote: VoteCta | null;
   closing: ClosingLine;
   /** Franja de participación (si hay sesión), entre la entrada y los capítulos. */
   strip?: ReactNode;
@@ -156,11 +162,7 @@ export function NomineesShow({
           <div className="nx-leave absolute top-5 right-4 left-4 z-[4] flex flex-wrap items-start justify-between gap-4 sm:right-8 sm:left-8 lg:top-8 lg:right-16 lg:left-16">
             <div className="flex flex-col items-start gap-3">
               {countdown && <Countdown title={countdown.title} target={countdown.target} />}
-              {cta && (
-                <Link href={cta.href} className={buttonClasses({ className: "max-sm:min-h-11" })}>
-                  {cta.label}
-                </Link>
-              )}
+              {vote && <VoteButton vote={vote} className="max-sm:min-h-11" />}
             </div>
             <div className="max-w-xs space-y-1.5 text-right max-sm:hidden">
               <p className="text-xs font-bold tracking-[0.18em] text-copper uppercase">{eyebrow}</p>
@@ -213,7 +215,7 @@ export function NomineesShow({
       ))}
 
       {/* 3 · Cierre */}
-      {cta && (
+      {vote?.href && (
         <section className="mx-auto flex max-w-[90rem] flex-wrap items-end justify-between gap-8 border-t border-line px-4 py-20 sm:px-6 lg:px-16 lg:py-28">
           <p className="max-w-3xl font-display text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.03em]">
             {revealed ? (
@@ -226,12 +228,25 @@ export function NomineesShow({
               </>
             )}
           </p>
-          <Link href={cta.href} className={buttonClasses({ size: "lg", className: "max-sm:w-full" })}>
-            {cta.label}
-          </Link>
+          <VoteButton vote={vote} size="lg" className="max-sm:w-full" />
         </section>
       )}
     </div>
+  );
+}
+
+function VoteButton({ vote, size, className }: { vote: VoteCta; size?: "lg"; className?: string }) {
+  if (vote.href) {
+    return (
+      <Link href={vote.href} className={buttonClasses({ size, className })}>
+        {vote.label}
+      </Link>
+    );
+  }
+  return (
+    <span aria-disabled="true" className={buttonClasses({ size, className: cn("pointer-events-none opacity-45 saturate-50", className) })}>
+      {vote.label}
+    </span>
   );
 }
 

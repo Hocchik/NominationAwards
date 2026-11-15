@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardCountdown, boardState, roomAction } from "./nominees";
+import { boardCountdown, boardState, homeView, voteButton } from "./nominees";
 
 const day = (d: number) => new Date(Date.UTC(2026, 10, d, 20));
 
@@ -37,21 +37,38 @@ describe("cuenta regresiva", () => {
   });
 });
 
-describe("botón principal de la sala", () => {
-  const approved = { hasNominated: false, hasVoted: false };
+describe("página principal", () => {
+  it("mientras se nomina solo se nomina; después, siempre Nominados", () => {
+    expect(homeView("SETUP")).toBe("closed");
+    expect(homeView("NOMINATIONS")).toBe("nominate");
+    for (const phase of ["NOMINATIONS_CLOSED", "FINALISTS_READY", "VOTING", "VOTING_CLOSED", "CEREMONY", "FINISHED"] as const) {
+      expect(homeView(phase)).toBe("nominees");
+    }
+  });
+});
 
-  it("invita a entrar a quien no tiene sesión mientras haya algo que hacer", () => {
-    expect(roomAction("NOMINATIONS", null)).toBe("enter");
-    expect(roomAction("VOTING", null)).toBe("enter");
-    expect(roomAction("VOTING_CLOSED", null)).toBeNull();
-    expect(roomAction("SETUP", null)).toBeNull();
+describe("botón Votar de Nominados", () => {
+  const fresh = { hasVoted: false };
+
+  it("no aparece mientras se nomina", () => {
+    expect(voteButton("SETUP", null)).toBeNull();
+    expect(voteButton("NOMINATIONS", fresh)).toBeNull();
   });
 
-  it("lleva a nominar o votar solo si le toca", () => {
-    expect(roomAction("NOMINATIONS", approved)).toBe("nominate");
-    expect(roomAction("NOMINATIONS", { ...approved, hasNominated: true })).toBeNull();
-    expect(roomAction("VOTING", approved)).toBe("vote");
-    expect(roomAction("VOTING", { ...approved, hasVoted: true })).toBeNull();
-    expect(roomAction("FINALISTS_READY", approved)).toBeNull();
+  it("se ve pero no se puede tocar hasta la hora de abrir", () => {
+    expect(voteButton("NOMINATIONS_CLOSED", null)).toEqual({ state: "soon" });
+    expect(voteButton("FINALISTS_READY", fresh)).toEqual({ state: "soon" });
+  });
+
+  it("abierta: pide tocar tu nombre si no entraste, y una sola vez", () => {
+    expect(voteButton("VOTING", null)).toEqual({ state: "open", needsEntry: true });
+    expect(voteButton("VOTING", fresh)).toEqual({ state: "open", needsEntry: false });
+    expect(voteButton("VOTING", { hasVoted: true })).toEqual({ state: "done" });
+  });
+
+  it("después de la votación queda cerrada (la ceremonia no se muestra)", () => {
+    expect(voteButton("VOTING_CLOSED", fresh)).toEqual({ state: "closed" });
+    expect(voteButton("CEREMONY", null)).toEqual({ state: "closed" });
+    expect(voteButton("FINISHED", fresh)).toEqual({ state: "closed" });
   });
 });

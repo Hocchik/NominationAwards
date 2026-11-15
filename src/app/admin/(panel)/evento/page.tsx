@@ -52,7 +52,7 @@ async function EventPanel() {
 
   const [context, roomUrl, savedPhotos] = await Promise.all([
     getPhaseContext(event),
-    getRoomUrl(event.roomCode),
+    getRoomUrl(),
     prisma.groupPhoto.findMany({ where: { eventId: event.id }, select: { slot: true, photoUrl: true, caption: true } }),
   ]);
   const groupPhotos = groupPhotoSlots(savedPhotos).map((p, slot) => ({ slot, ...p }));
@@ -74,7 +74,7 @@ async function EventPanel() {
       </SectionCard>
 
       <SectionCard id="sala" title="Link de la sala">
-        <RoomShare roomCode={event.roomCode} url={roomUrl} />
+        <RoomShare url={roomUrl} />
       </SectionCard>
 
       <SectionCard id="datos" title="Datos del evento">

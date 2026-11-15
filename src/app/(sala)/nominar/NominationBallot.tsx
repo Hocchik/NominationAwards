@@ -117,7 +117,7 @@ export function NominationBallot({
         const ballot = buildNominationBallot(selections, ids);
         // Se sella aquí, en este dispositivo: al servidor solo llega texto cifrado.
         const ciphertext = await sealPayload({ ...ballot }, publicKey, ballotBytes);
-        const send = onSubmit ?? ((sealed: string) => submitNominationAction(roomCode, sealed));
+        const send = onSubmit ?? ((sealed: string) => submitNominationAction(sealed));
         const result = await send(ciphertext);
         if (!result.ok) {
           setError(result.message ?? "No se pudo enviar.");
@@ -133,7 +133,7 @@ export function NominationBallot({
     });
   }
 
-  const done = doneLink ?? { href: `/s/${roomCode}/nominados`, label: "Ver nominados" };
+  const done = doneLink ?? { href: "/", label: "Volver al inicio" };
 
   if (sent) {
     return (
@@ -167,6 +167,7 @@ export function NominationBallot({
           />
         )}
         <RoundBar
+          adminDoor={!onSubmit}
           label={`${eventName} · Nominar`}
           step={reviewing ? "Revisión" : `${pad(index + 1)} / ${pad(categories.length)}`}
         />

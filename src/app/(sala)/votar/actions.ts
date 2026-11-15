@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { recordBallot } from "@/lib/ballots/record";
 import { isBase64, sealedBase64Length } from "@/lib/ballots/sealedSize";
 import { voteBallotBytes } from "@/lib/ballots/vote";
-import { getEventByRoomCode } from "@/lib/participants/queries";
+import { getCurrentEvent } from "@/lib/event/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 
 // Igual que en las nominaciones: el servidor recibe el voto ya sellado en el
@@ -15,14 +15,11 @@ export interface SubmitResult {
   message?: string;
 }
 
-export async function submitVoteAction(
-  roomCode: string,
-  ciphertext: string,
-): Promise<SubmitResult> {
-  // getEventByRoomCode aplica el horario: si la votación ya cerró, la fase
+export async function submitVoteAction(ciphertext: string): Promise<SubmitResult> {
+  // getCurrentEvent aplica el horario: si la votación ya cerró, la fase
   // cambia aquí mismo y recordBallot rechaza el voto.
-  const event = await getEventByRoomCode(roomCode);
-  if (!event) return { ok: false, message: "Esta sala no existe." };
+  const event = await getCurrentEvent();
+  if (!event) return { ok: false, message: "La sala no está abierta." };
 
   const participant = await getSessionParticipant(event.id);
   if (!participant) {

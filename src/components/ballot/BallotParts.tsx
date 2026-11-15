@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { CategoryType } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
+import { AdminDoor } from "@/components/room/AdminDoor";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/cn";
 
@@ -25,13 +26,17 @@ export function AutofillBar({ onFill }: { onFill: () => void }) {
 }
 
 /** Franja superior: «Ronda 1 · Nominar» y el paso actual («03 / 12»). */
-export function RoundBar({ label, step }: { label: string; step?: string }) {
+export function RoundBar({ label, step, adminDoor = false }: { label: string; step?: string; adminDoor?: boolean }) {
+  const brand = (
+    <span className="inline-flex items-center gap-2 font-display text-[11px] font-semibold tracking-[0.14em] uppercase">
+      <LogoMark className="h-[18px] w-4 text-copper" />
+      {label}
+    </span>
+  );
   return (
     <div className="flex min-h-12 items-center justify-between gap-3 px-1">
-      <span className="inline-flex items-center gap-2 font-display text-[11px] font-semibold tracking-[0.14em] uppercase">
-        <LogoMark className="h-[18px] w-4 text-copper" />
-        {label}
-      </span>
+      {/* En la papeleta real, el logo es la puerta escondida al panel (no en el demo) */}
+      {adminDoor ? <AdminDoor>{brand}</AdminDoor> : brand}
       <span className="flex items-center gap-3">
         {step && <span className="font-display text-xs font-bold">{step}</span>}
         <ThemeToggle className="min-h-9 px-2" />

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { nominationBallotBytes } from "@/lib/ballots/nomination";
 import { recordBallot } from "@/lib/ballots/record";
 import { isBase64, sealedBase64Length } from "@/lib/ballots/sealedSize";
-import { getEventByRoomCode } from "@/lib/participants/queries";
+import { getCurrentEvent } from "@/lib/event/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 
 // El servidor nunca ve qué se nominó: recibe la papeleta ya sellada en el
@@ -16,12 +16,9 @@ export interface SubmitResult {
   message?: string;
 }
 
-export async function submitNominationAction(
-  roomCode: string,
-  ciphertext: string,
-): Promise<SubmitResult> {
-  const event = await getEventByRoomCode(roomCode);
-  if (!event) return { ok: false, message: "Esta sala no existe." };
+export async function submitNominationAction(ciphertext: string): Promise<SubmitResult> {
+  const event = await getCurrentEvent();
+  if (!event) return { ok: false, message: "La sala no está abierta." };
 
   const participant = await getSessionParticipant(event.id);
   if (!participant) {

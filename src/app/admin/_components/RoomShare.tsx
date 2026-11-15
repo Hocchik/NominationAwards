@@ -3,7 +3,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 
 // El QR se genera en el servidor como SVG: no carga ninguna librería en el
 // navegador. Va sobre fondo blanco porque así lo leen mejor todas las cámaras.
-export async function RoomShare({ roomCode, url }: { roomCode: string; url: string }) {
+export async function RoomShare({ url }: { url: string }) {
   const svg = await QRCode.toString(url, {
     type: "svg",
     margin: 1,
@@ -20,17 +20,15 @@ export async function RoomShare({ roomCode, url }: { roomCode: string; url: stri
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       <div className="min-w-0 space-y-3">
-        <div>
-          <p className="text-sm text-ink-soft">Código de la sala</p>
-          <p className="font-display text-4xl font-semibold tracking-[0.2em]">{roomCode}</p>
-        </div>
-        <p className="text-sm break-all">{url}</p>
+        <p className="font-display text-xl font-semibold break-all">{url}</p>
         <div className="flex flex-wrap gap-3">
           <CopyButton text={url} />
         </div>
         <p className="text-xs text-ink-soft">
-          Es el único link que se comparte (por ejemplo, por WhatsApp). Ahí cada persona toca su nombre
-          en la lista de invitados, nomina, vota y ve a los nominados.
+          Es el único link que se comparte (por ejemplo, por WhatsApp). Mientras las nominaciones están
+          abiertas muestra la papeleta para nominar; después, los nominados con el botón Votar. La ceremonia
+          no aparece ahí: la abres tú desde este panel. Al panel se entra por /admin o tocando el logo 5 veces
+          seguidas.
         </p>
       </div>
     </div>

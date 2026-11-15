@@ -6,9 +6,10 @@ import { NameGrid } from "@/components/room/NameGrid";
 import { type FormState, initialFormState } from "@/lib/forms";
 import type { GuestEntry } from "@/lib/participants/guests";
 import { enterAction } from "./actions";
+import type { EntryTarget } from "./entryTarget";
 
-/** Entrar a la sala: tocas tu nombre de la lista, confirmas que eres tú y listo. */
-export function EntryFlow({ roomCode, guests }: { roomCode: string; guests: GuestEntry[] }) {
+/** Entrar a la sala: tocas tu nombre de la lista, confirmas que eres tú y sigues a `next`. */
+export function EntryFlow({ next, guests }: { next: EntryTarget; guests: GuestEntry[] }) {
   const [name, setName] = useState<string | null>(null);
 
   if (guests.length === 0) {
@@ -16,10 +17,10 @@ export function EntryFlow({ roomCode, guests }: { roomCode: string; guests: Gues
   }
   if (name === null) return <NameGrid guests={guests} onPick={setName} />;
   // key: al cambiar de nombre, la confirmación empieza de cero.
-  return <Confirm key={name} roomCode={roomCode} name={name} onBack={() => setName(null)} />;
+  return <Confirm key={name} next={next} name={name} onBack={() => setName(null)} />;
 }
 
-function Confirm({ roomCode, name, onBack }: { roomCode: string; name: string; onBack: () => void }) {
+function Confirm({ next, name, onBack }: { next: EntryTarget; name: string; onBack: () => void }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(enterAction, initialFormState);
   return (
     <ConfirmName
@@ -30,7 +31,7 @@ function Confirm({ roomCode, name, onBack }: { roomCode: string; name: string; o
       onBack={onBack}
       hidden={
         <>
-          <input type="hidden" name="roomCode" value={roomCode} />
+          <input type="hidden" name="next" value={next} />
           <input type="hidden" name="name" value={name} />
         </>
       }

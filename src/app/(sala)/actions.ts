@@ -1,22 +1,21 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getCurrentEvent } from "@/lib/event/queries";
 import type { FormState } from "@/lib/forms";
 import { normalizeName } from "@/lib/participants/names";
-import { getEventByRoomCode } from "@/lib/participants/queries";
 import { endParticipantSession, startParticipantSession } from "@/lib/participants/session";
+import { entryTarget } from "./entryTarget";
 
 // Entrada a la sala con la lista de invitados (CLAUDE.md §5): cada uno toca su
 // nombre y entra, sin PIN. Si alguien entra con el nombre de otro, el admin ve
 // ese nombre bloqueado en su panel y puede botar su sobre (regla 2).
 
-const NO_ROOM: FormState = { ok: false, message: "Esta sala no existe." };
-
 export async function enterAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const event = await getEventByRoomCode(String(formData.get("roomCode") ?? ""));
-  if (!event) return NO_ROOM;
-  if (event.phase === "SETUP") return { ok: false, message: "La sala todavía no abre." };
+  const event = await getCurrentEvent();
+  if (!event || event.phase === "SETUP") return { ok: false, message: "La sala todavía no abre." };
 
   const name = String(formData.get("name") ?? "");
   const participant = await prisma.participant.findUnique({
@@ -27,8 +26,8 @@ export async function enterAction(_prev: FormState, formData: FormData): Promise
   }
 
   await startParticipantSession(participant);
-  refresh();
-  return { ok: true };
+  // Sigue a lo que iba a hacer (nominar o votar); solo rutas conocidas.
+  redirect(entryTarget(formData.get("next")));
 }
 
 export async function logoutParticipantAction(): Promise<void> {

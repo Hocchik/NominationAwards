@@ -93,7 +93,7 @@ export async function getBaseUrl(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-/** Link público de la sala: el único que se comparte con el grupo. */
-export async function getRoomUrl(roomCode: string): Promise<string> {
-  return `${await getBaseUrl()}/s/${roomCode}`;
+/** Link público de la sala: la raíz del sitio, el único que se comparte con el grupo. */
+export async function getRoomUrl(): Promise<string> {
+  return `${await getBaseUrl()}/`;
 }
