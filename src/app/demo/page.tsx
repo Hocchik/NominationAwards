@@ -8,9 +8,9 @@ export const metadata: Metadata = { title: "Demo" };
 const STEPS = [
   { title: "Entrar", text: "Toca tu nombre en la lista de invitados. Sin contraseñas ni PIN." },
   { title: "Nominar", text: "Llena la papeleta. Se sella en tu navegador, igual que en el evento real." },
-  { title: "Nominados", text: "Mira la cartelera con los finalistas de ejemplo, sin conteos." },
+  { title: "Nominados", text: "Recorre las fotos del grupo y los finalistas de ejemplo, categoría por categoría y sin conteos." },
   { title: "Votar", text: "Elige un ganador por categoría. Si eres finalista, tu tarjeta sale como «Eres tú»." },
-  { title: "Ceremonia (ejemplo)", text: "En la reunión, solo el organizador proyecta a los ganadores. Aquí ves un ejemplo de cómo se anuncian." },
+  { title: "Ceremonia (ejemplo)", text: "En la reunión, solo el organizador proyecta a los ganadores. Aquí ves un ejemplo: nominados, suspenso y ganador con los puestos que le siguen." },
 ];
 
 export default function DemoPage() {

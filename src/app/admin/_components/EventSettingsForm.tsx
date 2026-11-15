@@ -58,7 +58,7 @@ export function EventSettingsForm({
           type="number"
           inputMode="numeric"
           label="Capacidad de la sala"
-          hint="Máximo de personas que pueden registrarse."
+          hint="Máximo de nombres en la lista de invitados."
           min={2}
           max={200}
           defaultValue={v("capacity")}

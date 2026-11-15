@@ -5,7 +5,7 @@ import { DEMO_ALIASES, DEMO_CATEGORIES, byName } from "@/lib/demo/fixtures";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
 import { useDemo } from "../DemoProvider";
 
-// Finalistas en orden alfabético y sin conteos, como la cartelera real (regla 8).
+// Finalistas en orden alfabético y sin conteos, como la página real (regla 8).
 const board: BoardCategory[] = DEMO_CATEGORIES.map((c, i) => ({
   id: c.id,
   num: String(i + 1).padStart(2, "0"),

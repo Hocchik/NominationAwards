@@ -1,7 +1,7 @@
 import type { EventPhase } from "@/generated/prisma/enums";
 import { isBefore } from "./phases";
 
-// Página de Nominados («Cartelera», CLAUDE.md §7 y §9). Aquí solo se decide
+// Página de Nominados («Estreno con recuerdos», CLAUDE.md §7 y §9). Aquí solo se decide
 // QUÉ se muestra; nada de esto conoce conteos (regla 8).
 
 /**

@@ -71,7 +71,7 @@ export default function TransparencyPage() {
           <li>La lista de invitados.</li>
           <li>Si cada persona ya nominó o votó (✔ o ⏳), nunca qué eligió.</li>
           <li>Los finalistas, sin conteos.</li>
-          <li>Los ganadores, recién en la ceremonia, al mismo tiempo que todos.</li>
+          <li>Los ganadores y quiénes quedaron 2.º, 3.º y 4.º (sin conteos), recién en la ceremonia, al mismo tiempo que todos.</li>
         </ul>
       </Point>
 

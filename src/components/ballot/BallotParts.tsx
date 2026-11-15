@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 // Piezas de la papeleta «Día y noche» (CLAUDE.md §9), comunes a Nominar y
 // Votar: hoja con doble regla, sello de tipo rotado, casillas en cobre, sello
-// de cera, comprobante de noche y sobre kraft.
+// de cera y sobre kraft.
 
 const TYPE_LABEL: Record<CategoryType, string> = { PRIZE: "Premio", HONORARY: "Honorífica" };
 const pad = (n: number) => String(n).padStart(2, "0");

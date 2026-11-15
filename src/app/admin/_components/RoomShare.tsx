@@ -29,8 +29,8 @@ export async function RoomShare({ roomCode, url }: { roomCode: string; url: stri
           <CopyButton text={url} />
         </div>
         <p className="text-xs text-ink-soft">
-          Es el único link que se comparte (por ejemplo, por WhatsApp). Ahí cada persona se registra,
-          nomina, vota y ve a los nominados.
+          Es el único link que se comparte (por ejemplo, por WhatsApp). Ahí cada persona toca su nombre
+          en la lista de invitados, nomina, vota y ve a los nominados.
         </p>
       </div>
     </div>

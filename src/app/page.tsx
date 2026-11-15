@@ -37,8 +37,8 @@ export default function Home() {
       <Card className="space-y-3">
         <h2 className="font-display text-lg font-bold">¿Cómo entro?</h2>
         <p className="text-ink-soft">
-          Abre el link de tu sala que compartió el organizador (se ve así: <span className="font-semibold text-ink">…/s/ABC123</span>).
-          Ahí te registras con tu nombre y un PIN.
+          Abre el link de la sala que compartió el organizador (se ve así: <span className="font-semibold text-ink">…/s/ABC123</span>).
+          Busca tu nombre en la lista de invitados, tócalo y confirma que eres tú. Sin contraseñas ni PIN.
         </p>
         <div className="flex flex-wrap gap-3 pt-1">
           <Link href="/demo" className={buttonClasses({ className: "max-sm:w-full" })}>

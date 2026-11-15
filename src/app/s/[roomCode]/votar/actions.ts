@@ -26,7 +26,7 @@ export async function submitVoteAction(
 
   const participant = await getSessionParticipant(event.id);
   if (!participant) {
-    return { ok: false, message: "Tu sesión terminó. Vuelve a entrar a la sala con tu PIN." };
+    return { ok: false, message: "Tu sesión terminó. Vuelve a entrar a la sala y toca tu nombre." };
   }
 
   const active = await prisma.category.count({ where: { eventId: event.id, activeForVote: true } });

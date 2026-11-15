@@ -73,7 +73,7 @@ async function FinalistsPanel() {
       <SectionCard
         id="activas"
         title="Categorías en la votación"
-        description="Activa las que pasan a la votación final. Las de premio tienen tope; las honoríficas no. Al activar una, sus nominados se publican en la página de Nominados de la sala: carga antes las fotos y frases."
+        description="Activa las que pasan a la votación final. Las de premio tienen tope; las honoríficas no. Al activar una, sus nominados se publican en la página de Nominados de la sala: carga antes las fotos (las frases cortas se ven solo en la papeleta de votación)."
       >
         <ul className="divide-y divide-line">
           {categories.map((category) => {

@@ -9,7 +9,6 @@ import { prisma } from "@/lib/db";
 import { groupPhotoSlots } from "@/lib/event/groupPhotos";
 import { finalistNicknames } from "@/lib/event/nicknames";
 import { boardCountdown, boardState, roomAction } from "@/lib/event/nominees";
-import { canRegister } from "@/lib/event/rules";
 import { getEventByRoomCode } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { ParticipantStrip } from "../ParticipantStrip";
@@ -23,7 +22,7 @@ type Params = Promise<{ roomCode: string }>;
 // el link: los nominados no son secretos, los votos sí. Nada de conteos (regla 8).
 
 export default function NomineesPage({ params }: { params: Params }) {
-  // Siempre de noche (decisión del usuario, 2026-11-14): es la cartelera de la gala.
+  // Siempre de noche (decisión del usuario, 2026-11-14): es la antesala de la gala.
   return (
     <main className="theme-night flex w-full flex-1 flex-col bg-bg text-ink">
       <header className="relative z-10 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:px-6 lg:px-16">
@@ -127,7 +126,7 @@ async function Nominees({ params }: { params: Params }) {
       : action === "vote"
         ? { href: `/s/${event.roomCode}/votar`, label: "Ir a votar →" }
         : action === "enter"
-          ? { href: `/s/${event.roomCode}`, label: canRegister(event.phase) ? "Registrarme o entrar →" : "Entrar →" }
+          ? { href: `/s/${event.roomCode}`, label: "Entrar a la sala →" }
           : null;
 
   return (

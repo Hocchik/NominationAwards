@@ -23,13 +23,35 @@ function subscribe(onChange: () => void) {
   return () => observer.disconnect();
 }
 
+/** Cuánto dura el cambio de tema (globals.css usa el mismo valor). */
+const FADE_MS = 700;
+
+/**
+ * Cambia el tema poco a poco, no de golpe: pasar de claro a oscuro de un
+ * instante a otro encandila. Con View Transitions la página entera se funde;
+ * sin ellas, los colores pasan con una transición CSS mientras dure el cambio.
+ */
+function applyThemeGently(next: Theme) {
+  const root = document.documentElement;
+  const paint = () => {
+    root.dataset.theme = next;
+  };
+  if (typeof document.startViewTransition === "function") {
+    document.startViewTransition(paint);
+    return;
+  }
+  root.classList.add("theme-fading");
+  paint();
+  window.setTimeout(() => root.classList.remove("theme-fading"), FADE_MS);
+}
+
 export function ThemeToggle({ className }: { className?: string }) {
   // null en el servidor: allí no se sabe qué tema eligió la persona.
   const theme = useSyncExternalStore<Theme | null>(subscribe, currentTheme, () => null);
 
   function toggle() {
     const next: Theme = currentTheme() === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
+    applyThemeGently(next);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
