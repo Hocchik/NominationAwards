@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Card } from "@/components/ui/Card";
+import { Loader } from "@/components/ui/Loader";
 import { getCurrentEvent } from "@/lib/event/queries";
 import { listGuests } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
@@ -19,11 +19,7 @@ export default function EnterPage({ searchParams }: { searchParams: SearchParams
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-10">
       <Suspense
-        fallback={
-          <Card className="h-64 animate-pulse" aria-busy="true">
-            <span className="sr-only">Cargando la sala…</span>
-          </Card>
-        }
+        fallback={<Loader label="Cargando invitados…" />}
       >
         <Enter searchParams={searchParams} />
       </Suspense>

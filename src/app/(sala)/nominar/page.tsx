@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Card } from "@/components/ui/Card";
+import { Loader } from "@/components/ui/Loader";
 import { prisma } from "@/lib/db";
 import { nominationBallotBytes } from "@/lib/ballots/nomination";
 import { getCategories, getCurrentEvent } from "@/lib/event/queries";
@@ -15,11 +15,7 @@ export default function NominatePage() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-2.5 pt-2 pb-8 sm:px-4 lg:max-w-5xl lg:pt-6">
       <Suspense
-        fallback={
-          <Card className="h-72 animate-pulse" aria-busy="true">
-            <span className="sr-only">Cargando tu papeleta…</span>
-          </Card>
-        }
+        fallback={<Loader label="Preparando tu papeleta…" />}
       >
         <Nominate />
       </Suspense>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Card } from "@/components/ui/Card";
+import { Loader } from "@/components/ui/Loader";
 import { Countdown } from "@/components/ui/Countdown";
 import { getCurrentEvent } from "@/lib/event/queries";
 import { homeView } from "@/lib/event/nominees";
@@ -23,13 +23,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default function HomePage() {
   return (
     <Suspense
-      fallback={
-        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
-          <Card className="h-64 animate-pulse" aria-busy="true">
-            <span className="sr-only">Cargando la sala…</span>
-          </Card>
-        </main>
-      }
+      fallback={<Loader label="Cargando la sala…" />}
     >
       <Home />
     </Suspense>

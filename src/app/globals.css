@@ -235,6 +235,54 @@
     stroke 0.7s ease !important;
 }
 
+/* --- Carga entre pantallas (components/ui/Loader.tsx) --------------------- */
+
+@keyframes loader-gem {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes loader-cone {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+@keyframes loader-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.loader-gem {
+  animation: loader-gem 1.4s ease-in-out infinite;
+}
+.loader-cone {
+  animation: loader-cone 1.4s ease-in-out infinite;
+}
+.loader-bar span {
+  animation: loader-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+/* La pantalla de carga aparece suave, y solo si la espera dura un poco */
+.loader-mark {
+  animation: loader-in 0.4s ease 0.15s both;
+}
+@keyframes loader-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
 /* --- Ceremonia (CLAUDE.md §8) --------------------------------------------- */
 
 @keyframes ceremony-rise {
