@@ -1,27 +1,37 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CategoryTopBar, NightStage, type StageCategory, WinnerView, pad } from "@/components/ceremony/Stage";
+import { type RevealPhase, RevealScene } from "@/components/ceremony/Reveal";
+import type { StageCategory } from "@/components/ceremony/Stage";
 import { Button } from "@/components/ui/Button";
-import { celebrate } from "@/lib/ceremony/effects";
-import { cn } from "@/lib/cn";
-import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_EXAMPLE_PLACES, DEMO_EXAMPLE_WINNERS, byName } from "@/lib/demo/fixtures";
+import { DEMO_ALIASES, DEMO_CATEGORIES, DEMO_EXAMPLE_PLACES, DEMO_EXAMPLE_WINNERS, byName } from "@/lib/demo/fixtures";
 
 const categories: StageCategory[] = DEMO_CATEGORIES.map((c) => ({
   id: c.id,
   name: c.name,
   description: c.description,
   type: c.type,
-  finalists: byName(c.finalists).map((f) => ({ id: f.id, name: f.name, photoUrl: null, blurb: f.blurb })),
+  finalists: byName(c.finalists).map((f) => ({
+    id: f.id,
+    name: f.name,
+    photoUrl: null,
+    nickname: (f.participantId && DEMO_ALIASES[f.participantId]?.[0]) || null,
+    external: f.participantId === null,
+  })),
 }));
 
+/** Segundos con los nominados en pantalla antes de que empiece el suspenso (en la gala lo decide el presentador). */
+const NOMINEES_SECONDS = 4;
+
 /**
- * Solo la pantalla del ganador, como se proyecta en la reunión: la misma
- * escena de la ceremonia real, con ganadores de ejemplo.
+ * La revelación de cada categoría, como se proyecta en la reunión: la misma
+ * escena de la ceremonia real, con ganadores de ejemplo. Aquí avanza sola.
  */
 export function DemoWinner() {
   const [index, setIndex] = useState(0);
-  // El año del trofeo se lee en el navegador, nunca en el prerender.
+  const [take, setTake] = useState(0); // sube con «Ver de nuevo» para reiniciar la escena
+  const [phase, setPhase] = useState<RevealPhase>("nominees");
+  // El año de la copa se lee en el navegador, nunca en el prerender.
   const [year, setYear] = useState("");
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- la hora se lee una vez al montar
@@ -29,14 +39,17 @@ export function DemoWinner() {
   }, []);
   const category = categories[index]!;
 
+  // Cada escena empieza con los nominados y pasa sola al suspenso.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reinicia la escena al cambiar de categoría
+    setPhase("nominees");
+    const timer = setTimeout(() => setPhase("reveal"), NOMINEES_SECONDS * 1000);
+    return () => clearTimeout(timer);
+  }, [index, take]);
+
   const go = useCallback((step: number) => {
     setIndex((i) => Math.min(Math.max(i + step, 0), categories.length - 1));
   }, []);
-
-  // Confeti en cada ganador, como en la gala (se apaga con «reducir movimiento»).
-  useEffect(() => {
-    celebrate(category.type === "PRIZE" ? "prize" : "honor");
-  }, [category.type, index]);
 
   // Flechas del teclado para pasar de categoría.
   useEffect(() => {
@@ -58,29 +71,23 @@ export function DemoWinner() {
         <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Así se anuncia el ganador</h1>
         <p className="max-w-2xl text-ink-soft">
           Esto no aparece en el celular de quien vota: en la reunión, el organizador abre la ceremonia a la hora que fije y la
-          proyecta. Cada categoría termina con esta pantalla. Los ganadores de este ejemplo son inventados; en el evento real
-          salen de los votos del grupo.
+          proyecta. Cada categoría muestra a sus nominados, un momento de suspenso y al ganador con los puestos que le siguen,
+          sin conteos. Los ganadores de este ejemplo son inventados; en el evento real salen de los votos del grupo.
           <span className="sm:hidden"> Gira el celular para verlo más grande.</span>
         </p>
       </div>
 
-      <div
-        role="img"
-        aria-label={`Categoría ${index + 1}: ${category.name}`}
-        className={cn(
-          "theme-night @container relative aspect-video w-full overflow-hidden bg-bg chamfer-12 sm:chamfer-24",
-          category.type === "HONORARY" ? "accent-honor" : "accent-prize",
-        )}
-      >
-        <NightStage number={pad(index + 1)} />
-        <CategoryTopBar eventName={DEMO_EVENT_NAME} categories={categories} index={index} />
-        <WinnerView
-          key={category.id}
+      <div className="theme-night overflow-hidden chamfer-12 sm:chamfer-24">
+        <RevealScene
+          key={`${category.id}-${take}`}
           category={category}
+          number={index + 1}
+          total={categories.length}
+          phase={phase}
           winnerIds={DEMO_EXAMPLE_WINNERS[category.id] ?? []}
+          places={DEMO_EXAMPLE_PLACES[category.id]}
           winnerPercent={null}
           showWinnerPercent={false}
-          places={DEMO_EXAMPLE_PLACES[category.id]}
           year={year}
         />
       </div>
@@ -92,6 +99,9 @@ export function DemoWinner() {
         <p className="flex-1 text-center text-sm text-ink-soft" aria-live="polite">
           {category.name} · {index + 1} de {categories.length}
         </p>
+        <Button variant="secondary" onClick={() => setTake((t) => t + 1)}>
+          ↻ Ver de nuevo
+        </Button>
         <Button onClick={() => go(1)} disabled={index === categories.length - 1}>
           Siguiente →
         </Button>

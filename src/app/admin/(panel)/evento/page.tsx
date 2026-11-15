@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth/admin";
+import { prisma } from "@/lib/db";
+import { groupPhotoSlots } from "@/lib/event/groupPhotos";
 import { ADVANCE_MODE, getAdvanceBlockers } from "@/lib/event/phases";
 import { getCurrentEvent, getPhaseContext, getRoomUrl } from "@/lib/event/queries";
 import {
@@ -14,6 +16,7 @@ import {
 } from "@/lib/event/rules";
 import { CreateEventForm } from "../../_components/CreateEventForm";
 import { EventSettingsForm } from "../../_components/EventSettingsForm";
+import { GroupPhotosForm } from "../../_components/GroupPhotosForm";
 import { NotaryStatus } from "../../_components/NotaryStatus";
 import { PanelLoading } from "../../_components/PanelLoading";
 import { PhaseControl } from "../../_components/PhaseControl";
@@ -47,7 +50,12 @@ async function EventPanel() {
     );
   }
 
-  const [context, roomUrl] = await Promise.all([getPhaseContext(event), getRoomUrl(event.roomCode)]);
+  const [context, roomUrl, savedPhotos] = await Promise.all([
+    getPhaseContext(event),
+    getRoomUrl(event.roomCode),
+    prisma.groupPhoto.findMany({ where: { eventId: event.id }, select: { slot: true, photoUrl: true, caption: true } }),
+  ]);
+  const groupPhotos = groupPhotoSlots(savedPhotos).map((p, slot) => ({ slot, ...p }));
   const blockers = ADVANCE_MODE[event.phase] === "button" ? getAdvanceBlockers(context) : [];
 
   return (
@@ -90,6 +98,10 @@ async function EventPanel() {
             voteRules: canEditVoteRules(event.phase),
           }}
         />
+      </SectionCard>
+
+      <SectionCard id="fotos" title="Fotos grupales">
+        <GroupPhotosForm photos={groupPhotos} />
       </SectionCard>
 
       <SectionCard id="horario" title="Horarios">

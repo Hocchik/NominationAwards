@@ -3,18 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { EventPhase } from "@/generated/prisma/enums";
-import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Countdown } from "@/components/ui/Countdown";
 import { Logo } from "@/components/ui/Logo";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { prisma } from "@/lib/db";
+import { groupPhotoSlots } from "@/lib/event/groupPhotos";
+import { finalistNicknames } from "@/lib/event/nicknames";
 import { boardCountdown, boardState, roomAction } from "@/lib/event/nominees";
 import { canRegister } from "@/lib/event/rules";
 import { getEventByRoomCode } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { ParticipantStrip } from "../ParticipantStrip";
-import { type BoardCategory, NomineesBoard } from "./NomineesBoard";
+import { type BoardCategory, type ClosingLine, NomineesShow } from "./NomineesShow";
 
 export const metadata: Metadata = { title: "Nominados", robots: { index: false, follow: false } };
 
@@ -24,9 +23,10 @@ type Params = Promise<{ roomCode: string }>;
 // el link: los nominados no son secretos, los votos sí. Nada de conteos (regla 8).
 
 export default function NomineesPage({ params }: { params: Params }) {
+  // Siempre de noche (decisión del usuario, 2026-11-14): es la cartelera de la gala.
   return (
-    <main className="mx-auto w-full max-w-[80rem] flex-1 space-y-5 px-4 pb-10 sm:px-6 lg:space-y-8 lg:px-10 lg:pb-14">
-      <header className="relative -mx-4 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:-mx-6 sm:px-6">
+    <main className="theme-night flex w-full flex-1 flex-col bg-bg text-ink">
+      <header className="relative z-10 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:px-6 lg:px-16">
         <Logo className="py-3" />
         <nav aria-label="Sala" className="flex gap-6 text-[15px] font-semibold max-sm:w-full">
           <span aria-current="page" className="border-b-[3px] border-copper pt-3 pb-2.5 sm:pt-5 sm:pb-4">
@@ -36,13 +36,12 @@ export default function NomineesPage({ params }: { params: Params }) {
             ¿Quién ve mi voto?
           </Link>
         </nav>
-        <ThemeToggle className="ml-auto max-sm:absolute max-sm:top-2 max-sm:right-4" />
       </header>
       <Suspense
         fallback={
-          <Card className="h-96 animate-pulse" aria-busy="true">
-            <span className="sr-only">Cargando los nominados…</span>
-          </Card>
+          <div className="grid flex-1 place-items-center p-10" aria-busy="true">
+            <span className="text-ink-soft">Cargando los nominados…</span>
+          </div>
         }
       >
         <Nominees params={params} />
@@ -69,29 +68,33 @@ async function Nominees({ params }: { params: Params }) {
   const event = await getEventByRoomCode(roomCode);
   if (!event) notFound();
 
-  const [participant, categories] = await Promise.all([
+  const [participant, categories, savedPhotos] = await Promise.all([
     getSessionParticipant(event.id),
     prisma.category.findMany({
       where: { eventId: event.id },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
       include: { finalists: { orderBy: { displayName: "asc" } } },
     }),
+    prisma.groupPhoto.findMany({ where: { eventId: event.id }, select: { slot: true, photoUrl: true, caption: true } }),
   ]);
   const active = categories.filter((c) => c.activeForVote);
   const state = boardState(event.phase, active.length);
 
   if (state === "closed") {
     return (
-      <Card className="space-y-2">
-        <h1 className="font-display text-2xl font-bold">{event.name}</h1>
-        <p className="text-sm text-ink-soft">La sala todavía no abre. Vuelve cuando empiecen las nominaciones.</p>
-      </Card>
+      <div className="mx-auto w-full max-w-[90rem] px-4 py-10 sm:px-6 lg:px-16">
+        <Card className="space-y-2">
+          <h1 className="font-display text-2xl font-bold">{event.name}</h1>
+          <p className="text-sm text-ink-soft">La sala todavía no abre. Vuelve cuando empiecen las nominaciones.</p>
+        </Card>
+      </div>
     );
   }
 
   const revealed = state === "revealed";
   // Boca abajo no se manda ningún finalista al navegador; reveladas, solo las activas.
   const shown = revealed ? active : categories;
+  const nicknames = revealed ? await finalistNicknames(event.id, shown) : new Map<string, string>();
   const board: BoardCategory[] = shown.map((c, i) => ({
     id: c.id,
     num: String(i + 1).padStart(2, "0"),
@@ -103,7 +106,7 @@ async function Nominees({ params }: { params: Params }) {
           id: f.id,
           name: f.displayName,
           photoUrl: f.photoUrl,
-          blurb: f.blurb,
+          nickname: (f.participantId && nicknames.get(f.participantId)) || null,
           external: f.participantId === null,
         }))
       : [],
@@ -128,38 +131,32 @@ async function Nominees({ params }: { params: Params }) {
           : null;
 
   return (
-    <>
-      <section className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5 pt-1 lg:pt-4">
-        <div className="max-w-[36rem] flex-[1_1_28rem] space-y-2.5 lg:space-y-3">
-          <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-ink-soft uppercase lg:text-[13px]">
-            <span className="size-2 bg-copper" aria-hidden="true" />
-            {EYEBROW[event.phase]}
-          </p>
-          <h1 className="font-display text-[34px] leading-[0.95] font-extrabold uppercase sm:text-5xl lg:text-[64px]">
-            {revealed ? "Los nominados" : "Nominados en camino"}
-          </h1>
-          <p className="text-ink-soft lg:text-[17px] lg:leading-normal">{subline}</p>
-        </div>
-        {(countdown || cta) && (
-          <div className="flex flex-wrap items-end gap-4">
-            {countdown && <Countdown title={countdown.title} target={countdown.target.toISOString()} />}
-            {cta && (
-              <Link href={cta.href} className={buttonClasses({ size: "lg", className: "max-sm:w-full" })}>
-                {cta.label}
-              </Link>
-            )}
-          </div>
-        )}
-      </section>
-
-      {participant && <ParticipantStrip participant={participant} phase={event.phase} />}
-
-      <NomineesBoard
-        revealed={revealed}
-        categories={board}
-        slots={event.finalistsPerCategory}
-        revealNote={event.phase === "NOMINATIONS" ? "Se revela al cerrar las nominaciones" : "Se revela pronto"}
-      />
-    </>
+    <NomineesShow
+      eyebrow={EYEBROW[event.phase]}
+      subline={subline}
+      revealed={revealed}
+      categories={board}
+      slots={event.finalistsPerCategory}
+      revealNote={event.phase === "NOMINATIONS" ? "Se revela al cerrar las nominaciones" : "Se revela pronto"}
+      groupPhotos={groupPhotoSlots(savedPhotos)}
+      countdown={countdown && { title: countdown.title, target: countdown.target.toISOString() }}
+      cta={cta}
+      closing={closingLine(event.phase, revealed, totalFinalists, board.length)}
+      strip={participant && <ParticipantStrip participant={participant} phase={event.phase} />}
+    />
   );
+}
+
+/** La frase de la última diapositiva de la entrada. */
+function closingLine(phase: EventPhase, revealed: boolean, finalists: number, categories: number): ClosingLine {
+  const count = plural(categories, "categoría", "categorías");
+  if (!revealed) {
+    return phase === "NOMINATIONS"
+      ? { lead: `${count}.`, em: "Ahora te toca", tail: "nominar." }
+      : { lead: `${count}.`, em: "Los nominados", tail: "se revelan pronto." };
+  }
+  const lead = `${plural(finalists, "nominado", "nominados")} en ${count}.`;
+  return phase === "FINALISTS_READY" || phase === "VOTING"
+    ? { lead, em: "Ahora te toca", tail: "elegir al ganador." }
+    : { lead, em: "El grupo", tail: "ya eligió." };
 }

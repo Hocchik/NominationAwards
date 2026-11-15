@@ -1,0 +1,411 @@
+/* ==========================================================================
+   Nominados — «Estreno con recuerdos» (lienzo, Ronda 8 · A2)
+   Siempre de noche. La entrada usa el scroll como cámara: las tres fotos
+   grupales salen en abanico y pasan una por una a pantalla completa, como
+   diapositivas. Después, un capítulo por categoría.
+   Animaciones atadas al scroll (animation-timeline); sin soporte o con
+   «reducir movimiento», la entrada queda quieta y completa.
+   ========================================================================== */
+
+@property --nx-kb {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --nx-dim {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* --- Entrada ------------------------------------------------------------- */
+
+.nx-intro {
+  position: relative;
+  height: 420svh;
+  view-timeline-name: --nx-intro;
+}
+.nx-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  container-type: size;
+  /* Abanico en PC: fotos de 30 × 20 (% del ancho), abiertas hacia los lados */
+  --nx-w: 30;
+  --nx-h: 20;
+  --nx-spread: 17;
+  --nx-y: 30;
+}
+@media (max-width: 767px) {
+  .nx-intro {
+    height: 380svh;
+  }
+  .nx-stage {
+    --nx-w: 64;
+    --nx-h: 42.7;
+    --nx-spread: 22;
+    --nx-y: 27;
+  }
+}
+
+@keyframes nx-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(70px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.nx-rise-in {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  animation: nx-rise-in 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Cada foto: del abanico a pantalla completa, se acerca despacio y se funde */
+.nx-slide {
+  position: absolute;
+  left: calc((50 - var(--nx-w) / 2 + var(--side) * var(--nx-spread)) * 1cqw);
+  top: calc((var(--nx-y) + var(--lift)) * 1cqh);
+  width: calc(var(--nx-w) * 1cqw);
+  height: calc(var(--nx-h) * 1cqw);
+  rotate: calc(var(--side) * 8deg);
+  filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.55));
+  animation: nx-slide linear both;
+  animation-timeline: --nx-intro;
+}
+.nx-slide.is-last {
+  animation-name: nx-slide-last;
+}
+@keyframes nx-slide {
+  0% {
+    left: calc((50 - var(--nx-w) / 2 + var(--side) * var(--nx-spread)) * 1cqw);
+    top: calc((var(--nx-y) + var(--lift)) * 1cqh);
+    width: calc(var(--nx-w) * 1cqw);
+    height: calc(var(--nx-h) * 1cqw);
+    rotate: calc(var(--side) * 8deg);
+    --nx-kb: 1;
+    --nx-dim: 0;
+    opacity: 1;
+  }
+  30% {
+    left: 0;
+    top: 0;
+    width: 100cqw;
+    height: 100cqh;
+    rotate: 0deg;
+    --nx-kb: 1;
+    --nx-dim: 1;
+    opacity: 1;
+  }
+  84% {
+    left: 0;
+    top: 0;
+    width: 100cqw;
+    height: 100cqh;
+    rotate: 0deg;
+    --nx-kb: 1.07;
+    --nx-dim: 1;
+    opacity: 1;
+  }
+  100% {
+    left: 0;
+    top: 0;
+    width: 100cqw;
+    height: 100cqh;
+    rotate: 0deg;
+    --nx-kb: 1.09;
+    --nx-dim: 1;
+    opacity: 0;
+  }
+}
+@keyframes nx-slide-last {
+  0% {
+    left: calc((50 - var(--nx-w) / 2 + var(--side) * var(--nx-spread)) * 1cqw);
+    top: calc((var(--nx-y) + var(--lift)) * 1cqh);
+    width: calc(var(--nx-w) * 1cqw);
+    height: calc(var(--nx-h) * 1cqw);
+    rotate: calc(var(--side) * 8deg);
+    --nx-kb: 1;
+    --nx-dim: 0;
+  }
+  20% {
+    left: 0;
+    top: 0;
+    width: 100cqw;
+    height: 100cqh;
+    rotate: 0deg;
+    --nx-kb: 1;
+    --nx-dim: 1;
+  }
+  100% {
+    left: 0;
+    top: 0;
+    width: 100cqw;
+    height: 100cqh;
+    rotate: 0deg;
+    --nx-kb: 1.08;
+    --nx-dim: 1;
+  }
+}
+
+/* Marco con chaflán y filo claro */
+.nx-frame {
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  background: rgb(246 239 230 / 0.5);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+.nx-fill {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+/* La foto (o el marcador) se acerca despacio en pantalla completa */
+.nx-zoom {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--nx-kb));
+}
+.nx-zoom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Marcador de lugar mientras no hay foto: siluetas de un grupo */
+.nx-sample {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 60% at 28% 8%, color-mix(in oklab, var(--copper) 90%, white), transparent 70%),
+    linear-gradient(170deg, color-mix(in oklab, var(--copper) 62%, black) 0%, color-mix(in oklab, var(--copper) 34%, black) 60%, color-mix(in oklab, var(--copper) 14%, black) 100%);
+}
+.nx-sample svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Degradado para leer las frases sobre la foto */
+.nx-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.8), transparent 60%);
+  opacity: var(--nx-dim);
+}
+/* La última foto se oscurece para la frase final */
+.nx-shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  animation: nx-shade linear both;
+  animation-timeline: --nx-intro;
+  animation-range: contain 68% contain 80%;
+}
+@keyframes nx-shade {
+  to {
+    opacity: 0.66;
+  }
+}
+
+/* Lo que se va al empezar a bajar */
+@keyframes nx-leave {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes nx-sink {
+  to {
+    opacity: 0;
+    transform: translateY(160px);
+  }
+}
+.nx-leave {
+  animation: nx-leave linear both;
+  animation-timeline: --nx-intro;
+  animation-range: contain 0% contain 8%;
+}
+.nx-sink {
+  animation: nx-sink linear both;
+  animation-timeline: --nx-intro;
+  animation-range: contain 0% contain 14%;
+}
+@keyframes nx-word {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+.nx-word {
+  display: block;
+  transform: translateY(105%);
+  animation: nx-word 1.2s cubic-bezier(0.16, 0.84, 0.24, 1) 0.5s forwards;
+}
+
+/* Una frase por diapositiva */
+@keyframes nx-say {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  22%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+.nx-say {
+  opacity: 0;
+  animation: nx-say linear both;
+  animation-timeline: --nx-intro;
+}
+
+/* --- Capítulos ------------------------------------------------------------ */
+
+.nx-chapter {
+  view-timeline-name: --nx-ch;
+}
+@keyframes nx-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-38%);
+  }
+}
+.nx-marquee {
+  animation: nx-marquee linear both;
+  animation-timeline: --nx-ch;
+  animation-range: cover 0% cover 100%;
+}
+@keyframes nx-fill {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+.nx-num {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--ink);
+  background: linear-gradient(to top, var(--accent) 50%, transparent 50%);
+  background-size: 100% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: nx-fill linear both;
+  animation-timeline: --nx-ch;
+  animation-range: cover 12% cover 45%;
+}
+@keyframes nx-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.nx-progress {
+  transform-origin: left;
+  animation: nx-progress linear both;
+  animation-timeline: --nx-ch;
+  animation-range: contain 0% exit 0%;
+}
+@keyframes nx-card {
+  from {
+    opacity: 0;
+    transform: translateY(70px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.nx-card {
+  animation: nx-card linear both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 30%;
+}
+@keyframes nx-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(24px);
+  }
+  to {
+    clip-path: inset(0 0 -10% 0);
+    transform: none;
+  }
+}
+.nx-reveal {
+  animation: nx-reveal linear both;
+  animation-timeline: view();
+  animation-range: entry 5% cover 30%;
+}
+
+/* --- Sin animaciones atadas al scroll, o con «reducir movimiento» ----------- */
+
+@supports not (animation-timeline: view()) {
+  .nx-intro {
+    height: 100svh;
+  }
+  .nx-slide,
+  .nx-shade,
+  .nx-leave,
+  .nx-sink,
+  .nx-marquee,
+  .nx-num,
+  .nx-progress,
+  .nx-card,
+  .nx-reveal {
+    animation: none;
+  }
+  .nx-num {
+    background-position: 0 100%;
+  }
+  .nx-say {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx-intro {
+    height: 100svh;
+  }
+  .nx-slide,
+  .nx-shade,
+  .nx-leave,
+  .nx-sink,
+  .nx-marquee,
+  .nx-num,
+  .nx-progress,
+  .nx-card,
+  .nx-reveal,
+  .nx-rise-in,
+  .nx-word {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .nx-num {
+    background-position: 0 100%;
+  }
+  .nx-say {
+    display: none;
+  }
+}

@@ -227,43 +227,9 @@
   }
 }
 
-@keyframes ceremony-winner {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-    filter: brightness(2.5);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-  100% {
-    transform: scale(1);
-    filter: none;
-  }
-}
-
-/* Foco de luz que recorre las tarjetas durante el suspenso */
-@keyframes ceremony-spotlight {
-  from {
-    transform: translateX(-60%);
-  }
-  to {
-    transform: translateX(60%);
-  }
-}
-
+/* Portada, asistencia y cierre de la ceremonia (la revelación vive en components/ceremony/reveal.css) */
 .ceremony-rise {
   animation: ceremony-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.ceremony-winner {
-  animation: ceremony-winner 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.ceremony-spotlight {
-  background: radial-gradient(closest-side, rgb(248 244 236 / 0.28), transparent);
-  animation: ceremony-spotlight 0.9s ease-in-out infinite alternate;
 }
 
 /* --- Acentos por categoría y fotos ---------------------------------------- */

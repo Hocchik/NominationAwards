@@ -1,0 +1,466 @@
+/* ==========================================================================
+   Revelación de una categoría (lienzo: Ronda 8 · A2 «Ganador» + «C de fiesta»)
+   Escena fija de 1280 × 720 que se escala para llenar la pantalla.
+   Dos tiempos:
+   1. Nominados (al montar): título, consigna y finalistas que suben uno a uno.
+   2. Revelación (.rv-go, y lo que se monta al pasar): suspenso con foco →
+      destello → la foto ganadora vuela a su lugar → pantalla de fiesta con el
+      nombre al centro, el trofeo a la derecha, banderines y confeti que se
+      queda en el piso. Los retrasos del tiempo 2 cuentan desde que el
+      presentador avanza.
+   ========================================================================== */
+
+.rv-root {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  transform-origin: 0 0;
+  background: radial-gradient(80% 60% at 50% 10%, var(--sheet), var(--bg) 70%);
+  color: var(--ink);
+  font-family: var(--font-schibsted), system-ui, sans-serif;
+}
+.rv-root em {
+  font-family: var(--font-schibsted), sans-serif;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.rv-display {
+  font-family: var(--font-unbounded), sans-serif;
+}
+
+@keyframes rv-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes rv-in {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes rv-out {
+  to {
+    opacity: 0;
+    translate: 0 -20px;
+  }
+}
+@keyframes rv-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+.rv-mask {
+  display: block;
+  overflow: hidden;
+}
+.rv-word {
+  display: block;
+  transform: translateY(105%);
+  animation: rv-rise 0.9s cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+}
+.rv-in {
+  opacity: 0;
+  animation: rv-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Fotos: marco con chaflán y filo claro; duotono o silueta de marcador */
+.rv-frame {
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  background: color-mix(in oklab, var(--ink) 50%, transparent);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+.rv-fill {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+.rv-photo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--accent-duo, var(--accent));
+}
+.rv-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.15);
+  mix-blend-mode: multiply;
+}
+.rv-sample {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 60% at 28% 8%, color-mix(in oklab, var(--accent) 90%, white), transparent 70%),
+    linear-gradient(170deg, color-mix(in oklab, var(--accent) 62%, black) 0%, color-mix(in oklab, var(--accent) 34%, black) 60%, color-mix(in oklab, var(--accent) 14%, black) 100%);
+}
+.rv-sample svg {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: 86%;
+  height: auto;
+  transform: translateX(-50%);
+}
+.rv-initials {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-unbounded), sans-serif;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--accent) 30%, black);
+  opacity: 0.85;
+}
+.rv-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+/* --- 1 · Nominados ------------------------------------------------------- */
+
+@keyframes rv-card-in {
+  from {
+    opacity: 0;
+    translate: 0 80px;
+    scale: 0.9;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+.rv-card {
+  position: absolute;
+  left: var(--x0);
+  top: var(--y0);
+  width: var(--cw);
+  height: var(--ch);
+  opacity: 0;
+  filter: drop-shadow(0 16px 26px rgb(0 0 0 / 0.6));
+  animation: rv-card-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d) forwards;
+}
+.rv-label {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  top: calc(100% + 14px);
+  text-align: center;
+}
+.rv-num {
+  color: transparent;
+  -webkit-text-stroke: 2px color-mix(in oklab, var(--ink) 35%, transparent);
+  background: linear-gradient(to top, var(--accent) 50%, transparent 50%);
+  background-size: 100% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* --- 2 · Suspenso y destello --------------------------------------------- */
+
+@keyframes rv-dim {
+  to {
+    filter: brightness(0.45) saturate(0.7);
+  }
+}
+@keyframes rv-lose {
+  to {
+    opacity: 0;
+    translate: 0 90px;
+    scale: 0.92;
+  }
+}
+@keyframes rv-win {
+  from {
+    left: var(--x0);
+    top: var(--y0);
+    width: var(--cw);
+    height: var(--ch);
+    rotate: 0deg;
+    filter: brightness(0.45) saturate(0.7);
+  }
+  to {
+    left: var(--fx);
+    top: var(--fy);
+    width: var(--fw);
+    height: var(--fh);
+    rotate: var(--fr);
+    filter: brightness(1) saturate(1) drop-shadow(0 26px 34px rgb(0 0 0 / 0.55));
+  }
+}
+@keyframes rv-fill {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+@keyframes rv-vignette {
+  0% {
+    opacity: 0;
+  }
+  20%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes rv-spot {
+  0% {
+    opacity: 0;
+    left: 60px;
+  }
+  12% {
+    opacity: 1;
+  }
+  40% {
+    left: 880px;
+  }
+  70% {
+    left: 260px;
+  }
+  100% {
+    opacity: 1;
+    left: var(--spot);
+  }
+}
+@keyframes rv-flash {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes rv-pulse {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.025;
+  }
+}
+
+.rv-go .rv-card.lose {
+  animation:
+    rv-card-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d) forwards,
+    rv-dim 0.6s ease forwards,
+    rv-lose 0.6s cubic-bezier(0.5, 0, 0.75, 0) 3.15s forwards;
+}
+.rv-go .rv-card.win {
+  z-index: 7;
+  animation:
+    rv-card-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d) forwards,
+    rv-dim 0.6s ease forwards,
+    rv-win 1s cubic-bezier(0.2, 0.8, 0.2, 1) 3.2s forwards;
+}
+.rv-go .rv-card.win .rv-fill {
+  animation: rv-pulse 1.2s ease-in-out 4.3s 2;
+}
+.rv-go .rv-label,
+.rv-go .rv-pre {
+  animation: rv-out 0.45s ease-in 3s forwards;
+}
+.rv-go .rv-num {
+  animation:
+    rv-fill 3s linear forwards,
+    rv-out 0.5s ease-in 3s forwards;
+}
+.rv-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(60% 70% at 50% 55%, transparent 30%, rgb(0 0 0 / 0.78));
+  opacity: 0;
+  animation: rv-vignette 3.6s ease forwards;
+}
+.rv-spot {
+  position: absolute;
+  z-index: 5;
+  top: 220px;
+  width: 360px;
+  height: 420px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--ink) 55%, transparent), color-mix(in oklab, var(--ink) 16%, transparent) 55%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation:
+    rv-spot 3s cubic-bezier(0.45, 0, 0.3, 1) 0.1s forwards,
+    rv-fade-out 0.3s ease 3.1s forwards;
+}
+.rv-beam {
+  position: absolute;
+  z-index: 5;
+  left: var(--beam);
+  top: 0;
+  width: 200px;
+  height: 560px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in oklab, var(--ink) 42%, transparent), transparent);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  opacity: 0;
+  animation:
+    rv-in 0.4s ease 2.6s forwards,
+    rv-fade-out 0.3s ease 3.1s forwards;
+}
+.rv-drum {
+  opacity: 0;
+  animation:
+    rv-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards,
+    rv-out 0.4s ease-in 3s forwards;
+}
+.rv-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  animation: rv-flash 0.7s ease-out 3.05s forwards;
+}
+
+/* --- 3 · Fiesta ------------------------------------------------------------ */
+
+@keyframes rv-pop {
+  0% {
+    opacity: 0;
+    scale: 0.3;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.12;
+  }
+  80% {
+    scale: 0.96;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes rv-bounce {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+@keyframes rv-flag {
+  from {
+    opacity: 0;
+    translate: 0 -40px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes rv-fall {
+  0% {
+    opacity: 0;
+    translate: 0 -60px;
+    rotate: 0deg;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    translate: var(--sway) var(--land);
+    rotate: var(--spin);
+  }
+}
+.rv-pop {
+  opacity: 0;
+  animation: rv-pop 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.rv-bounce {
+  position: absolute;
+  inset: 0;
+  animation: rv-bounce 2.6s ease-in-out 6s infinite;
+}
+.rv-flag {
+  position: absolute;
+  z-index: 1;
+  width: 30px;
+  height: 40px;
+  transform-origin: 50% 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  opacity: 0;
+  animation: rv-flag 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.rv-confetti {
+  position: absolute;
+  top: 0;
+  opacity: 0;
+  clip-path: polygon(30% 0, 100% 0, 100% 70%, 70% 100%, 0 100%, 0 30%);
+  animation: rv-fall var(--t) cubic-bezier(0.25, 0.1, 0.5, 1) var(--d) forwards;
+}
+.rv-bubble {
+  position: absolute;
+  right: -58px;
+  top: -30px;
+  padding: 10px 16px 22px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 800;
+  white-space: nowrap;
+  rotate: 8deg;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 34% 78%, 18% 100%, 20% 78%, 0 78%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-root *,
+  .rv-root {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+  .rv-spot,
+  .rv-beam,
+  .rv-flash,
+  .rv-vignette,
+  .rv-drum {
+    display: none;
+  }
+}

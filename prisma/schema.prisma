@@ -61,6 +61,7 @@ model Event {
   participants Participant[]
   categories   Category[]
   ballots      Ballot[]
+  groupPhotos  GroupPhoto[]
 }
 
 // Un nombre de la lista de invitados: lo agrega el admin y la persona lo toca
@@ -126,4 +127,17 @@ model Ballot {
 
   @@unique([eventId, phase, participantId])
   @@index([eventId, phase])
+}
+
+// Fotos grupales de la entrada de Nominados (hasta 3 por evento). Recuerdos del
+// grupo que sube el organizador; no tienen nada que ver con nominaciones ni votos.
+model GroupPhoto {
+  id       String @id @default(uuid(4))
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id])
+  slot     Int // 0, 1 o 2: orden en que pasan como diapositivas
+  photoUrl String // JPEG reducido en el navegador, como data URL
+  caption  String @default("") // pie de foto: «Año nuevo · 2026»
+
+  @@unique([eventId, slot])
 }

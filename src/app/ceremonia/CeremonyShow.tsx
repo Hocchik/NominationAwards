@@ -3,18 +3,10 @@
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import {
-  CategoryTopBar,
-  NightStage,
-  Portrait,
-  type StageCategory,
-  StageHeading,
-  WinnerView,
-  pad,
-} from "@/components/ceremony/Stage";
+import { RevealScene } from "@/components/ceremony/Reveal";
+import { NightStage, type StageCategory } from "@/components/ceremony/Stage";
 import { LogoMark } from "@/components/ui/Logo";
 import { type VoteResults, openAndTallyVotes } from "@/lib/ballots/openVotes";
-import { celebrate } from "@/lib/ceremony/effects";
 import { cn } from "@/lib/cn";
 import { parseKeyFile } from "@/lib/crypto/keyFile";
 import { getVoteBallotsAction } from "./actions";
@@ -28,10 +20,9 @@ type CategoryInfo = StageCategory;
 type Slide =
   | { kind: "cover" }
   | { kind: "turnout" }
-  | { kind: "category"; index: number; step: "intro" | "finalists" | "suspense" | "winner" }
+  // Dos pasos por categoría: los nominados, y (al avanzar) suspenso → ganador.
+  | { kind: "category"; index: number; step: "nominees" | "reveal" }
   | { kind: "end" };
-
-const SUSPENSE_SECONDS = 3;
 
 export function CeremonyShow({
   eventName,
@@ -55,7 +46,7 @@ export function CeremonyShow({
       { kind: "cover" },
       { kind: "turnout" },
       ...categories.flatMap((_, index) =>
-        (["intro", "finalists", "suspense", "winner"] as const).map((step): Slide => ({ kind: "category", index, step })),
+        (["nominees", "reveal"] as const).map((step): Slide => ({ kind: "category", index, step })),
       ),
       { kind: "end" },
     ],
@@ -111,19 +102,8 @@ export function CeremonyShow({
     return () => window.removeEventListener("keydown", onKey);
   }, [started, next, previous]);
 
-  // Suspenso: al terminar, se revela solo. Revelación: confeti.
-  useEffect(() => {
-    if (!started || slide.kind !== "category") return;
-    const category = categories[slide.index];
-    const result = results?.byCategory[category.id];
-    if (slide.step === "suspense") {
-      const timer = setTimeout(next, SUSPENSE_SECONDS * 1000 + 300);
-      return () => clearTimeout(timer);
-    }
-    if (slide.step === "winner" && result?.winnerIds.length) {
-      celebrate(category.type === "PRIZE" ? "prize" : "honor");
-    }
-  }, [started, slide, categories, results, next]);
+  // El año grabado en la copa: se lee en el navegador, al empezar la ceremonia.
+  const [year] = useState(() => String(new Date().getFullYear()));
 
   if (!started) {
     return (
@@ -166,29 +146,35 @@ export function CeremonyShow({
     );
   }
 
-  const current = slide.kind === "category" ? categories[slide.index] : null;
   return (
     <main
-      className="theme-night fixed inset-0 z-20 flex cursor-none items-center justify-center bg-[#0b0f0e]"
+      className="theme-night fixed inset-0 z-20 flex cursor-none items-center justify-center bg-black"
       onClick={next}
       aria-live="polite"
     >
-      <div
-        className={cn(
-          "@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden bg-bg",
-          current?.type === "HONORARY" ? "accent-honor" : "accent-prize",
+      <div className="@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden bg-bg accent-prize">
+        {slide.kind === "category" ? (
+          // La misma escena para los dos pasos de la categoría: al avanzar, sigue la animación.
+          <RevealScene
+            key={`categoria-${slide.index}`}
+            className="absolute inset-0"
+            category={categories[slide.index]!}
+            number={slide.index + 1}
+            total={categories.length}
+            phase={slide.step}
+            winnerIds={results?.byCategory[categories[slide.index]!.id]?.winnerIds ?? []}
+            places={results?.byCategory[categories[slide.index]!.id]?.places}
+            winnerPercent={results?.byCategory[categories[slide.index]!.id]?.winnerPercent ?? null}
+            showWinnerPercent={showWinnerPercent}
+            year={year}
+          />
+        ) : (
+          <>
+            <NightStage number={null} />
+            <SlideView key={position} slide={slide} eventName={eventName} categories={categories} results={results!} />
+          </>
         )}
-      >
-        <NightStage number={slide.kind === "category" ? pad(slide.index + 1) : null} />
-        <SlideView
-          key={position}
-          slide={slide}
-          eventName={eventName}
-          categories={categories}
-          results={results!}
-          showWinnerPercent={showWinnerPercent}
-        />
-        <span className="absolute right-[2cqw] bottom-[1.2cqw] z-10 text-[1cqw] text-ink-faint">
+        <span className="absolute right-[2cqw] bottom-[1.2cqw] z-30 text-[1cqw] text-ink-faint">
           {position + 1}/{slides.length}
         </span>
       </div>
@@ -201,13 +187,11 @@ function SlideView({
   eventName,
   categories,
   results,
-  showWinnerPercent,
 }: {
-  slide: Slide;
+  slide: Exclude<Slide, { kind: "category" }>;
   eventName: string;
   categories: CategoryInfo[];
   results: VoteResults;
-  showWinnerPercent: boolean;
 }) {
   if (slide.kind === "cover") {
     return (
@@ -261,65 +245,5 @@ function SlideView({
     );
   }
 
-  const category = categories[slide.index];
-  const result = results.byCategory[category.id];
-  const topBar = <CategoryTopBar eventName={eventName} categories={categories} index={slide.index} />;
-  const heading = <StageHeading category={category} />;
-
-  if (slide.step === "intro") {
-    return (
-      <>
-        {topBar}
-        <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
-          {heading}
-          <p className="mx-auto max-w-[70cqw] text-[2.4cqw] text-ink-soft italic">{category.description}</p>
-        </div>
-      </>
-    );
-  }
-
-  if (slide.step === "finalists" || slide.step === "suspense") {
-    const suspense = slide.step === "suspense";
-    return (
-      <>
-        {topBar}
-        <div className="relative z-10 w-full space-y-[3cqw]">
-          {heading}
-          <div className="relative flex flex-wrap items-start justify-center gap-[2.4cqw]">
-            {category.finalists.map((f, i) => (
-              <div
-                key={f.id}
-                className={cn(
-                  "flex w-[13cqw] flex-col items-center gap-[1cqw] text-center [--frame-chamfer:1.6cqw]",
-                  !suspense && "ceremony-rise",
-                  suspense && "opacity-40 grayscale transition-all duration-700",
-                )}
-                style={suspense ? undefined : { animationDelay: `${i * 0.45}s` }}
-              >
-                <Portrait finalist={f} className="h-[16cqw] w-[13cqw] text-[4cqw]" />
-                <span className="font-display text-[1.6cqw] leading-tight font-bold">{f.name}</span>
-              </div>
-            ))}
-            {suspense && <div aria-hidden="true" className="ceremony-spotlight pointer-events-none absolute inset-y-0 left-1/4 w-1/2" />}
-          </div>
-          {suspense && <p className="text-center text-[2.4cqw] text-ink-soft italic">Y el premio es para…</p>}
-        </div>
-      </>
-    );
-  }
-
-  // Revelación
-  return (
-    <>
-      {topBar}
-      <WinnerView
-        category={category}
-        winnerIds={result?.winnerIds ?? []}
-        winnerPercent={result?.winnerPercent ?? null}
-        showWinnerPercent={showWinnerPercent}
-        places={result?.places}
-        year={String(new Date().getFullYear())}
-      />
-    </>
-  );
+  return null;
 }

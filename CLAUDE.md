@@ -11,7 +11,7 @@ El requisito central es la **confianza**: nadie (ni el organizador/admin) puede 
 - **Next.js (App Router) + TypeScript** — frontend y API (Route Handlers / Server Actions)
 - **Prisma + PostgreSQL en Neon** (capa gratuita)
 - **Tailwind CSS** para estilos, con tokens del design system (sección 9)
-- **Framer Motion** (animaciones), **canvas-confetti** (confeti). Sin sonido en la ceremonia (decisión del usuario, 2026-11-14: molestaba)
+- **Framer Motion** (animaciones). El confeti y la revelación son CSS puro (`components/ceremony/reveal.css`). Sin sonido en la ceremonia (decisión del usuario, 2026-11-14: molestaba)
 - **libsodium-wrappers** — cifrado `crypto_box_seal` (sealed box) en el navegador
 - **zod** — validación de entradas
 - Deploy en **Vercel**; repositorio **público en GitHub** (transparencia: el grupo puede auditar el código)
@@ -102,6 +102,7 @@ model Event {
   participants         Participant[]
   categories           Category[]
   ballots              Ballot[]
+  groupPhotos          GroupPhoto[]
 }
 
 model Participant {             // un nombre de la lista de invitados
@@ -142,6 +143,16 @@ model Finalist {
   blurb         String?
 }
 
+model GroupPhoto {              // fotos grupales de la entrada de Nominados (recuerdos, no tocan votos)
+  id       String @id @default(uuid())
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id])
+  slot     Int    // 0, 1 o 2
+  photoUrl String // JPEG data URL (máx. ~1600 px)
+  caption  String @default("")
+  @@unique([eventId, slot])
+}
+
 model Ballot {
   id          String      @id @default(uuid())
   eventId     String
@@ -178,7 +189,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 |---|---|
 | `/s/[roomCode]` | Entrada a la sala: tarjetas con los nombres de la lista de invitados + buscador; se toca el nombre y se confirma «Sí, soy yo» (sin PIN) |
 | `/s/[roomCode]/nominar` | Una tarjeta por categoría con su consigna; autocompletado con la lista de invitados (menos uno mismo) + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
-| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): finalistas por categoría con foto o iniciales, frase corta, en orden alfabético o aleatorio y **sin conteos** (regla 8), filtros Premio/Honoríficas y cuenta regresiva a la votación. Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones. Pública para quien tenga el link (sin enviar finalistas al navegador mientras estén boca abajo); con sesión, `/s/[roomCode]` redirige aquí y se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas` |
+| `/s/[roomCode]/nominados` | Página de nominados (vista por defecto de la sala, la más visitada; móvil y PC): siempre de noche; entrada con las fotos grupales y un capítulo por categoría con foto o iniciales, nombre y apodo, en orden alfabético y **sin conteos** (regla 8), y cuenta regresiva a la votación (ver §9). Antes de que existan finalistas muestra un estado "en espera" (tarjetas boca abajo) con cuenta regresiva al cierre de nominaciones. Pública para quien tenga el link (sin enviar finalistas al navegador mientras estén boca abajo); con sesión, `/s/[roomCode]` redirige aquí y se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas` |
 | `/s/[roomCode]/votar` | Una categoría por pantalla, tarjetas de finalistas (la propia sale como «Eres tú» y no se puede elegir), resumen final y confirmación. Al enviar: «¡Listo! Tu voto quedó guardado en secreto» |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación del cifrado, la llave del notario, los sobres que pierden el nombre al cerrar y link al repo público |
 
@@ -197,7 +208,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 | Ruta | Pantalla |
 |---|---|
 | `/admin` | Login con contraseña |
-| `/admin/evento` | Datos del evento, fase actual con botones para avanzar (con confirmación), horarios de votación, link/QR de la sala para copiar |
+| `/admin/evento` | Datos del evento, fase actual con botones para avanzar (con confirmación), horarios de votación, link/QR de la sala para copiar, fotos grupales de la entrada de Nominados (hasta 3, con pie de foto) |
 | `/admin/categorias` | CRUD de categorías, tipo PRIZE/HONORARY, consigna, orden arrastrable |
 | `/admin/participantes` | Lista de invitados: agregar (pegar nombres) y quitar, participación ✔/⏳, «bloqueado» para quien ya envió en la urna abierta y botón «Resetear nominación/voto» |
 | `/admin/cierre-nominaciones` | El notario carga su llave → descifrado y conteo en memoria → unificación de nombres (sin conteos) → cálculo automático de finalistas → envío solo de finalistas |
@@ -212,13 +223,16 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 
 ## 8. Secuencia de revelación (por categoría)
 
-1. Título de la categoría entra con brillo (cobre si es PRIZE, salvia si es HONORARY) + consigna
-2. Finalistas aparecen uno por uno en tarjetas
-3. Suspenso: tarjetas se atenúan, un foco de luz las recorre (sin sonido)
-4. Se abre un "sobre"; la tarjeta ganadora crece al centro con destello + confeti cobre (`canvas-confetti`)
+Diseño del lienzo «Ronda 8 · A2» (`components/ceremony/Reveal.tsx`, la misma escena en `/ceremonia` y en el demo). Dos pasos por categoría, que el presentador avanza con Espacio/→:
+
+1. **Nominados:** chip «Categoría NN · Premio/Honorífica», título (la segunda mitad en cursiva), consigna y número gigante con contorno; los finalistas suben uno por uno con nombre y apodo
+2. **Suspenso** (al avanzar): las tarjetas se apagan, viñeta, un foco las recorre y se detiene sobre el ganador, «Y el premio es para…» y el número se llena de color (sin sonido)
+3. **Destello:** las demás tarjetas caen y la foto ganadora vuela a la izquierda, inclinada
+4. **Fiesta («C de fiesta»):** banderines arriba, confeti que cae por detrás de los textos y se queda en el piso; al centro «Primer puesto · categoría», «¡Felicidades, {apodo}!» y el nombre gigante; a la derecha el trofeo (copa para PRIZE, laurel para HONORARY); globo «¡que hable!» sobre la foto
 5. Opcional: % del ganador redondeado (`showWinnerPercent`)
-6. **Empates:** mostrar ganadores compartidos (por defecto)
+6. **Empates:** dos fotos superpuestas, «Empate · categoría» y los nombres unidos con «y»
 7. **Le siguen:** puestos 2.º–4.º del resto de finalistas, sin conteos (regla 8); sin puesto si tuvo 0 votos
+8. Sin votos: «Categoría desierta»
 
 Los resultados se calculan en memoria al cargar la llave; no se persisten hasta FINISHED (y solo los ganadores).
 
@@ -268,9 +282,9 @@ Noche (`.theme-night`): en el tema claro `--bg #0A0A0A`, `--sheet #161513`, `--i
 
 - **Botones:** primario cobre con texto tinta y chaflán; secundario transparente con borde de 1.5px en tinta. Filtro seleccionado: fondo tinta con texto `--sheet`.
 - **Papeleta (Nominar / Votar):** hoja `--sheet` con filo `--line` sobre `--bg`, cabecera con doble regla (2px + 1px de tinta) y sello de tipo de categoría rotado. En Votar, fila completa tocable con foto, frase, «Tu voto» y casilla que se llena de cobre. En PC, la papeleta va al centro con el índice o el resumen a un costado.
-- **Nominados = «Cartelera»:** índice de las categorías (con marca premio/honorífica) y una categoría a la vez «en escenario»: número grande, consigna y los finalistas de pie sobre una línea de escenario, con nombre y frase debajo, sin conteos. En móvil, chips de categorías arriba y deslizar. Antes de los finalistas: cartas boca abajo de noche y cuenta regresiva.
+- **Nominados = «Estreno con recuerdos»** (lienzo R8 · A2, siempre de noche): entrada con las 3 fotos grupales que sube el admin (`GroupPhoto`, en `/admin/evento`) en abanico; al bajar, cada una pasa a pantalla completa como diapositiva con una frase (animaciones atadas al scroll, `nominados/show.css`). Luego un capítulo por categoría: cinta con el nombre, número con contorno que se llena, índice, y tarjetas con foto, nombre y apodo (sin frases ni conteos). Antes de los finalistas: cartas boca abajo y cuenta regresiva.
 - **¡Listo! (voto sellado):** sobre kraft con sello de cera cobre, «Tu voto quedó guardado en secreto» y por qué nadie lo ve. Sin comprobante.
-- **Premiación (noche):** fondo `--ink`, reflectores laterales, piso en perspectiva, número de categoría gigante al fondo, trofeo facetado en cobre y fila de finalistas.
+- **Premiación (noche):** portada, asistencia y cierre sobre el escenario con reflectores y piso en perspectiva; cada categoría usa la escena de §8 (1280 × 720 escalada al proyector).
 
 ---
 
@@ -307,7 +321,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 - [x] **Fase 4 — Nominaciones:** formulario por categoría con autocompletado, validación min/max, cifrado + envío atómico, pantalla de transparencia
 - [x] **Fase 5 — Cierre y finalistas:** descifrado en navegador, unificación de nombres sin conteos, top N con empates, activación de categorías (máx. 15 PRIZE), orden de revelación, fotos/frases opcionales
 - [x] **Fase 6 — Votación:** apertura/cierre por horario, flujo de voto, cifrado + envío atómico, tarjeta «Eres tú»
-- [x] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, cuántos votaron, secuencia de revelación completa con confeti (el sonido se quitó el 2026-11-14), controles de teclado, empates
+- [x] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, cuántos votaron, secuencia de revelación completa con confeti (rehecha el 2026-11-14 con el diseño R8 · A2 y la pantalla «C de fiesta»; sin sonido), controles de teclado, empates
 - [ ] **Fase 8 — Pruebas y ensayo:** test de doble envío concurrente, test de que `Ballot` y `Participant` no tienen campos prohibidos, prueba con 5–10 amigos, ensayo en el proyector real
 
 ---
