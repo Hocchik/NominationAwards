@@ -187,7 +187,7 @@
   .envelope .seal { position: absolute; top: 68px; left: 93px; width: 64px; height: 64px; }
   .done-title { font: 800 28px/1.1 var(--display); }
 
-  /* Cartelera */
+  /* Nominados (versión anterior, ya sin uso en Pantallas) */
   .stage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   @media (min-width: 720px) { .stage { gap: 20px; } }
   .frame { --c: 14px; padding: 1px; background: var(--accent); }
@@ -244,6 +244,77 @@
   @media (prefers-reduced-motion: reduce) {
     .beams::before, .beams::after { animation: none; }
   }
+
+  /* Tema oscuro «Gala nocturna» (solo para sus muestras) */
+  .dark-theme { --bg: #0e0b0c; --sheet: #1a1516; }
+
+  /* Carga entre pantallas */
+  .loader { display: grid; justify-items: center; gap: 12px; padding: 18px 0 4px; }
+  .loader svg { width: 44px; height: 58px; color: var(--copper); fill: currentColor; }
+  .loader .gem { animation: gem 1.4s ease-in-out infinite; }
+  .loader .cone { animation: cone 1.4s ease-in-out infinite; }
+  .loader .bar { width: 112px; height: 2px; overflow: hidden; background: var(--line); }
+  .loader .bar span { display: block; width: 33%; height: 100%; background: var(--copper); animation: bar 1.2s cubic-bezier(.4, 0, .2, 1) infinite; }
+  @keyframes gem { 50% { transform: translateY(-3px); } }
+  @keyframes cone { 0%, 100% { opacity: .45; } 50% { opacity: .85; } }
+  @keyframes bar { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
+  /* Nominados en miniatura */
+  .nmini { --c: 24px; display: grid; gap: 14px; padding: 20px; }
+  .fan { position: relative; height: clamp(170px, 30vw, 240px); overflow: hidden; }
+  .gp { --c: 10px; position: absolute; top: 12px; left: 50%; width: 40%; aspect-ratio: 3 / 2; background: radial-gradient(90% 60% at 28% 8%, color-mix(in oklab, var(--copper) 90%, white), transparent 70%), linear-gradient(170deg, color-mix(in oklab, var(--copper) 62%, black), color-mix(in oklab, var(--copper) 14%, black)); box-shadow: 0 0 0 1.5px rgb(246 240 228 / .5) inset; }
+  .gp1 { transform: translateX(-50%); z-index: 3; }
+  .gp2 { transform: translateX(-92%) translateY(12px) rotate(-8deg); z-index: 2; }
+  .gp3 { transform: translateX(-8%) translateY(12px) rotate(8deg); z-index: 1; }
+  .gp i { position: absolute; right: 8px; bottom: 8px; padding: 3px 8px; background: #000; color: #fff; font-size: 11px; font-weight: 600; }
+  .gp i b { color: var(--copper); font: 700 10px var(--display); margin-right: 4px; }
+  .word { position: absolute; left: 0; right: 0; bottom: -4px; z-index: 4; text-align: center; font: 800 clamp(38px, 10.5vw, 104px)/.86 var(--display); letter-spacing: -.055em; text-transform: uppercase; }
+  .ribbon { overflow: hidden; white-space: nowrap; padding: 10px 0; border-block: 1px solid var(--line); font: 800 clamp(20px, 3.4vw, 34px)/1 var(--display); letter-spacing: -.03em; text-transform: uppercase; color: transparent; -webkit-text-stroke: 1px var(--line-strong); }
+  .chrow { display: grid; gap: 18px; }
+  @media (min-width: 640px) { .chrow { grid-template-columns: 30% minmax(0, 1fr); } }
+  .bignum { display: block; margin: 10px 0 6px; font: 800 clamp(72px, 12vw, 120px)/.8 var(--display); letter-spacing: -.07em; color: transparent; -webkit-text-stroke: 2px var(--ink); background: linear-gradient(to top, var(--accent) 50%, transparent 50%); -webkit-background-clip: text; background-clip: text; }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .cards li:nth-child(2) { margin-top: 28px; }
+  .cards .ph { --c: 12px; display: block; aspect-ratio: 4 / 5; padding: 1px; background: var(--accent); }
+  .cards .ph span { --c: 11px; display: grid; place-items: center; height: 100%; background: var(--sand); font: 800 clamp(16px, 3vw, 26px) var(--display); color: var(--accent); }
+  .cards b { display: block; margin-top: 8px; font: 700 clamp(11px, 1.6vw, 15px)/1.2 var(--display); }
+  .cards em { font-size: 12px; color: var(--accent); }
+
+  /* «C de fiesta»: escena de 1280 × 720 en unidades del contenedor */
+  .fiesta { --c: 24px; position: relative; container-type: inline-size; aspect-ratio: 16 / 9; overflow: hidden; background: var(--bg); }
+  .fiesta > * { position: absolute; }
+  .fiesta .garland { inset: 0; width: 100%; height: 100%; z-index: 1; }
+  .fiesta .flag { z-index: 1; width: 2.34cqw; height: 3.13cqw; transform-origin: 50% 0; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .fiesta .floorline { left: 0; right: 0; top: 46.9cqw; height: 1px; background: rgb(246 240 228 / .12); }
+  .fiesta .conf { z-index: 1; clip-path: polygon(30% 0, 100% 0, 100% 70%, 70% 100%, 0 100%, 0 30%); }
+  .fiesta .f-photo { left: 7.5cqw; top: 12.8cqw; width: 23.4cqw; height: 29.3cqw; z-index: 3; rotate: -5deg; filter: drop-shadow(0 2cqw 2.6cqw rgb(0 0 0 / .55)); }
+  .fiesta .f-photo .ph { --c: 1.25cqw; position: absolute; inset: 0; padding: .12cqw; background: rgb(246 240 228 / .55); }
+  .fiesta .f-photo .ph span { --c: 1.17cqw; display: grid; place-items: center; height: 100%; background: radial-gradient(90% 60% at 28% 8%, color-mix(in oklab, var(--copper) 90%, white), transparent 70%), linear-gradient(170deg, color-mix(in oklab, var(--copper) 62%, black), color-mix(in oklab, var(--copper) 14%, black)); font: 800 7cqw var(--display); color: rgb(0 0 0 / .35); }
+  .fiesta .bubble { position: absolute; right: -4.5cqw; top: -2.3cqw; padding: .8cqw 1.25cqw 1.7cqw; background: var(--ink); color: var(--bg); font: italic 800 1.56cqw var(--sans); white-space: nowrap; rotate: 8deg; clip-path: polygon(0 0, 100% 0, 100% 78%, 34% 78%, 18% 100%, 20% 78%, 0 78%); }
+  .fiesta .f-text { left: 37.2cqw; top: 12.5cqw; width: 34.4cqw; z-index: 4; }
+  .fiesta .chip-a { --c: .47cqw; display: inline-block; padding: .47cqw .78cqw; background: var(--copper); color: #14100b; font: 700 .94cqw/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; }
+  .fiesta .f-text > i { display: block; margin-top: 1.4cqw; font: italic 800 2.34cqw var(--sans); color: var(--copper); }
+  .fiesta .f-text > b { display: block; margin-top: .5cqw; font: 800 6.56cqw/.92 var(--display); letter-spacing: -.055em; }
+  .fiesta .follow { margin-top: 2cqw; padding-top: .94cqw; border-top: 1px solid rgb(246 240 228 / .18); }
+  .fiesta .follow small { display: block; font: 700 .94cqw var(--sans); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-faint); }
+  .fiesta .follow p { margin-top: .6cqw; font: 600 1.4cqw var(--sans); }
+  .fiesta .follow p b { display: inline-block; width: 2.7cqw; font: 700 1.25cqw var(--display); color: var(--copper); }
+  .fiesta .f-trophy { left: 75.5cqw; top: 13.75cqw; width: 18.75cqw; height: 24.4cqw; z-index: 3; filter: drop-shadow(0 1.5cqw 1.9cqw rgb(0 0 0 / .55)); }
+  .t-light { fill: color-mix(in oklab, var(--accent) 60%, white); }
+  .t-accent { fill: var(--accent); }
+  .t-dark { fill: color-mix(in oklab, var(--accent) 66%, black); }
+  .t-darker { fill: color-mix(in oklab, var(--accent) 40%, black); }
+  .t-baseTop { fill: var(--line-strong); }
+  .t-base { fill: var(--sand); }
+  .t-baseSide { fill: var(--sheet); }
+  .t-shine { fill: #fff; }
+  .steps { display: grid; gap: 8px; margin-top: 12px; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+  .steps li::before { content: counter(s, decimal-leading-zero); font: 700 12px/1.6 var(--display); color: var(--ink); }
+  .steps b { color: var(--ink); }
+  .trophies svg { width: 110px; height: 143px; }
+  .trophies figcaption { margin-top: 6px; font-size: 13px; color: var(--ink-soft); }
+  @media (prefers-reduced-motion: reduce) { .loader .gem, .loader .cone, .loader .bar span { animation: none; } }
 </style>
 </head>
 <body>
@@ -318,15 +389,30 @@
       </dl>
 
       <div class="night panel ch">
-        <h3 class="label" style="margin-bottom:14px">De noche</h3>
+        <h3 class="label" style="margin-bottom:14px">De noche · Nominados, la gala y los pedacitos de noche</h3>
         <dl class="grid g4">
-          <div class="swatch"><div class="color ch" style="--sw:#14100b"></div><dt>Cielo</dt><code>--bg · #14100B</code><dd>Fondo de la premiación</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#1d2523"></div><dt>Panel</dt><code>--sheet · #1D2523</code><dd>Paneles de noche</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#2c3633"></div><dt>Línea</dt><code>--line · #2C3633</code><dd>Líneas de noche</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#fcf9f2"></div><dt>Luz</dt><code>--ink · #FCF9F2</code><dd>Texto principal de noche</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#c9c2b6"></div><dt>Luz suave</dt><code>--ink-soft · #C9C2B6</code><dd>Texto secundario</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#93a39e"></div><dt>Luz tenue</dt><code>--ink-faint · #93A39E</code><dd>Texto terciario</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#0a0a0a"></div><dt>Cielo</dt><code>--bg · #0A0A0A</code><dd>Fondo de Nominados y la premiación</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#161513"></div><dt>Panel</dt><code>--sheet · #161513</code><dd>Paneles de noche</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#292622"></div><dt>Línea</dt><code>--line · #292622</code><dd>Líneas de noche</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#f6f0e4"></div><dt>Luz</dt><code>--ink · #F6F0E4</code><dd>Texto principal de noche</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#cbc1b0"></div><dt>Luz suave</dt><code>--ink-soft · #CBC1B0</code><dd>Texto secundario</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#9b9283"></div><dt>Luz tenue</dt><code>--ink-faint · #9B9283</code><dd>Texto terciario</dd></div>
         </dl>
+      </div>
+
+      <div class="night panel ch dark-theme">
+        <h3 class="label" style="margin-bottom:14px">Tema oscuro · «Gala nocturna» (botón claro/oscuro)</h3>
+        <dl class="grid g4">
+          <div class="swatch"><div class="color ch" style="--sw:#0e0b0c"></div><dt>Fondo</dt><code>--bg · #0E0B0C</code><dd>Toda la web de noche</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#1a1516"></div><dt>Hoja</dt><code>--sheet · #1A1516</code><dd>Papeletas y paneles</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#231c1d"></div><dt>Elevado</dt><code>--raised · #231C1D</code><dd>Fila elegida y tarjetas</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#2c2425"></div><dt>Arena / línea</dt><code>--sand · --line · #2C2425</code><dd>Iniciales y bordes</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#f6efe6"></div><dt>Tinta</dt><code>--ink · #F6EFE6</code><dd>Texto principal</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#cbbfb5"></div><dt>Tinta suave</dt><code>--ink-soft · #CBBFB5</code><dd>Texto secundario</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#c23b44"></div><dt>Carmín</dt><code>--copper · #C23B44</code><dd>Premio en el tema oscuro</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#d9ae4f"></div><dt>Oro</dt><code>--sage · #D9AE4F</code><dd>Honorífica en el tema oscuro</dd></div>
+        </dl>
+        <p class="note" style="margin-top:14px">En el tema oscuro los acentos se intercambian: <strong>carmín para premio, oro para honorífica</strong>. El cambio entre temas se hace con un fundido de 0,7 s, nunca de golpe.</p>
       </div>
 
       <h3 class="label" style="margin:28px 0 14px">Acentos y estados</h3>
@@ -339,7 +425,7 @@
         <div class="swatch"><div class="color ch" style="--sw:#2f6b3a"></div><dt>Éxito</dt><code>--success · #2F6B3A</code><dd>De noche, #8FD19E</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#a8231c"></div><dt>Error</dt><code>--danger · #A8231C</code><dd>De noche, #F2A199</dd></div>
       </dl>
-      <p class="note"><strong>Los acentos no cambian de tono:</strong> el oro y la carmín son idénticos de día y de noche. Sobre fondos claros nunca son texto chico; van de relleno, con tinta encima.</p>
+      <p class="note"><strong>Los acentos no cambian de tono dentro de un tema:</strong> en el claro, el oro y el carmín son idénticos de día y de noche. Sobre fondos claros nunca son texto chico; van de relleno, con tinta encima.</p>
     </div>
   </section>
 
@@ -426,6 +512,15 @@
           <label class="field"><span>Tu nombre</span><span class="input">Como te conoce el grupo</span></label>
         </div>
         <div class="card">
+          <h3>Carga entre pantallas</h3>
+          <div class="loader" role="img" aria-label="Pantalla de carga: el trofeo respira y una barra avanza">
+            <svg viewBox="0 -4 18 24" aria-hidden="true"><path class="gem" d="M9 0l3 3-3 3-3-3z"/><path class="cone" d="M6.5 7.5h5L18 20H0z"/></svg>
+            <span class="bar"><span></span></span>
+            <span class="label">Preparando tu papeleta…</span>
+          </div>
+          <p class="muted" style="margin-top:10px">Entre la sala, la entrada, las papeletas y el panel. Nunca dentro de las animaciones de la ceremonia.</p>
+        </div>
+        <div class="card">
           <h3>Casillas</h3>
           <div class="row" style="gap:14px">
             <span class="check ch"><span class="ch"></span></span><span class="muted">Sin marcar</span>
@@ -441,7 +536,7 @@
       <div class="sec-head">
         <span class="label">05</span>
         <h2>Pantallas</h2>
-        <p>Piezas reales de la app, en miniatura: la papeleta de día, los pedacitos de noche dentro de la web y la premiación.</p>
+        <p>Piezas reales de la app, en miniatura: la papeleta de día, la página de Nominados (siempre de noche) y la premiación, que solo proyecta el organizador.</p>
       </div>
 
       <div class="grid g2">
@@ -486,51 +581,63 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top:16px">
-        <span class="label">Cartelera · antes y después de revelar</span>
-        <div class="grid g2" style="margin-top:16px;gap:28px">
-          <ol class="stage">
-            <li class="nominee"><div class="frame dark ch-tl"><div class="ch-tl"><div class="facedown"><span class="diamond"><svg aria-hidden="true"><use href="#mark"/></svg></span></div></div></div><div class="floor"></div><b>Nominado Nº 01</b><i>Se revela pronto</i></li>
-            <li class="nominee honor"><div class="frame dark ch-tl"><div class="ch-tl"><div class="facedown"><span class="diamond"><svg aria-hidden="true"><use href="#mark"/></svg></span></div></div></div><div class="floor"></div><b>Nominado Nº 02</b><i>Se revela pronto</i></li>
-            <li class="nominee"><div class="frame dark ch-tl"><div class="ch-tl"><div class="facedown"><span class="diamond"><svg aria-hidden="true"><use href="#mark"/></svg></span></div></div></div><div class="floor"></div><b>Nominado Nº 03</b><i>Se revela pronto</i></li>
-          </ol>
-          <ol class="stage">
-            <li class="nominee"><div class="frame ch-tl"><div class="ch-tl"><div class="duotone"><svg viewBox="0 0 70 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="ph" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8d8d8"/><stop offset="1" stop-color="#7a7a7a"/></linearGradient></defs><rect width="70" height="80" fill="url(#ph)"/><circle cx="35" cy="31" r="13" fill="#4a4a4a"/><path d="M9 80c3-19 14-27 26-27s23 8 26 27z" fill="#3c3c3c"/></svg></div><span class="no">Nº 01</span></div></div><div class="floor"></div><b>Camila Rojas</b><i>Foto en duotono</i></li>
-            <li class="nominee"><div class="frame ch-tl"><div class="ch-tl"><span class="big-ini">HM</span><span class="no">Nº 02</span></div></div><div class="floor"></div><b>Hugo Medina</b><i>Sin foto: iniciales</i></li>
-            <li class="nominee honor"><div class="frame ch-tl"><div class="ch-tl"><span class="big-ini">TR</span><span class="no">Nº 03</span><span class="outside">Fuera del grupo</span></div></div><div class="floor"></div><b>La tía Rosa</b><i>Referente externo</i></li>
+      <div class="night nmini ch" style="margin-top:16px">
+        <span class="label">Nominados · «Estreno con recuerdos» · siempre de noche</span>
+        <div class="fan" role="img" aria-label="Tres fotos del grupo en abanico sobre la palabra Nominados">
+          <span class="gp gp2 ch"></span>
+          <span class="gp gp3 ch"></span>
+          <span class="gp gp1 ch"><i><b>01</b> Año nuevo · 2026</i></span>
+          <b class="word">Nominados</b>
+        </div>
+        <p class="muted">Arriba, las tres fotos del grupo que sube el organizador. Al bajar, cada una pasa a pantalla completa con una frase. Después, un capítulo por categoría:</p>
+        <div class="ribbon" aria-hidden="true">El alma de la fiesta ✦ El alma de la fiesta ✦ El alma de la fiesta</div>
+        <div class="chrow">
+          <div>
+            <span class="stamp ch">Premio</span>
+            <span class="bignum" aria-hidden="true">01</span>
+            <p class="muted">Quién convierte cualquier reunión en fiesta.</p>
+          </div>
+          <ol class="cards">
+            <li><span class="ph ch"><span class="ch">BD</span></span><b>Bruno Díaz</b><em>«Bru»</em></li>
+            <li><span class="ph ch"><span class="ch">GR</span></span><b>Gabriela Ríos</b><em>«Gabi»</em></li>
+            <li><span class="ph ch"><span class="ch">LF</span></span><b>Lucía Fernández</b></li>
           </ol>
         </div>
+        <p class="muted">Nombre y apodo, sin frases ni conteos. Arriba, el botón <strong>Votar</strong>: apagado hasta que abre la votación, activo mientras dura.</p>
       </div>
 
-      <div class="gala night ch" style="margin-top:16px" role="img" aria-label="Escena de la premiación: categoría número 3, Chef del grupo, con el trofeo de oro y los finalistas; gana Camila Rojas">
-        <span class="num" aria-hidden="true">03</span>
-        <div class="ground"></div>
-        <svg class="lines" viewBox="0 0 1280 142" preserveAspectRatio="none" aria-hidden="true"><path d="M640 0 L-200 142 M640 0 L100 142 M640 0 L380 142 M640 0 L640 142 M640 0 L900 142 M640 0 L1180 142 M640 0 L1480 142 M0 30 L1280 30 M0 70 L1280 70 M0 122 L1280 122" stroke="rgb(248 244 236 / .06)" fill="none"/><path d="M0 0 L1280 0" stroke="rgb(217 120 63 / .35)" stroke-width="1.5"/></svg>
-        <div class="spot s1"></div><div class="spot s2"></div><div class="spot s3"></div>
-        <div class="content">
-          <div>
-            <p class="cat">Premio · Categoría 03</p>
-            <h3>Chef del grupo</h3>
-            <div class="finals">
-              <div class="fin"><div class="portrait ch"><span class="ch">CR</span></div><small>Camila Rojas</small><span class="win">Gana</span></div>
-              <div class="fin dim"><div class="portrait ch"><span class="ch">HM</span></div><small>Hugo Medina</small></div>
-              <div class="fin dim"><div class="portrait ch"><span class="ch">EV</span></div><small>Elena Vargas</small></div>
-            </div>
+      <div class="fiesta night ch" style="margin-top:16px" role="img" aria-label="Pantalla final de la ceremonia: foto del ganador inclinada a la izquierda, su nombre al centro con los puestos que le siguen y la copa a la derecha, bajo banderines y con confeti en el piso">
+        <svg class="garland" viewBox="0 0 1280 720" aria-hidden="true"><path d="M-10 14 Q640 122 1290 14" fill="none" stroke="rgb(246 240 228 / .35)" stroke-width="2"/></svg>
+        <span class="flag" style="left:1.17cqw;top:1.32cqw;rotate:9.1deg;background:var(--copper)"></span><span class="flag" style="left:5.47cqw;top:1.98cqw;rotate:8.3deg;background:var(--ink)"></span><span class="flag" style="left:9.77cqw;top:2.58cqw;rotate:7.5deg;background:var(--sage)"></span><span class="flag" style="left:14.06cqw;top:3.12cqw;rotate:6.7deg;background:var(--copper)"></span><span class="flag" style="left:18.36cqw;top:3.59cqw;rotate:5.9deg;background:var(--ink)"></span><span class="flag" style="left:22.66cqw;top:4.00cqw;rotate:5.0deg;background:var(--sage)"></span><span class="flag" style="left:26.95cqw;top:4.35cqw;rotate:4.2deg;background:var(--copper)"></span><span class="flag" style="left:31.25cqw;top:4.63cqw;rotate:3.4deg;background:var(--ink)"></span><span class="flag" style="left:35.55cqw;top:4.86cqw;rotate:2.6deg;background:var(--sage)"></span><span class="flag" style="left:39.84cqw;top:5.02cqw;rotate:1.7deg;background:var(--copper)"></span><span class="flag" style="left:44.14cqw;top:5.12cqw;rotate:0.9deg;background:var(--ink)"></span><span class="flag" style="left:48.44cqw;top:5.16cqw;rotate:0.1deg;background:var(--sage)"></span><span class="flag" style="left:52.73cqw;top:5.13cqw;rotate:-0.8deg;background:var(--copper)"></span><span class="flag" style="left:57.03cqw;top:5.04cqw;rotate:-1.6deg;background:var(--ink)"></span><span class="flag" style="left:61.33cqw;top:4.89cqw;rotate:-2.4deg;background:var(--sage)"></span><span class="flag" style="left:65.62cqw;top:4.68cqw;rotate:-3.2deg;background:var(--copper)"></span><span class="flag" style="left:69.92cqw;top:4.41cqw;rotate:-4.1deg;background:var(--ink)"></span><span class="flag" style="left:74.22cqw;top:4.07cqw;rotate:-4.9deg;background:var(--sage)"></span><span class="flag" style="left:78.52cqw;top:3.67cqw;rotate:-5.7deg;background:var(--copper)"></span><span class="flag" style="left:82.81cqw;top:3.21cqw;rotate:-6.5deg;background:var(--ink)"></span><span class="flag" style="left:87.11cqw;top:2.68cqw;rotate:-7.4deg;background:var(--sage)"></span><span class="flag" style="left:91.41cqw;top:2.10cqw;rotate:-8.2deg;background:var(--copper)"></span><span class="flag" style="left:95.70cqw;top:1.45cqw;rotate:-9.0deg;background:var(--ink)"></span>
+        <div class="floorline"></div>
+        <span class="conf" style="left:25.90cqw;top:48.71cqw;width:0.87cqw;height:1.31cqw;rotate:-226deg;background:var(--ink)"></span><span class="conf" style="left:23.06cqw;top:46.78cqw;width:0.65cqw;height:1.24cqw;rotate:-266deg;background:var(--copper)"></span><span class="conf" style="left:53.13cqw;top:47.02cqw;width:0.68cqw;height:1.05cqw;rotate:243deg;background:var(--sage)"></span><span class="conf" style="left:60.84cqw;top:46.30cqw;width:0.68cqw;height:0.87cqw;rotate:267deg;background:var(--ink)"></span><span class="conf" style="left:80.97cqw;top:49.15cqw;width:0.93cqw;height:1.25cqw;rotate:324deg;background:var(--copper)"></span><span class="conf" style="left:79.38cqw;top:47.17cqw;width:0.95cqw;height:1.09cqw;rotate:184deg;background:var(--sage)"></span><span class="conf" style="left:56.41cqw;top:47.79cqw;width:0.72cqw;height:1.05cqw;rotate:-134deg;background:var(--ink)"></span><span class="conf" style="left:11.74cqw;top:49.20cqw;width:0.92cqw;height:1.40cqw;rotate:137deg;background:var(--copper)"></span><span class="conf" style="left:55.42cqw;top:48.94cqw;width:0.61cqw;height:1.20cqw;rotate:-41deg;background:var(--sage)"></span><span class="conf" style="left:17.66cqw;top:46.98cqw;width:0.79cqw;height:0.94cqw;rotate:-29deg;background:var(--ink)"></span><span class="conf" style="left:60.55cqw;top:47.67cqw;width:0.61cqw;height:1.09cqw;rotate:-190deg;background:var(--copper)"></span><span class="conf" style="left:23.57cqw;top:46.95cqw;width:0.72cqw;height:0.83cqw;rotate:109deg;background:var(--sage)"></span><span class="conf" style="left:95.37cqw;top:47.65cqw;width:0.88cqw;height:1.36cqw;rotate:-329deg;background:var(--ink)"></span><span class="conf" style="left:14.17cqw;top:49.15cqw;width:0.94cqw;height:1.18cqw;rotate:-245deg;background:var(--copper)"></span><span class="conf" style="left:41.35cqw;top:49.37cqw;width:0.96cqw;height:1.28cqw;rotate:-214deg;background:var(--sage)"></span><span class="conf" style="left:85.37cqw;top:47.60cqw;width:0.88cqw;height:0.87cqw;rotate:339deg;background:var(--ink)"></span><span class="conf" style="left:60.35cqw;top:48.85cqw;width:0.65cqw;height:1.17cqw;rotate:58deg;background:var(--copper)"></span><span class="conf" style="left:59.12cqw;top:47.54cqw;width:0.89cqw;height:0.99cqw;rotate:-147deg;background:var(--sage)"></span><span class="conf" style="left:16.45cqw;top:48.71cqw;width:0.60cqw;height:0.92cqw;rotate:-310deg;background:var(--ink)"></span><span class="conf" style="left:64.35cqw;top:48.25cqw;width:0.80cqw;height:0.81cqw;rotate:-43deg;background:var(--copper)"></span><span class="conf" style="left:34.31cqw;top:46.58cqw;width:0.55cqw;height:1.40cqw;rotate:-273deg;background:var(--sage)"></span><span class="conf" style="left:30.15cqw;top:47.22cqw;width:0.83cqw;height:0.83cqw;rotate:-22deg;background:var(--ink)"></span><span class="conf" style="left:36.67cqw;top:49.25cqw;width:0.55cqw;height:0.99cqw;rotate:-2deg;background:var(--copper)"></span><span class="conf" style="left:96.98cqw;top:48.11cqw;width:0.77cqw;height:1.20cqw;rotate:-146deg;background:var(--sage)"></span><span class="conf" style="left:3.17cqw;top:48.05cqw;width:0.97cqw;height:1.24cqw;rotate:-174deg;background:var(--ink)"></span><span class="conf" style="left:68.40cqw;top:49.30cqw;width:0.67cqw;height:1.15cqw;rotate:-104deg;background:var(--copper)"></span><span class="conf" style="left:24.43cqw;top:47.28cqw;width:0.64cqw;height:1.00cqw;rotate:-333deg;background:var(--sage)"></span><span class="conf" style="left:39.76cqw;top:46.56cqw;width:0.90cqw;height:1.16cqw;rotate:-357deg;background:var(--ink)"></span><span class="conf" style="left:77.39cqw;top:46.93cqw;width:0.77cqw;height:1.13cqw;rotate:-120deg;background:var(--copper)"></span><span class="conf" style="left:28.94cqw;top:47.81cqw;width:0.61cqw;height:1.32cqw;rotate:-279deg;background:var(--sage)"></span><span class="conf" style="left:82.35cqw;top:47.03cqw;width:0.69cqw;height:1.02cqw;rotate:-336deg;background:var(--ink)"></span><span class="conf" style="left:12.83cqw;top:47.55cqw;width:0.75cqw;height:1.33cqw;rotate:353deg;background:var(--copper)"></span><span class="conf" style="left:4.36cqw;top:48.17cqw;width:0.61cqw;height:1.28cqw;rotate:-128deg;background:var(--sage)"></span><span class="conf" style="left:89.29cqw;top:48.21cqw;width:0.61cqw;height:0.78cqw;rotate:-181deg;background:var(--ink)"></span><span class="conf" style="left:86.81cqw;top:46.79cqw;width:0.77cqw;height:1.01cqw;rotate:-112deg;background:var(--copper)"></span><span class="conf" style="left:80.18cqw;top:47.02cqw;width:0.88cqw;height:1.20cqw;rotate:313deg;background:var(--sage)"></span><span class="conf" style="left:51.99cqw;top:49.56cqw;width:0.75cqw;height:1.14cqw;rotate:87deg;background:var(--ink)"></span><span class="conf" style="left:83.97cqw;top:49.48cqw;width:0.60cqw;height:0.87cqw;rotate:24deg;background:var(--copper)"></span><span class="conf" style="left:81.24cqw;top:48.17cqw;width:0.69cqw;height:1.38cqw;rotate:-146deg;background:var(--sage)"></span><span class="conf" style="left:8.69cqw;top:46.44cqw;width:0.56cqw;height:1.24cqw;rotate:-283deg;background:var(--ink)"></span><span class="conf" style="left:71.61cqw;top:49.36cqw;width:1.02cqw;height:1.29cqw;rotate:-54deg;background:var(--copper)"></span><span class="conf" style="left:62.21cqw;top:49.24cqw;width:0.88cqw;height:0.96cqw;rotate:189deg;background:var(--sage)"></span><span class="conf" style="left:10.94cqw;top:47.36cqw;width:1.01cqw;height:1.08cqw;rotate:-167deg;background:var(--ink)"></span><span class="conf" style="left:78.48cqw;top:47.87cqw;width:0.55cqw;height:0.80cqw;rotate:-174deg;background:var(--copper)"></span><span class="conf" style="left:33.20cqw;top:49.62cqw;width:0.66cqw;height:1.31cqw;rotate:255deg;background:var(--sage)"></span><span class="conf" style="left:41.61cqw;top:49.82cqw;width:0.90cqw;height:1.08cqw;rotate:-172deg;background:var(--ink)"></span>
+        <div class="f-photo"><span class="ph ch"><span class="ch">BD</span></span><em class="bubble">¡que hable!</em></div>
+        <div class="f-text">
+          <span class="chip-a ch">Primer puesto · El alma de la fiesta</span>
+          <i>¡Felicidades, Bru!</i>
+          <b>Bruno<br>Díaz</b>
+          <div class="follow"><small>Le siguen</small><p><b>2.º</b> Gabriela Ríos</p><p><b>3.º</b> Julián Herrera</p><p><b>4.º</b> Lucía Fernández</p></div>
+        </div>
+        <svg class="f-trophy" viewBox="0 0 200 260" aria-hidden="true"><polygon class="t-accent" points="63.2,101 58.8,100.4 54.6,99 50.7,96.8 47.3,93.8 44.6,90.3 42.6,86.3 41.4,82 41,77.6 41.5,73.2 42.9,68.9 45,65 47.9,61.6 51.3,58.8 55.3,56.7 59.6,55.4 64,55 64,62 60.9,62.3 57.9,63.2 55.2,64.6 52.8,66.6 50.8,69 49.3,71.7 48.4,74.6 48,77.7 48.2,80.8 49.1,83.8 50.5,86.6 52.4,89 54.7,91 57.4,92.6 60.4,93.6 63.4,94"/><polygon class="t-darker" points="136,55 140.4,55.4 144.7,56.7 148.7,58.8 152.1,61.6 155,65 157.1,68.9 158.5,73.2 159,77.6 158.6,82 157.4,86.3 155.4,90.3 152.7,93.8 149.3,96.8 145.4,99 141.2,100.4 136.8,101 136.6,94 139.6,93.6 142.6,92.6 145.3,91 147.6,89 149.5,86.6 150.9,83.8 151.8,80.8 152,77.7 151.6,74.6 150.7,71.7 149.2,69 147.2,66.6 144.8,64.6 142.1,63.2 139.1,62.3 136,62"/><polygon class="t-light" points="46,36 154,36 148,48 52,48"/><polygon class="t-accent" points="52,48 78,48 90,122 80,122"/><polygon class="t-light" points="78,48 100,48 100,122 90,122"/><polygon class="t-dark" points="100,48 122,48 110,122 100,122"/><polygon class="t-darker" points="122,48 148,48 120,122 110,122"/><polygon class="t-dark" points="80,122 120,122 107,146 93,146"/><polygon class="t-accent" points="95,146 100,146 100,176 95,176"/><polygon class="t-darker" points="100,146 105,146 105,176 100,176"/><polygon class="t-light" points="84,176 116,176 112,188 88,188"/><polygon class="t-baseTop" points="70,188 130,188 138,200 62,200"/><polygon class="t-base" points="54,200 146,200 146,228 138,236 54,236"/><polygon class="t-baseSide" points="54,200 62,200 62,236 54,236"/><polygon class="t-dark" points="76,209 124,209 124,227 76,227"/><polygon class="t-light" points="160,21 162.3,27.8 169,30 162.3,32.3 160,39 157.8,32.3 151,30 157.8,27.8"/><text x="100" y="222" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="700" font-size="9" letter-spacing="1.5" class="t-light">2026</text></svg>
+      </div>
+
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card">
+          <span class="label">La revelación, paso a paso</span>
+          <ol class="steps">
+            <li><span><b>Nominados.</b> Título, consigna y los finalistas que suben uno por uno.</span></li>
+            <li><span><b>Suspenso.</b> Se apagan, un foco los recorre y el número se llena de color.</span></li>
+            <li><span><b>Destello.</b> Los demás caen y la foto ganadora vuela a la izquierda.</span></li>
+            <li><span><b>Fiesta.</b> Banderines, confeti que se queda en el piso, el nombre y el trofeo.</span></li>
+          </ol>
+          <p class="muted" style="margin-top:10px">Sin sonido. Puestos 2.º–4.º sin conteos: los empates comparten puesto y quien tuvo 0 votos no recibe puesto. Empate en el primero: dos fotos y «Empate».</p>
+        </div>
+        <div class="card trophies">
+          <span class="label">Trofeos</span>
+          <div class="row" style="gap:28px;margin-top:12px">
+            <figure><svg viewBox="0 0 200 260" aria-hidden="true"><polygon class="t-accent" points="63.2,101 58.8,100.4 54.6,99 50.7,96.8 47.3,93.8 44.6,90.3 42.6,86.3 41.4,82 41,77.6 41.5,73.2 42.9,68.9 45,65 47.9,61.6 51.3,58.8 55.3,56.7 59.6,55.4 64,55 64,62 60.9,62.3 57.9,63.2 55.2,64.6 52.8,66.6 50.8,69 49.3,71.7 48.4,74.6 48,77.7 48.2,80.8 49.1,83.8 50.5,86.6 52.4,89 54.7,91 57.4,92.6 60.4,93.6 63.4,94"/><polygon class="t-darker" points="136,55 140.4,55.4 144.7,56.7 148.7,58.8 152.1,61.6 155,65 157.1,68.9 158.5,73.2 159,77.6 158.6,82 157.4,86.3 155.4,90.3 152.7,93.8 149.3,96.8 145.4,99 141.2,100.4 136.8,101 136.6,94 139.6,93.6 142.6,92.6 145.3,91 147.6,89 149.5,86.6 150.9,83.8 151.8,80.8 152,77.7 151.6,74.6 150.7,71.7 149.2,69 147.2,66.6 144.8,64.6 142.1,63.2 139.1,62.3 136,62"/><polygon class="t-light" points="46,36 154,36 148,48 52,48"/><polygon class="t-accent" points="52,48 78,48 90,122 80,122"/><polygon class="t-light" points="78,48 100,48 100,122 90,122"/><polygon class="t-dark" points="100,48 122,48 110,122 100,122"/><polygon class="t-darker" points="122,48 148,48 120,122 110,122"/><polygon class="t-dark" points="80,122 120,122 107,146 93,146"/><polygon class="t-accent" points="95,146 100,146 100,176 95,176"/><polygon class="t-darker" points="100,146 105,146 105,176 100,176"/><polygon class="t-light" points="84,176 116,176 112,188 88,188"/><polygon class="t-baseTop" points="70,188 130,188 138,200 62,200"/><polygon class="t-base" points="54,200 146,200 146,228 138,236 54,236"/><polygon class="t-baseSide" points="54,200 62,200 62,236 54,236"/><polygon class="t-dark" points="76,209 124,209 124,227 76,227"/><polygon class="t-light" points="160,21 162.3,27.8 169,30 162.3,32.3 160,39 157.8,32.3 151,30 157.8,27.8"/></svg><figcaption>Copa facetada · premio</figcaption></figure>
+            <figure class="honor"><svg viewBox="0 0 200 260" aria-hidden="true"><polygon class="t-light" points="75.1,182.5 72.2,166.6 59.2,157.1 62,173"/><polygon class="t-accent" points="52.2,170.4 54.7,154.4 45.4,141.1 43,157.1"/><polygon class="t-dark" points="34.5,151.4 42,137.1 37.6,121.6 30.1,135.8"/><polygon class="t-light" points="23.9,127.7 35.7,116.6 36.6,100.5 24.8,111.6"/><polygon class="t-accent" points="21.7,101.9 36.4,95.2 42.5,80.3 27.8,86.9"/><polygon class="t-dark" points="27.9,76.7 44,75.2 54.7,63.1 38.6,64.5"/><polygon class="t-light" points="42,54.9 57.7,58.8 71.8,50.8 56.1,46.9"/><polygon class="t-light" points="124.9,182.5 138,173 140.8,157.1 127.8,166.6"/><polygon class="t-accent" points="147.8,170.4 157,157.1 154.6,141.1 145.3,154.4"/><polygon class="t-dark" points="165.5,151.4 169.9,135.8 162.4,121.6 158,137.1"/><polygon class="t-light" points="176.1,127.7 175.2,111.6 163.4,100.5 164.3,116.6"/><polygon class="t-accent" points="178.3,101.9 172.2,86.9 157.5,80.3 163.6,95.2"/><polygon class="t-dark" points="172.1,76.7 161.4,64.5 145.3,63.1 156,75.2"/><polygon class="t-light" points="158,54.9 143.9,46.9 128.2,50.8 142.3,58.8"/><circle class="t-base" cx="100" cy="106" r="46"/><polygon class="t-dark" points="146,106 145.1,115 142.5,123.6 138.2,131.6 132.5,138.5 125.6,144.2 117.6,148.5 109,151.1 100,152 91,151.1 82.4,148.5 74.4,144.2 67.5,138.5 61.8,131.6 57.5,123.6 54.9,115 54,106 54.9,97 57.5,88.4 61.8,80.4 67.5,73.5 74.4,67.8 82.4,63.5 91,60.9 100,60 109,60.9 117.6,63.5 125.6,67.8 132.5,73.5 138.2,80.4 142.5,88.4 145.1,97 146,106 140,106 139.2,98.2 137,90.7 133.3,83.8 128.3,77.7 122.2,72.7 115.3,69 107.8,66.8 100,66 92.2,66.8 84.7,69 77.8,72.7 71.7,77.7 66.7,83.8 63,90.7 60.8,98.2 60,106 60.8,113.8 63,121.3 66.7,128.2 71.7,134.3 77.8,139.3 84.7,143 92.2,145.2 100,146 107.8,145.2 115.3,143 122.2,139.3 128.3,134.3 133.3,128.2 137,121.3 139.2,113.8 140,106"/><polygon class="t-light" points="100,104 100,74 107.1,94.3"/><polygon class="t-dark" points="100,104 107.1,94.3 128.5,94.7"/><polygon class="t-light" points="100,104 128.5,94.7 111.4,107.7"/><polygon class="t-dark" points="100,104 111.4,107.7 117.6,128.3"/><polygon class="t-light" points="100,104 117.6,128.3 100,116"/><polygon class="t-dark" points="100,104 100,116 82.4,128.3"/><polygon class="t-light" points="100,104 82.4,128.3 88.6,107.7"/><polygon class="t-dark" points="100,104 88.6,107.7 71.5,94.7"/><polygon class="t-light" points="100,104 71.5,94.7 92.9,94.3"/><polygon class="t-dark" points="100,104 92.9,94.3 100,74"/><polygon class="t-accent" points="100,176 74,210 84,216 104,186"/><polygon class="t-dark" points="100,176 126,210 116,216 96,186"/><circle class="t-light" cx="100" cy="178" r="8"/></svg><figcaption>Laurel con estrella · honorífica</figcaption></figure>
           </div>
-          <svg class="trophy" viewBox="0 0 180 420" aria-hidden="true">
-            <path class="tr-light" d="M90 0 L114 26 L90 52 L66 26 Z"/>
-            <path class="tr-a" d="M90 0 L114 26 L90 26 Z"/>
-            <path class="tr-dark" d="M66 26 L90 52 L90 26 Z"/>
-            <path class="tr-dark" d="M76 66 L104 66 L150 300 L30 300 Z"/>
-            <path class="tr-a" d="M90 66 L104 66 L150 300 L90 300 Z"/>
-            <path class="tr-light" fill-opacity=".55" d="M90 66 L97 66 L120 300 L90 300 Z"/>
-            <path class="tr-darker" d="M76 66 L90 66 L90 300 L30 300 Z"/>
-            <path class="tr-base" d="M30 300 L150 300 L140 318 L40 318 Z"/>
-            <path fill="#1d2523" d="M24 330 L156 330 L170 344 L170 404 L156 418 L24 418 L10 404 L10 344 Z"/>
-            <path fill="#2c3633" d="M24 330 L156 330 L170 344 L10 344 Z"/>
-            <path d="M10 344 L170 344" stroke="#e3b14e" stroke-width="2"/>
-            <text x="90" y="384" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="700" font-size="11" letter-spacing="2" fill="#e3b14e">2026</text>
-          </svg>
         </div>
       </div>
     </div>
@@ -548,8 +655,9 @@
         <li><p><strong>Oro y carmín nunca son texto chico sobre claro:</strong> van de relleno (sellos, etiquetas, casilla marcada, botón primario) con tinta encima. Sobre la noche sí pueden ser texto.</p></li>
         <li><p><strong>Botones de al menos 48 px de alto</strong> y foco siempre visible al navegar con teclado.</p></li>
         <li><p><strong>Fotos siempre en duotono</strong> (oro para premio, carmín para honoríficas) para igualar fotos de distinta calidad; sin foto, iniciales en tinta sobre arena.</p></li>
-        <li><p><strong>Menos movimiento si se pide:</strong> con «reducir movimiento» activado, los haces de luz y las animaciones se quedan quietos.</p></li>
-        <li><p><strong>Sin conteos a la vista:</strong> los nominados van en orden alfabético y en la gala solo se muestra al ganador.</p></li>
+        <li><p><strong>Menos movimiento si se pide:</strong> con «reducir movimiento» activado, los haces de luz, las diapositivas de Nominados y las animaciones se quedan quietos.</p></li>
+        <li><p><strong>Nada de golpes de luz:</strong> el cambio entre tema claro y oscuro es un fundido de 0,7 s, y entre pantallas aparece la carga con el trofeo.</p></li>
+        <li><p><strong>Sin conteos a la vista:</strong> los nominados van en orden alfabético; en la gala se muestra al ganador y los puestos 2.º a 4.º, nunca cuántos votos tuvo nadie.</p></li>
       </ol>
     </div>
   </section>
@@ -557,7 +665,8 @@
 
 <footer>
   <div class="wrap row">
-    <a class="btn btn-primary ch" href="https://nomination-awards-ten.vercel.app/demo">Probar el demo</a>
+    <a class="btn btn-primary ch" href="/demo">Probar la demo</a>
+    <a class="btn btn-secondary" href="/">Ir a la sala</a>
     <a class="btn btn-secondary" href="https://github.com/Hocchik/NominationAwards">Ver el código</a>
   </div>
 </footer>

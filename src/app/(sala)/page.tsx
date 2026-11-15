@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buttonClasses } from "@/components/ui/Button";
 import { Suspense } from "react";
 import { Loader } from "@/components/ui/Loader";
 import { Countdown } from "@/components/ui/Countdown";
@@ -36,7 +38,18 @@ async function Home() {
   if (!event || view === "closed") {
     return (
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
-        <SalaNotice title="La sala todavía no abre" text="Vuelve cuando el organizador avise que empiezan las nominaciones." back={false} />
+        <SalaNotice title="La sala todavía no abre" text="Vuelve cuando el organizador avise que empiezan las nominaciones." back={false}>
+          {/* Mientras tanto: probar cómo será, sin evento, y ver el sistema de diseño */}
+          <p className="text-sm text-ink-soft">Mientras tanto, puedes ver cómo funciona con un grupo de ejemplo:</p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Link href="/demo" className={buttonClasses({ className: "max-sm:w-full" })}>
+              Probar la demo
+            </Link>
+            <a href="/diseno.html" className={buttonClasses({ variant: "secondary", className: "max-sm:w-full" })}>
+              Ver el diseño
+            </a>
+          </div>
+        </SalaNotice>
       </main>
     );
   }
