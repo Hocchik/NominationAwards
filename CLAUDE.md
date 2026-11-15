@@ -11,7 +11,7 @@ El requisito central es la **confianza**: nadie (ni el organizador/admin) puede 
 - **Next.js (App Router) + TypeScript** — frontend y API (Route Handlers / Server Actions)
 - **Prisma + PostgreSQL en Neon** (capa gratuita)
 - **Tailwind CSS** para estilos, con tokens del design system (sección 9)
-- **Framer Motion** (animaciones), **canvas-confetti** (confeti), **Howler.js** (sonidos de la ceremonia)
+- **Framer Motion** (animaciones), **canvas-confetti** (confeti). Sin sonido en la ceremonia (decisión del usuario, 2026-11-14: molestaba)
 - **libsodium-wrappers** — cifrado `crypto_box_seal` (sealed box) en el navegador
 - **zod** — validación de entradas
 - Deploy en **Vercel**; repositorio **público en GitHub** (transparencia: el grupo puede auditar el código)
@@ -59,9 +59,9 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según número de categorías × máximo de nominados, en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB hasta unas 11 categorías activas y de a 1 KB más si hay más (`voteBallotBytes` en `lib/ballots/vote.ts`). El servidor rechaza textos cifrados que no midan exactamente eso.
 6. **Nunca registrar contenido.** No hacer `console.log` de papeletas, payloads descifrados ni conteos. Nada de analytics con eventos de voto.
 7. **Descifrado solo en el navegador del notario/ceremonia.** Las llaves privadas nunca se envían al servidor ni se guardan en `localStorage`. Viven solo en memoria durante la sesión.
-8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. En la ceremonia se muestra solo el ganador (opcional: % redondeado del ganador). Nunca mostrar finalistas con 0 votos ni conteos exactos.
+8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. En la ceremonia se muestra el ganador (opcional: % redondeado del ganador) y, desde el 2026-11-14 (decisión del usuario), **los puestos 2.º, 3.º y 4.º sin conteos**: empates comparten puesto (el siguiente salta, p. ej. 2.º, 2.º, 4.º) y quien tuvo 0 votos no recibe puesto (aparece solo como «Finalista»). Nunca mostrar conteos exactos ni marcar a nadie con 0 votos. Los puestos se calculan en memoria en la ceremonia y no se guardan.
 9. **Lecturas sin orden de inserción.** Al leer papeletas, ordenar por `id` (UUID aleatorio) o barajar; nunca depender del orden físico.
-10. **El admin solo ve:** la lista de invitados, participación ✔/⏳ (los que ya enviaron en la urna abierta aparecen «bloqueados» solo en su panel; en la sala todos los nombres se ven iguales), nombres únicos sin conteos al unificar, finalistas sin conteos, y ganadores solo en la ceremonia.
+10. **El admin solo ve:** la lista de invitados, participación ✔/⏳ (los que ya enviaron en la urna abierta aparecen «bloqueados» solo en su panel; en la sala todos los nombres se ven iguales), nombres únicos sin conteos al unificar, finalistas sin conteos, y ganadores (con los puestos 2.º–4.º) solo en la ceremonia.
 
 ---
 
@@ -185,7 +185,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 ### Demo y diseño (públicas)
 | Ruta | Pantalla |
 |---|---|
-| `/demo` | Demo para probar sin evento, **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, que muestra solo la pantalla del ganador de cada categoría con ganadores de ejemplo, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `autofill`: botón «Rellenar automáticamente» que llena la papeleta al azar y salta a la revisión, solo en el demo); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
+| `/demo` | Demo para probar sin evento, **solo el flujo del participante** (decisión del usuario, 2026-11-13: la ceremonia y el panel son del organizador y no se muestran): portada y cinco pasos (`/demo/entrar`, `/demo/nominar`, `/demo/nominados`, `/demo/votar` y `/demo/ganador`, rotulado «Ceremonia (ejemplo)»: muestra la pantalla del ganador de cada categoría con ganadores de ejemplo y aclara que quien vota no ve la ceremonia —en el evento real solo el admin la abre a cierta hora y la proyecta (decisión del usuario, 2026-11-14)—, usando las mismas piezas de la gala en `components/ceremony/Stage.tsx`) con un grupo ficticio (`src/lib/demo/fixtures.ts`). Usa los componentes reales con props opcionales (`onSubmit`, `doneLink`, `autofill`: botón «Rellenar automáticamente» que llena la papeleta al azar y salta a la revisión, solo en el demo); cifra con llaves de juguete en memoria y no toca la base ni las server actions |
 | `/diseno.html` | Archivo autónomo (`public/diseno.html`) que presenta el sistema «Día y noche». Copia los valores de `globals.css`: actualizarlo si el diseño cambia |
 
 ### Notario
@@ -214,10 +214,11 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 
 1. Título de la categoría entra con brillo (cobre si es PRIZE, salvia si es HONORARY) + consigna
 2. Finalistas aparecen uno por uno en tarjetas
-3. Suspenso: tarjetas se atenúan, un foco de luz las recorre, redoble de tambor (Howler)
-4. Se abre un "sobre"; la tarjeta ganadora crece al centro con destello + confeti cobre (`canvas-confetti`) + sonido de fanfarria
+3. Suspenso: tarjetas se atenúan, un foco de luz las recorre (sin sonido)
+4. Se abre un "sobre"; la tarjeta ganadora crece al centro con destello + confeti cobre (`canvas-confetti`)
 5. Opcional: % del ganador redondeado (`showWinnerPercent`)
 6. **Empates:** mostrar ganadores compartidos (por defecto)
+7. **Le siguen:** puestos 2.º–4.º del resto de finalistas, sin conteos (regla 8); sin puesto si tuvo 0 votos
 
 Los resultados se calculan en memoria al cargar la llave; no se persisten hasta FINISHED (y solo los ganadores).
 
@@ -227,40 +228,39 @@ Los resultados se calculan en memoria al cargar la llave; no se persisten hasta 
 
 Una sola identidad con dos momentos: **de día** (la web: Nominar, Nominados, Votar) y **de noche** (la premiación en el proyector). La noche usa los mismos colores del día con los papeles cambiados: la tinta pasa a ser el fondo y la hoja pasa a ser la luz. Referencia visual: lienzo de diseño del organizador, página «Ronda 5 · Día y noche».
 
-> **Estado del código:** migrado. Los tokens viven en `src/app/globals.css` (`bg-bg`, `bg-sheet`, `text-ink`, `text-ink-soft`, `bg-copper`, `bg-sage`…); `.theme-night` cambia los papeles para los pedacitos de noche y la ceremonia; `chamfer-N` / `chamfer-tl-N` (o `chamfer-[1.5cqw]`) da el chaflán; `.accent-prize` / `.accent-honor` fijan `--accent` para duotono, cartas boca abajo y etiquetas. Usar siempre los primitivos (`Button`/`buttonClasses`, `Card`, `Chip`, `Field`, `Countdown`, piezas de `components/ballot/BallotParts`) y los tokens, nunca colores sueltos en las páginas.
+> **Estado del código:** migrado. Los tokens viven en `src/app/globals.css` (`bg-bg`, `bg-sheet`, `text-ink`, `text-ink-soft`, `bg-copper`, `bg-sage`…); `.theme-night` cambia los papeles para los pedacitos de noche y la ceremonia; `chamfer-N` / `chamfer-tl-N` (o `chamfer-[1.5cqw]`) da el chaflán; `.accent-prize` / `.accent-honor` fijan `--accent` para duotono, cartas boca abajo y etiquetas. Usar siempre los primitivos (`Button`/`buttonClasses`, `Card`, `Chip`, `Field`, `Countdown`, piezas de `components/ballot/BallotParts`) y los tokens, nunca colores sueltos en las páginas. Nombres históricos: `--copper` es el **acento de premio** y `--sage` el **de honorífica** (ya no son cobre ni salvia).
 
-### Colores
+### Dos temas: claro y oscuro (decisión del usuario, 2026-11-14)
 
-| Token | Valor | Uso |
-|---|---|---|
-| `--bg` | `#E9E1D3` | Fondo de la web (día) |
-| `--sheet` | `#F8F4EC` | Hoja: papeletas, fichas, paneles · texto principal de noche |
-| `--raised` | `#FFFFFF` | Fila seleccionada, tarjetas de nominado, lista de sugerencias |
-| `--sand` | `#E2D7C5` | Fondo de iniciales cuando no hay foto |
-| `--line` | `#DDD2C0` | Bordes y separadores de día |
-| `--ink` | `#141A19` | Texto principal de día · fondo de noche |
-| `--ink-soft` | `#55605D` | Texto secundario de día |
-| `--night-panel` | `#1D2523` | Paneles de noche |
-| `--night-line` | `#2C3633` | Líneas de noche |
-| `--night-text-2` | `#C9C2B6` | Texto secundario de noche |
-| `--night-text-3` | `#93A39E` | Texto terciario de noche |
-| `--copper` | `#D9783F` | Acento de categorías PRIZE, botón primario |
-| `--copper-duo` | `#D08050` | Duotono de fotos PRIZE |
-| `--sage` | `#5E9488` | Acento de categorías HONORARY |
-| `--sage-duo` | `#7FAFA4` | Duotono de fotos HONORARY |
-| `--kraft` | `#C9A57B` | Sobre de la pantalla «Voto sellado» |
+Cada persona elige con el botón `ThemeToggle` (en la portada, la sala, Nominados, las papeletas, el demo y el panel). La elección se guarda solo en su dispositivo (`localStorage` «tema»); si nunca eligió, manda su sistema. Un script en `layout.tsx` pone `data-theme` en `<html>` antes de pintar. La ceremonia siempre es de noche.
 
-Estados (éxito / error): por definir en el rediseño; deben pasar AA sobre `--bg` y `--sheet`.
+| Token | Claro · «Oro y carmín» | Oscuro · «Gala nocturna» | Uso |
+|---|---|---|---|
+| `--bg` | `#F3EEE3` | `#0E0B0C` | Fondo de la web |
+| `--sheet` | `#FCF9F2` | `#1A1516` | Hoja: papeletas, fichas, paneles |
+| `--raised` | `#FFFFFF` | `#231C1D` | Fila elegida, tarjetas, sugerencias |
+| `--sand` | `#EAE1CF` | `#2C2425` | Fondo de iniciales sin foto |
+| `--line` / `--line-strong` | `#E4DAC6` / `#AD9F86` | `#2C2425` / `#4A3E3F` | Bordes y separadores |
+| `--ink` / `--ink-soft` | `#14100B` / `#5C5446` | `#F6EFE6` / `#CBBFB5` | Texto principal / secundario |
+| `--copper` (premio) | `#E3B14E` oro | `#C23B44` carmín | Acento PRIZE, botón primario |
+| `--copper-duo` | `#D9A94D` | `#B9474E` | Duotono de fotos PRIZE |
+| `--sage` (honorífica) | `#C23B44` carmín | `#D9AE4F` oro | Acento HONORARY |
+| `--sage-duo` | `#B9474E` | `#DCB867` | Duotono de fotos HONORARY |
+| `--on-copper` / `--on-sage` | `#14100B` / `#FFF6EE` | `#FFF6EE` / `#14100B` | Texto sobre los rellenos de acento (AA) |
+| `--kraft` | `#C9A57B` | `#C9A57B` | Sobre de la pantalla «Voto sellado» |
+
+Noche (`.theme-night`): en el tema claro `--bg #0A0A0A`, `--sheet #161513`, `--ink #F6F0E4`; en el oscuro `--bg #070606`, `--sheet #141011`, `--ink #F6EFE6`. Estados: éxito `#2F6B3A` / error `#A8231C` en claro; `#8FD19E` / `#F2A199` en oscuro y de noche.
 
 ### Reglas
 
-- **Los acentos no cambian de tono:** cobre y salvia son idénticos de día y de noche (no usar versiones "profundas" para que se lean sobre claro).
-- **Sobre fondos claros, el cobre y la salvia nunca son texto pequeño:** van de relleno (sello de tipo de categoría, etiqueta «Nº», «Tu voto», casilla marcada, botón primario, sello de cera) con texto `--ink` encima. Sobre la noche sí pueden ser texto.
-- **Pedacitos de noche en la web:** la cuenta regresiva y las cartas boca abajo de Nominados van sobre `--ink`, con cifras y detalles en cobre.
+- **Los acentos no cambian de tono dentro de un tema:** el de premio y el de honorífica son idénticos de día y de noche en ese tema (no usar versiones "profundas" para que se lean sobre claro).
+- **Sobre fondos claros, los acentos nunca son texto pequeño:** van de relleno (sello de tipo de categoría, etiqueta «Nº», «Tu voto», casilla marcada, botón primario, sello de cera). El texto encima usa `--on-copper` / `--on-sage` (lo aplica solo `globals.css` a `bg-copper`, `bg-sage` y `bg-(--accent)`): oscuro sobre oro, claro sobre carmín. Sobre la noche sí pueden ser texto.
+- **Pedacitos de noche en la web:** la cuenta regresiva y las cartas boca abajo de Nominados van sobre `--ink`, con cifras y detalles en el acento de premio.
 - **Tipografía:** solo **Unbounded** (600/700/800: títulos, números, etiquetas, botones) y **Schibsted Grotesk** (400/600/700 e itálica: texto, nombres, frase del nominado), vía `next/font`.
 - **Forma:** esquina cortada en diagonal (chaflán) en tarjetas, botones, etiquetas y fotos: `clip-path: polygon(N 0, 100% 0, 100% calc(100% - N), calc(100% - N) 100%, 0 100%, 0 N)`. Para un borde fino con chaflán, envolver en un contenedor con el color del borde y 1px de padding.
-- **Fotos:** siempre en duotono (cobre para PRIZE, salvia para HONORARY) para igualar fotos de distinta calidad; sin foto, iniciales en `--ink` sobre `--sand`.
-- **Logo:** rombo + cono (trofeo abstracto) en cobre + nombre del evento.
+- **Fotos:** siempre en duotono (acento de premio para PRIZE, de honorífica para HONORARY) para igualar fotos de distinta calidad; sin foto, iniciales en `--ink` sobre `--sand`.
+- **Logo:** rombo + cono (trofeo abstracto) en el acento de premio + nombre del evento.
+- **Trofeos de la ceremonia:** copa facetada para PRIZE y laurel con estrella para HONORARY (`components/ceremony/trophyShapes.ts`), en los tonos del acento.
 - **Fondo:** haces de luz suaves en diagonal (de día, blanco translúcido; de noche, luz de `--sheet` muy tenue). Respetar `prefers-reduced-motion`.
 - **Accesibilidad:** contraste AA (por eso la regla de los acentos), foco visible, botones de mín. 48px de alto, animaciones reducidas si el usuario lo pide.
 
@@ -292,7 +292,6 @@ src/
   lib/auth/               # sesión admin (la del participante vive en lib/participants)
   lib/db.ts               # cliente Prisma
 prisma/schema.prisma
-public/sounds/            # drumroll, fanfare (libres de derechos)
 ```
 
 ---
@@ -308,7 +307,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 - [x] **Fase 4 — Nominaciones:** formulario por categoría con autocompletado, validación min/max, cifrado + envío atómico, pantalla de transparencia
 - [x] **Fase 5 — Cierre y finalistas:** descifrado en navegador, unificación de nombres sin conteos, top N con empates, activación de categorías (máx. 15 PRIZE), orden de revelación, fotos/frases opcionales
 - [x] **Fase 6 — Votación:** apertura/cierre por horario, flujo de voto, cifrado + envío atómico, tarjeta «Eres tú»
-- [x] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, cuántos votaron, secuencia de revelación completa con sonido y confeti, controles de teclado, empates
+- [x] **Fase 7 — Ceremonia:** carga de llave, conteo en memoria, cuántos votaron, secuencia de revelación completa con confeti (el sonido se quitó el 2026-11-14), controles de teclado, empates
 - [ ] **Fase 8 — Pruebas y ensayo:** test de doble envío concurrente, test de que `Ballot` y `Participant` no tienen campos prohibidos, prueba con 5–10 amigos, ensayo en el proyector real
 
 ---

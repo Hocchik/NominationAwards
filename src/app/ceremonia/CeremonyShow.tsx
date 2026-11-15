@@ -14,7 +14,7 @@ import {
 } from "@/components/ceremony/Stage";
 import { LogoMark } from "@/components/ui/Logo";
 import { type VoteResults, openAndTallyVotes } from "@/lib/ballots/openVotes";
-import { celebrate, playDrumroll, playFanfare } from "@/lib/ceremony/effects";
+import { celebrate } from "@/lib/ceremony/effects";
 import { cn } from "@/lib/cn";
 import { parseKeyFile } from "@/lib/crypto/keyFile";
 import { getVoteBallotsAction } from "./actions";
@@ -49,7 +49,6 @@ export function CeremonyShow({
   const [pending, startTransition] = useTransition();
   const [started, setStarted] = useState(false);
   const [position, setPosition] = useState(0);
-  const [sound, setSound] = useState(true);
 
   const slides = useMemo<Slide[]>(
     () => [
@@ -93,7 +92,7 @@ export function CeremonyShow({
   const next = useCallback(() => setPosition((p) => Math.min(p + 1, slides.length - 1)), [slides.length]);
   const previous = useCallback(() => setPosition((p) => Math.max(p - 1, 0)), []);
 
-  // Teclado del presentador: Espacio/→ siguiente, ← atrás, F pantalla completa, M sonido.
+  // Teclado del presentador: Espacio/→ siguiente, ← atrás, F pantalla completa.
   useEffect(() => {
     if (!started) return;
     function onKey(event: KeyboardEvent) {
@@ -106,29 +105,25 @@ export function CeremonyShow({
       } else if (event.key.toLowerCase() === "f") {
         if (document.fullscreenElement) void document.exitFullscreen();
         else void document.documentElement.requestFullscreen();
-      } else if (event.key.toLowerCase() === "m") {
-        setSound((s) => !s);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [started, next, previous]);
 
-  // Suspenso: redoble y, al terminar, se revela solo. Revelación: fanfarria y confeti.
+  // Suspenso: al terminar, se revela solo. Revelación: confeti.
   useEffect(() => {
     if (!started || slide.kind !== "category") return;
     const category = categories[slide.index];
     const result = results?.byCategory[category.id];
     if (slide.step === "suspense") {
-      if (sound) playDrumroll(SUSPENSE_SECONDS);
       const timer = setTimeout(next, SUSPENSE_SECONDS * 1000 + 300);
       return () => clearTimeout(timer);
     }
     if (slide.step === "winner" && result?.winnerIds.length) {
-      if (sound) playFanfare();
       celebrate(category.type === "PRIZE" ? "prize" : "honor");
     }
-  }, [started, slide, categories, results, sound, next]);
+  }, [started, slide, categories, results, next]);
 
   if (!started) {
     return (
@@ -154,7 +149,7 @@ export function CeremonyShow({
               </p>
               <p className="text-xs text-ink-soft">
                 En la presentación: <kbd>Espacio</kbd> o <kbd>→</kbd> avanza, <kbd>←</kbd> retrocede,{" "}
-                <kbd>F</kbd> pantalla completa, <kbd>M</kbd> sonido.
+                <kbd>F</kbd> pantalla completa.
               </p>
               <Button size="lg" onClick={() => setStarted(true)}>
                 Comenzar la ceremonia
@@ -194,7 +189,6 @@ export function CeremonyShow({
           showWinnerPercent={showWinnerPercent}
         />
         <span className="absolute right-[2cqw] bottom-[1.2cqw] z-10 text-[1cqw] text-ink-faint">
-          {sound ? "" : "Sonido apagado · "}
           {position + 1}/{slides.length}
         </span>
       </div>
@@ -323,6 +317,7 @@ function SlideView({
         winnerIds={result?.winnerIds ?? []}
         winnerPercent={result?.winnerPercent ?? null}
         showWinnerPercent={showWinnerPercent}
+        places={result?.places}
         year={String(new Date().getFullYear())}
       />
     </>

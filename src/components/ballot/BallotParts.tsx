@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { CategoryType } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/Button";
 import { LogoMark } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/cn";
 
 // Piezas de la papeleta «Día y noche» (CLAUDE.md §9), comunes a Nominar y
@@ -31,7 +32,10 @@ export function RoundBar({ label, step }: { label: string; step?: string }) {
         <LogoMark className="h-[18px] w-4 text-copper" />
         {label}
       </span>
-      {step && <span className="font-display text-xs font-bold">{step}</span>}
+      <span className="flex items-center gap-3">
+        {step && <span className="font-display text-xs font-bold">{step}</span>}
+        <ThemeToggle className="min-h-9 px-2" />
+      </span>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/cn";
 import { useDemo } from "./DemoProvider";
 
@@ -10,7 +11,7 @@ const STEPS = [
   { href: "/demo/nominar", label: "Nominar" },
   { href: "/demo/nominados", label: "Nominados" },
   { href: "/demo/votar", label: "Votar" },
-  { href: "/demo/ganador", label: "Ganador" },
+  { href: "/demo/ganador", label: "Ceremonia" },
 ] as const;
 
 /** Franja de noche arriba de todo el demo: recuerda que nada se guarda y lleva los pasos. */
@@ -33,9 +34,12 @@ export function DemoBanner() {
           <span aria-hidden="true" className="size-2 bg-copper" />
           Demo · nada <span className="max-sm:hidden">de esto</span> se guarda
         </Link>
-        <Link href="/" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:text-ink hover:underline sm:order-last">
-          Salir del demo
-        </Link>
+        <div className="flex items-center gap-3 sm:order-last">
+          <ThemeToggle className="min-h-9" />
+          <Link href="/" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:text-ink hover:underline">
+            Salir del demo
+          </Link>
+        </div>
         <nav aria-label="Pasos del demo" className="-mx-2 flex w-full gap-0.5 overflow-x-auto text-sm font-semibold sm:mx-0 sm:w-auto sm:flex-1">
           {STEPS.map((step, i) => {
             const current = pathname === step.href;

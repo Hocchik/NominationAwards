@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getEventByRoomCode, listGuests } from "@/lib/participants/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { EntryFlow } from "./EntryFlow";
@@ -18,7 +19,10 @@ type Params = Promise<{ roomCode: string }>;
 export default function RoomPage({ params }: { params: Params }) {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-10">
-      <Logo />
+      <div className="flex items-center justify-between gap-4">
+        <Logo />
+        <ThemeToggle />
+      </div>
       <Suspense
         fallback={
           <Card className="h-64 animate-pulse" aria-busy="true">

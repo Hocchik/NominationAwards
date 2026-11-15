@@ -180,6 +180,20 @@ export const DEMO_EXAMPLE_WINNERS: Record<string, string[]> = {
   [C.idol]: [F.idolRosa],
 };
 
+/**
+ * Puestos 2.º a 4.º de ejemplo, también inventados: el resto de finalistas en el
+ * orden de la categoría, con el puesto que seguiría a los ganadores. En «Amigo
+ * fiel» el último queda sin puesto, para mostrar a quien tuvo 0 votos.
+ */
+export const DEMO_EXAMPLE_PLACES: Record<string, Record<string, number>> = Object.fromEntries(
+  DEMO_CATEGORIES.map((c) => {
+    const winners = DEMO_EXAMPLE_WINNERS[c.id] ?? [];
+    let others = c.finalists.filter((f) => !winners.includes(f.id));
+    if (c.id === C.friend) others = others.slice(0, -1);
+    return [c.id, Object.fromEntries(others.slice(0, 4 - winners.length).map((f, i) => [f.id, winners.length + 1 + i]))];
+  }),
+);
+
 /** Orden alfabético en español, como muestran los finalistas las páginas reales (regla 8). */
 export function byName<T extends { name: string }>(list: readonly T[]): T[] {
   return [...list].sort((a, b) => a.name.localeCompare(b.name, "es"));

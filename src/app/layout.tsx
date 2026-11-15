@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Schibsted_Grotesk, Unbounded } from "next/font/google";
+import Script from "next/script";
 import { LightBeams } from "@/components/layout/LightBeams";
 import { EVENT_NAME, EVENT_TAGLINE } from "@/lib/brand";
 import "./globals.css";
@@ -30,14 +31,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e9e1d3",
-  colorScheme: "light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3eee3" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e0b0c" },
+  ],
+  colorScheme: "light dark",
 };
+
+// Aplica el tema (claro/oscuro) antes de pintar, para que no parpadee: el que la
+// persona eligió con el botón o, si nunca eligió, el de su sistema.
+const THEME_SCRIPT = `try{var t=localStorage.getItem("tema");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${unbounded.variable} ${schibsted.variable} h-full antialiased`}>
+    <html lang="es" suppressHydrationWarning className={`${unbounded.variable} ${schibsted.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
+        <Script id="tema" strategy="beforeInteractive">
+          {THEME_SCRIPT}
+        </Script>
         <LightBeams />
         <div className="relative z-10 flex flex-1 flex-col">{children}</div>
       </body>

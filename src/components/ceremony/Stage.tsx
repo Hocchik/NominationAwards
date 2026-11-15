@@ -2,6 +2,7 @@ import { LogoMark } from "@/components/ui/Logo";
 import type { CategoryType } from "@/generated/prisma/enums";
 import { cn } from "@/lib/cn";
 import { initials } from "@/lib/initials";
+import { CUP, CUP_PLAQUE, LAUREL, type TrophyTone } from "./trophyShapes";
 
 // Piezas de la pantalla de la premiación (16:9, noche). Las usa la ceremonia
 // real y el demo, para que el ganador se vea exactamente igual en los dos.
@@ -55,25 +56,38 @@ export function NightStage({ number }: { number: string | null }) {
   );
 }
 
-/** Trofeo facetado (rombo + cono), en los tonos de la categoría. */
-export function Trophy({ year, className }: { year: string; className?: string }) {
-  const tone = (pct: number, mix: string) => `color-mix(in oklab, var(--accent) ${pct}%, ${mix})`;
+const tone = (pct: number, mix: string) => `color-mix(in oklab, var(--accent) ${pct}%, ${mix})`;
+const TROPHY_FILL: Record<TrophyTone, string> = {
+  light: tone(60, "white"),
+  accent: "var(--accent)",
+  dark: tone(66, "black"),
+  darker: tone(40, "black"),
+  baseTop: "var(--line-strong)",
+  base: "var(--sand)",
+  baseSide: "var(--sheet)",
+  shine: "white",
+};
+
+/**
+ * Trofeo de la categoría (CLAUDE.md §9): copa facetada para las de premio y
+ * laurel con estrella para las honoríficas, en los tonos del acento.
+ */
+export function Trophy({ type, year, className }: { type: CategoryType; year: string; className?: string }) {
+  const cup = type === "PRIZE";
   return (
-    <svg viewBox="0 0 180 420" role="img" aria-label="Trofeo" className={className}>
-      <path d="M90 0 L114 26 L90 52 L66 26 Z" fill={tone(60, "white")} />
-      <path d="M90 0 L114 26 L90 26 Z" fill="var(--accent)" />
-      <path d="M66 26 L90 52 L90 26 Z" fill={tone(85, "black")} />
-      <path d="M76 66 L104 66 L150 300 L30 300 Z" fill={tone(85, "black")} />
-      <path d="M90 66 L104 66 L150 300 L90 300 Z" fill="var(--accent)" />
-      <path d="M90 66 L97 66 L120 300 L90 300 Z" fill={tone(60, "white")} fillOpacity="0.55" />
-      <path d="M76 66 L90 66 L90 300 L30 300 Z" fill={tone(70, "black")} />
-      <path d="M30 300 L150 300 L140 318 L40 318 Z" fill={tone(55, "black")} />
-      <path d="M24 330 L156 330 L170 344 L170 404 L156 418 L24 418 L10 404 L10 344 Z" fill="var(--sheet)" />
-      <path d="M24 330 L156 330 L170 344 L10 344 Z" fill="var(--line)" />
-      <path d="M10 344 L170 344" stroke="var(--accent)" strokeWidth="2" />
-      <text x="90" y="384" textAnchor="middle" fontFamily="var(--font-unbounded)" fontWeight="700" fontSize="11" letterSpacing="2" fill="var(--accent)">
-        {year}
-      </text>
+    <svg viewBox="0 0 200 260" role="img" aria-label={cup ? "Copa" : "Laurel"} className={className}>
+      {(cup ? CUP : LAUREL).map((s, i) =>
+        s.kind === "poly" ? (
+          <polygon key={i} points={s.points} fill={TROPHY_FILL[s.tone]} />
+        ) : (
+          <circle key={i} cx={s.cx} cy={s.cy} r={s.r} fill={TROPHY_FILL[s.tone]} />
+        ),
+      )}
+      {cup && (
+        <text x={CUP_PLAQUE.x} y={CUP_PLAQUE.y} textAnchor="middle" fontFamily="var(--font-unbounded)" fontWeight="700" fontSize="9" letterSpacing="1.5" fill={TROPHY_FILL.light}>
+          {year}
+        </text>
+      )}
     </svg>
   );
 }
@@ -140,24 +154,31 @@ export function StageHeading({ category }: { category: StageCategory }) {
 
 /**
  * La revelación: el ganador (o los ganadores, si empatan) al centro con el
- * trofeo, y la fila de nominados abajo. Solo el ganador y, si el evento lo
- * permite, su % redondeado: nunca conteos (regla 8).
+ * trofeo, y la fila de nominados abajo con los puestos 2.º a 4.º. Nunca
+ * conteos; quien tuvo 0 votos queda como «Finalista», sin puesto (regla 8).
  */
 export function WinnerView({
   category,
   winnerIds,
   winnerPercent,
   showWinnerPercent,
+  places = {},
   year,
 }: {
   category: StageCategory;
   winnerIds: string[];
   winnerPercent: number | null;
   showWinnerPercent: boolean;
+  /** Puesto (2 a 4) de los demás finalistas; los que no están no tienen puesto. */
+  places?: Record<string, number>;
   /** Año grabado en el trofeo (se pasa desde afuera: aquí no se lee la hora). */
   year: string;
 }) {
   const winners = category.finalists.filter((f) => winnerIds.includes(f.id));
+  // Fila de abajo: ganadores, luego por puesto, y al final los que no tienen puesto
+  // (en el orden de la categoría). `sort` es estable, así que los empates no se mueven.
+  const rank = (id: string) => (winnerIds.includes(id) ? 1 : (places[id] ?? Infinity));
+  const row = [...category.finalists].sort((a, b) => rank(a.id) - rank(b.id));
   if (winners.length === 0) {
     return (
       <div className="ceremony-rise relative z-10 space-y-[2cqw] text-center">
@@ -195,15 +216,17 @@ export function WinnerView({
             </span>
           )}
         </div>
-        <Trophy year={year} className="h-[32.8cqw] w-[14cqw] shrink-0 max-[600px]:hidden" />
+        <Trophy type={category.type} year={year} className="h-[26cqw] w-[20cqw] shrink-0 max-[600px]:hidden" />
       </div>
       {/* Fila de nominados */}
       <div className="absolute inset-x-[4.4cqw] bottom-[2cqw] z-10 flex items-center gap-[1.9cqw] [--frame-chamfer:0.55cqw]">
         <span className="text-[0.95cqw] font-bold tracking-[0.16em] text-ink-faint uppercase">Nominados</span>
-        {category.finalists.map((f) => {
+        {row.map((f) => {
           const won = winners.includes(f);
+          const place = places[f.id];
           return (
-            <span key={f.id} className={cn("flex items-center gap-[0.9cqw]", !won && "opacity-55")}>
+            <span key={f.id} className={cn("flex items-center gap-[0.9cqw]", !won && !place && "opacity-55")}>
+              {place && <span className="font-display text-[1.7cqw] font-extrabold text-(--accent)">{place}º</span>}
               <Portrait finalist={f} dim={!won} className="h-[4.2cqw] w-[3.4cqw] text-[1cqw]" />
               <span className="flex flex-col gap-[0.15cqw]">
                 <span className="text-[1.25cqw] font-bold">{f.name}</span>

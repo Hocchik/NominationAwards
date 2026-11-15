@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Diseño · Día y noche</title>
 <meta name="description" content="El sistema de diseño «Día y noche» de la app de premiaciones del grupo: colores, tipografía, forma, componentes y pantallas.">
-<meta name="theme-color" content="#e9e1d3">
+<meta name="theme-color" content="#f3eee3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,600;0,700;1,400&family=Unbounded:wght@600;700;800&display=swap">
@@ -16,12 +16,12 @@
 -->
 <style>
   :root {
-    --bg: #e9e1d3; --sheet: #f8f4ec; --raised: #ffffff; --sand: #e2d7c5;
-    --line: #ddd2c0; --line-strong: #a99e8b;
-    --ink: #141a19; --ink-soft: #55605d;
-    --copper: #d9783f; --copper-duo: #d08050;
-    --sage: #5e9488; --sage-duo: #7fafa4; --kraft: #c9a57b;
-    --success: #2f6b3a; --danger: #b3261e;
+    --bg: #f3eee3; --sheet: #fcf9f2; --raised: #ffffff; --sand: #eae1cf;
+    --line: #e4dac6; --line-strong: #ad9f86;
+    --ink: #14100b; --ink-soft: #5c5446;
+    --copper: #e3b14e; --copper-duo: #d9a94d;
+    --sage: #c23b44; --sage-duo: #b9474e; --kraft: #c9a57b;
+    --success: #2f6b3a; --danger: #a8231c;
     --beam: rgb(255 255 255 / 0.5);
     --accent: var(--copper); --accent-duo: var(--copper-duo);
     --display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
@@ -30,9 +30,9 @@
   }
   /* Noche: la tinta pasa a ser el cielo y la hoja pasa a ser la luz */
   .night {
-    --bg: #141a19; --sheet: #1d2523; --raised: #232d2a; --sand: #2c3633;
-    --line: #2c3633; --line-strong: #3d4945;
-    --ink: #f8f4ec; --ink-soft: #c9c2b6; --ink-faint: #93a39e;
+    --bg: #0a0a0a; --sheet: #161513; --raised: #1e1c1a; --sand: #292622;
+    --line: #292622; --line-strong: #443f38;
+    --ink: #f6f0e4; --ink-soft: #cbc1b0; --ink-faint: #9b9283;
     --success: #8fd19e; --danger: #f2a199;
     --beam: rgb(248 244 236 / 0.05);
     color-scheme: dark; background: var(--bg); color: var(--ink);
@@ -96,14 +96,14 @@
 
   /* Botones, filtros y chips */
   .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; font: 700 15px/1 var(--sans); color: var(--ink); text-decoration: none; }
-  .btn-primary { --c: 12px; background: var(--copper); color: #141a19; font: 700 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+  .btn-primary { --c: 12px; background: var(--copper); color: #14100b; font: 700 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
   .btn-secondary { border: 1.5px solid var(--ink); }
   .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .filter { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 700; }
   .filter.on { background: var(--ink); border-color: var(--ink); color: var(--sheet); }
   .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line-strong); background: var(--raised); font-size: 14px; font-weight: 600; }
   .chip::before { content: ""; width: 8px; height: 8px; background: var(--accent); }
-  .stamp { --c: 6px; display: inline-block; transform: rotate(-8deg); padding: 7px 10px; background: var(--accent); color: #141a19; font: 700 10px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
+  .stamp { --c: 6px; display: inline-block; transform: rotate(-8deg); padding: 7px 10px; background: var(--accent); color: #14100b; font: 700 10px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
   .field { display: grid; gap: 6px; max-width: 22rem; }
   .field span:first-child { font-size: 14px; font-weight: 600; }
   .input { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--line-strong); background: var(--raised); color: var(--ink-soft); }
@@ -149,7 +149,7 @@
   .shape { display: grid; place-items: center; background: var(--ink); color: var(--sheet); font: 700 12px/1 var(--display); }
   .bordered { --c: 18px; padding: 1px; background: var(--ink); }
   .bordered > div { --c: 17px; padding: 18px; background: var(--sheet); }
-  pre.code { --c: 12px; margin: 0; overflow-x: auto; padding: 16px; background: #141a19; color: #f8f4ec; font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  pre.code { --c: 12px; margin: 0; overflow-x: auto; padding: 16px; background: #14100b; color: #fcf9f2; font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
 
   /* Papeleta */
   .ballot { max-width: 30rem; }
@@ -168,7 +168,7 @@
   .who { display: grid; flex: 1; gap: 2px; min-width: 0; }
   .who b { font: 700 14px/1.2 var(--display); }
   .who i { font-size: 13px; color: var(--ink-soft); }
-  .tag { padding: 4px 6px; background: var(--copper); color: #141a19; font: 700 9px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
+  .tag { padding: 4px 6px; background: var(--copper); color: #14100b; font: 700 9px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
 
   /* Cuenta regresiva (pedacito de noche) */
   .units { display: flex; gap: 6px; margin-top: 8px; }
@@ -193,14 +193,14 @@
   .frame { --c: 14px; padding: 1px; background: var(--accent); }
   .frame.dark { background: var(--ink); }
   .frame > div { --c: 13px; position: relative; aspect-ratio: 7 / 8; overflow: hidden; }
-  .facedown { display: grid; place-items: center; height: 100%; background-color: #141a19; background-image: radial-gradient(color-mix(in oklab, var(--accent) 30%, transparent) 1.2px, transparent 1.6px); background-size: 12px 12px; }
-  .diamond { display: grid; place-items: center; width: 52px; height: 52px; transform: rotate(45deg); border: 1.5px solid var(--accent); background: #141a19; }
+  .facedown { display: grid; place-items: center; height: 100%; background-color: #14100b; background-image: radial-gradient(color-mix(in oklab, var(--accent) 30%, transparent) 1.2px, transparent 1.6px); background-size: 12px 12px; }
+  .diamond { display: grid; place-items: center; width: 52px; height: 52px; transform: rotate(45deg); border: 1.5px solid var(--accent); background: #14100b; }
   .diamond svg { width: 22px; height: 24px; transform: rotate(-45deg); color: var(--accent); }
   .big-ini { display: grid; place-items: center; height: 100%; background: var(--sand); font: 800 clamp(26px, 5vw, 52px)/1 var(--display); }
   .duotone { height: 100%; background: var(--accent-duo); }
   .duotone svg { display: block; width: 100%; height: 100%; mix-blend-mode: multiply; }
-  .no { position: absolute; top: 8px; left: 8px; padding: 3px 6px; background: var(--accent); color: #141a19; font: 700 10px/1 var(--display); letter-spacing: .1em; }
-  .outside { position: absolute; right: 8px; bottom: 8px; padding: 3px 6px; background: #141a19; color: #f8f4ec; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .no { position: absolute; top: 8px; left: 8px; padding: 3px 6px; background: var(--accent); color: #14100b; font: 700 10px/1 var(--display); letter-spacing: .1em; }
+  .outside { position: absolute; right: 8px; bottom: 8px; padding: 3px 6px; background: #14100b; color: #fcf9f2; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   @media (max-width: 639px) { .outside { right: 4px; bottom: 4px; padding: 2px 4px; font-size: 8px; letter-spacing: .04em; } }
   .floor { height: 3px; background: var(--ink); }
   .nominee b { display: block; padding-top: 10px; font: 700 clamp(12px, 1.6vw, 16px)/1.2 var(--display); }
@@ -225,7 +225,7 @@
   .gala .portrait span { --c: 1.2cqw; display: grid; place-items: center; height: 100%; background: var(--sheet); color: var(--accent); font: 800 3cqw/1 var(--display); }
   .gala .fin small { font: 700 1.2cqw/1.2 var(--display); }
   .gala .fin.dim { opacity: .4; }
-  .gala .win { justify-self: start; margin-top: .6cqw; padding: .4cqw .8cqw; background: var(--accent); color: #141a19; font: 700 1cqw/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
+  .gala .win { justify-self: start; margin-top: .6cqw; padding: .4cqw .8cqw; background: var(--accent); color: #14100b; font: 700 1cqw/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
   .gala .trophy { width: 14cqw; height: auto; }
   .tr-a { fill: var(--accent); }
   .tr-light { fill: color-mix(in oklab, var(--accent) 60%, white); }
@@ -253,11 +253,11 @@
   <defs>
     <symbol id="mark" viewBox="0 0 18 20"><path fill="currentColor" d="M9 0l3 3-3 3-3-3z"/><path fill="currentColor" fill-opacity=".6" d="M6.5 7.5h5L18 20H0z"/></symbol>
     <symbol id="seal" viewBox="0 0 30 30">
-      <path fill="#d9783f" d="M15 1.5l2.6 1.9 3.2-.4 1.4 2.9 2.9 1.4-.4 3.2 1.9 2.6-1.9 2.6.4 3.2-2.9 1.4-1.4 2.9-3.2-.4L15 28.5l-2.6-1.9-3.2.4-1.4-2.9-2.9-1.4.4-3.2L3.4 15l1.9-2.6-.4-3.2 2.9-1.4 1.4-2.9 3.2.4z"/>
-      <circle cx="15" cy="15" r="7.5" fill="none" stroke="#141a19" stroke-opacity=".3"/>
-      <path fill="#141a19" fill-opacity=".7" d="M15 10.5l1.5 1.5-1.5 1.5-1.5-1.5z M13.2 14.2h3.6L19 20h-8z"/>
+      <path fill="#e3b14e" d="M15 1.5l2.6 1.9 3.2-.4 1.4 2.9 2.9 1.4-.4 3.2 1.9 2.6-1.9 2.6.4 3.2-2.9 1.4-1.4 2.9-3.2-.4L15 28.5l-2.6-1.9-3.2.4-1.4-2.9-2.9-1.4.4-3.2L3.4 15l1.9-2.6-.4-3.2 2.9-1.4 1.4-2.9 3.2.4z"/>
+      <circle cx="15" cy="15" r="7.5" fill="none" stroke="#14100b" stroke-opacity=".3"/>
+      <path fill="#14100b" fill-opacity=".7" d="M15 10.5l1.5 1.5-1.5 1.5-1.5-1.5z M13.2 14.2h3.6L19 20h-8z"/>
     </symbol>
-    <symbol id="tick" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#141a19" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="tick" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="#14100b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -281,6 +281,7 @@
       <p class="eyebrow">Sistema de diseño</p>
       <h1>Día y noche</h1>
       <p class="lead">Una sola identidad con dos momentos. De día, la web donde el grupo nomina y vota: hoja clara y tinta oscura. De noche, la premiación en el proyector: los mismos colores con los papeles cambiados. La tinta pasa a ser el cielo y la hoja, la luz.</p>
+      <p class="lead">Dos temas para elegir con el botón claro/oscuro: <strong>claro, «Oro y carmín»</strong> (oro para premio, carmín para honorífica; es el que muestra esta página) y <strong>oscuro, «Gala nocturna»</strong> (toda la web de noche, con carmín para premio y oro para honorífica). Los valores exactos viven en <code>src/app/globals.css</code>.</p>
       <div class="duo ch">
         <div class="day">
           <span class="label">De día · la web</span>
@@ -306,23 +307,23 @@
 
       <h3 class="label" style="margin-bottom:14px">De día</h3>
       <dl class="grid g4">
-        <div class="swatch"><div class="color ch" style="--sw:#e9e1d3"></div><dt>Fondo</dt><code>--bg · #E9E1D3</code><dd>Fondo de la web</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#f8f4ec"></div><dt>Hoja</dt><code>--sheet · #F8F4EC</code><dd>Papeletas, fichas y paneles</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#f3eee3"></div><dt>Fondo</dt><code>--bg · #F3EEE3</code><dd>Fondo de la web</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#fcf9f2"></div><dt>Hoja</dt><code>--sheet · #FCF9F2</code><dd>Papeletas, fichas y paneles</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#ffffff"></div><dt>Elevado</dt><code>--raised · #FFFFFF</code><dd>Fila elegida y sugerencias</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#e2d7c5"></div><dt>Arena</dt><code>--sand · #E2D7C5</code><dd>Iniciales cuando no hay foto</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#ddd2c0"></div><dt>Línea</dt><code>--line · #DDD2C0</code><dd>Bordes y separadores</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#a99e8b"></div><dt>Línea fuerte</dt><code>--line-strong · #A99E8B</code><dd>Chips y filtros sin elegir</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#141a19"></div><dt>Tinta</dt><code>--ink · #141A19</code><dd>Texto principal</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#55605d"></div><dt>Tinta suave</dt><code>--ink-soft · #55605D</code><dd>Texto secundario</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#eae1cf"></div><dt>Arena</dt><code>--sand · #EAE1CF</code><dd>Iniciales cuando no hay foto</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#e4dac6"></div><dt>Línea</dt><code>--line · #E4DAC6</code><dd>Bordes y separadores</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#ad9f86"></div><dt>Línea fuerte</dt><code>--line-strong · #AD9F86</code><dd>Chips y filtros sin elegir</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#14100b"></div><dt>Tinta</dt><code>--ink · #14100B</code><dd>Texto principal</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#5c5446"></div><dt>Tinta suave</dt><code>--ink-soft · #5C5446</code><dd>Texto secundario</dd></div>
       </dl>
 
       <div class="night panel ch">
         <h3 class="label" style="margin-bottom:14px">De noche</h3>
         <dl class="grid g4">
-          <div class="swatch"><div class="color ch" style="--sw:#141a19"></div><dt>Cielo</dt><code>--bg · #141A19</code><dd>Fondo de la premiación</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#14100b"></div><dt>Cielo</dt><code>--bg · #14100B</code><dd>Fondo de la premiación</dd></div>
           <div class="swatch"><div class="color ch" style="--sw:#1d2523"></div><dt>Panel</dt><code>--sheet · #1D2523</code><dd>Paneles de noche</dd></div>
           <div class="swatch"><div class="color ch" style="--sw:#2c3633"></div><dt>Línea</dt><code>--line · #2C3633</code><dd>Líneas de noche</dd></div>
-          <div class="swatch"><div class="color ch" style="--sw:#f8f4ec"></div><dt>Luz</dt><code>--ink · #F8F4EC</code><dd>Texto principal de noche</dd></div>
+          <div class="swatch"><div class="color ch" style="--sw:#fcf9f2"></div><dt>Luz</dt><code>--ink · #FCF9F2</code><dd>Texto principal de noche</dd></div>
           <div class="swatch"><div class="color ch" style="--sw:#c9c2b6"></div><dt>Luz suave</dt><code>--ink-soft · #C9C2B6</code><dd>Texto secundario</dd></div>
           <div class="swatch"><div class="color ch" style="--sw:#93a39e"></div><dt>Luz tenue</dt><code>--ink-faint · #93A39E</code><dd>Texto terciario</dd></div>
         </dl>
@@ -330,15 +331,15 @@
 
       <h3 class="label" style="margin:28px 0 14px">Acentos y estados</h3>
       <dl class="grid g4">
-        <div class="swatch"><div class="color ch" style="--sw:#d9783f"></div><dt>Cobre</dt><code>--copper · #D9783F</code><dd>Premios y botón primario</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#5e9488"></div><dt>Salvia</dt><code>--sage · #5E9488</code><dd>Categorías honoríficas</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#d08050"></div><dt>Cobre duotono</dt><code>--copper-duo · #D08050</code><dd>Fotos de premio</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#7fafa4"></div><dt>Salvia duotono</dt><code>--sage-duo · #7FAFA4</code><dd>Fotos honoríficas</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#e3b14e"></div><dt>Oro</dt><code>--copper · #E3B14E</code><dd>Premios y botón primario</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#c23b44"></div><dt>Carmín</dt><code>--sage · #C23B44</code><dd>Categorías honoríficas</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#d9a94d"></div><dt>Oro duotono</dt><code>--copper-duo · #D9A94D</code><dd>Fotos de premio</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#b9474e"></div><dt>Carmín duotono</dt><code>--sage-duo · #B9474E</code><dd>Fotos honoríficas</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#c9a57b"></div><dt>Kraft</dt><code>--kraft · #C9A57B</code><dd>Sobre de «¡Listo!»</dd></div>
         <div class="swatch"><div class="color ch" style="--sw:#2f6b3a"></div><dt>Éxito</dt><code>--success · #2F6B3A</code><dd>De noche, #8FD19E</dd></div>
-        <div class="swatch"><div class="color ch" style="--sw:#b3261e"></div><dt>Error</dt><code>--danger · #B3261E</code><dd>De noche, #F2A199</dd></div>
+        <div class="swatch"><div class="color ch" style="--sw:#a8231c"></div><dt>Error</dt><code>--danger · #A8231C</code><dd>De noche, #F2A199</dd></div>
       </dl>
-      <p class="note"><strong>Los acentos no cambian de tono:</strong> el cobre y la salvia son idénticos de día y de noche. Sobre fondos claros nunca son texto chico; van de relleno, con tinta encima.</p>
+      <p class="note"><strong>Los acentos no cambian de tono:</strong> el oro y la carmín son idénticos de día y de noche. Sobre fondos claros nunca son texto chico; van de relleno, con tinta encima.</p>
     </div>
   </section>
 
@@ -385,7 +386,7 @@
             <div class="shape ch" style="--c:6px;width:64px;height:64px">6</div>
             <div class="shape ch" style="--c:12px;width:96px;height:96px">12</div>
             <div class="shape ch" style="--c:18px;width:128px;height:128px">18</div>
-            <div class="shape ch-tl" style="--c:16px;width:112px;height:128px;background:var(--copper);color:#141a19">foto</div>
+            <div class="shape ch-tl" style="--c:16px;width:112px;height:128px;background:var(--copper);color:#14100b">foto</div>
           </div>
           <div class="bordered ch" style="margin-top:20px">
             <div class="ch"><strong>Borde fino con chaflán.</strong> <span class="muted">Un contenedor del color del borde con 1 px de padding y la hoja encima: el borde sigue la diagonal.</span></div>
@@ -406,7 +407,7 @@
       <div class="sec-head">
         <span class="label">04</span>
         <h2>Componentes</h2>
-        <p>Botones de al menos 48 px de alto, foco siempre visible y el cobre como relleno, nunca como letra chica sobre claro.</p>
+        <p>Botones de al menos 48 px de alto, foco siempre visible y el oro como relleno, nunca como letra chica sobre claro.</p>
       </div>
       <div class="grid g2">
         <div class="card">
@@ -501,7 +502,7 @@
         </div>
       </div>
 
-      <div class="gala night ch" style="margin-top:16px" role="img" aria-label="Escena de la premiación: categoría número 3, Chef del grupo, con el trofeo de cobre y los finalistas; gana Camila Rojas">
+      <div class="gala night ch" style="margin-top:16px" role="img" aria-label="Escena de la premiación: categoría número 3, Chef del grupo, con el trofeo de oro y los finalistas; gana Camila Rojas">
         <span class="num" aria-hidden="true">03</span>
         <div class="ground"></div>
         <svg class="lines" viewBox="0 0 1280 142" preserveAspectRatio="none" aria-hidden="true"><path d="M640 0 L-200 142 M640 0 L100 142 M640 0 L380 142 M640 0 L640 142 M640 0 L900 142 M640 0 L1180 142 M640 0 L1480 142 M0 30 L1280 30 M0 70 L1280 70 M0 122 L1280 122" stroke="rgb(248 244 236 / .06)" fill="none"/><path d="M0 0 L1280 0" stroke="rgb(217 120 63 / .35)" stroke-width="1.5"/></svg>
@@ -527,8 +528,8 @@
             <path class="tr-base" d="M30 300 L150 300 L140 318 L40 318 Z"/>
             <path fill="#1d2523" d="M24 330 L156 330 L170 344 L170 404 L156 418 L24 418 L10 404 L10 344 Z"/>
             <path fill="#2c3633" d="M24 330 L156 330 L170 344 L10 344 Z"/>
-            <path d="M10 344 L170 344" stroke="#d9783f" stroke-width="2"/>
-            <text x="90" y="384" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="700" font-size="11" letter-spacing="2" fill="#d9783f">2026</text>
+            <path d="M10 344 L170 344" stroke="#e3b14e" stroke-width="2"/>
+            <text x="90" y="384" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="700" font-size="11" letter-spacing="2" fill="#e3b14e">2026</text>
           </svg>
         </div>
       </div>
@@ -544,9 +545,9 @@
       </div>
       <ol class="rules">
         <li><p><strong>Contraste AA</strong> en todo el texto, de día y de noche.</p></li>
-        <li><p><strong>Cobre y salvia nunca son texto chico sobre claro:</strong> van de relleno (sellos, etiquetas, casilla marcada, botón primario) con tinta encima. Sobre la noche sí pueden ser texto.</p></li>
+        <li><p><strong>Oro y carmín nunca son texto chico sobre claro:</strong> van de relleno (sellos, etiquetas, casilla marcada, botón primario) con tinta encima. Sobre la noche sí pueden ser texto.</p></li>
         <li><p><strong>Botones de al menos 48 px de alto</strong> y foco siempre visible al navegar con teclado.</p></li>
-        <li><p><strong>Fotos siempre en duotono</strong> (cobre para premio, salvia para honoríficas) para igualar fotos de distinta calidad; sin foto, iniciales en tinta sobre arena.</p></li>
+        <li><p><strong>Fotos siempre en duotono</strong> (oro para premio, carmín para honoríficas) para igualar fotos de distinta calidad; sin foto, iniciales en tinta sobre arena.</p></li>
         <li><p><strong>Menos movimiento si se pide:</strong> con «reducir movimiento» activado, los haces de luz y las animaciones se quedan quietos.</p></li>
         <li><p><strong>Sin conteos a la vista:</strong> los nominados van en orden alfabético y en la gala solo se muestra al ganador.</p></li>
       </ol>

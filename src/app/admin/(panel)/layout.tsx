@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AdminNav } from "../_components/AdminNav";
 
 // Marco común del panel. No lee la sesión aquí: cada página la verifica con
@@ -9,7 +10,10 @@ export default function AdminPanelLayout({ children }: { children: ReactNode }) 
     <div className="mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-20 sm:px-6">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <Logo />
-        <AdminNav />
+        <div className="flex flex-wrap items-center gap-4">
+          <AdminNav />
+          <ThemeToggle />
+        </div>
       </header>
       <main>{children}</main>
     </div>

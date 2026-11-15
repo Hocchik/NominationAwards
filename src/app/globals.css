@@ -2,57 +2,118 @@
 
 /* ==========================================================================
    Design system «Día y noche» — CLAUDE.md §9
-   De día (la web): hoja clara sobre fondo claro y tinta oscura. De noche (la
-   premiación y los «pedacitos de noche» de la web): los mismos colores con
-   los papeles cambiados. Los tokens viven aquí como variables CSS y se
-   exponen a Tailwind con @theme inline → bg-sheet, text-ink, bg-copper…
+   Dos temas que cada persona elige (botón claro/oscuro, se recuerda en su
+   dispositivo; si no eligió, sigue a su sistema):
+   · Claro — «Oro y carmín»: hoja clara sobre fondo claro y tinta oscura.
+   · Oscuro — «Gala nocturna»: toda la web de noche.
+   En los dos, .theme-night (la premiación y los «pedacitos de noche») es
+   noche. Los tokens viven aquí como variables CSS y se exponen a Tailwind con
+   @theme inline → bg-sheet, text-ink, bg-copper…
+   Nombres históricos: --copper es el acento de PREMIO y --sage el de HONORÍFICA.
    ========================================================================== */
 
+/* --- Claro: Oro y carmín ---------------------------------------------------- */
 :root {
-  /* Día */
-  --bg: #e9e1d3; /* fondo de la web */
-  --sheet: #f8f4ec; /* hoja: papeletas, fichas, paneles */
+  --bg: #f3eee3; /* fondo de la web */
+  --sheet: #fcf9f2; /* hoja: papeletas, fichas, paneles */
   --raised: #ffffff; /* fila elegida, tarjetas, sugerencias */
-  --sand: #e2d7c5; /* fondo de iniciales sin foto */
-  --line: #ddd2c0; /* bordes y separadores */
-  --line-strong: #a99e8b; /* borde de chips y filtros sin elegir */
-  --ink: #141a19; /* texto principal */
-  --ink-soft: #55605d; /* texto secundario */
-  --ink-faint: #55605d; /* de día no hay un tercer gris: no pasaría AA */
+  --sand: #eae1cf; /* fondo de iniciales sin foto */
+  --line: #e4dac6; /* bordes y separadores */
+  --line-strong: #ad9f86; /* borde de chips y filtros sin elegir */
+  --ink: #14100b; /* texto principal */
+  --ink-soft: #5c5446; /* texto secundario */
+  --ink-faint: #5c5446; /* de día no hay un tercer gris: no pasaría AA */
 
-  /* Acentos: idénticos de día y de noche. Sobre claro nunca son texto chico */
-  --copper: #d9783f; /* premio, botón primario */
-  --copper-duo: #d08050; /* duotono de fotos de premio */
-  --sage: #5e9488; /* honorífica */
-  --sage-duo: #7fafa4; /* duotono de fotos honoríficas */
+  /* Acentos. Sobre claro nunca son texto chico: van de relleno */
+  --copper: #e3b14e; /* premio (oro), botón primario */
+  --copper-duo: #d9a94d; /* duotono de fotos de premio */
+  --sage: #c23b44; /* honorífica (carmín) */
+  --sage-duo: #b9474e; /* duotono de fotos honoríficas */
   --kraft: #c9a57b; /* sobre de «Voto sellado» */
+
+  /* Texto encima de cada acento (para que pase AA): oscuro sobre oro, claro sobre carmín */
+  --on-copper: #14100b;
+  --on-sage: #fff6ee;
+  --on-accent: var(--on-copper);
 
   /* Estados: pasan AA sobre --bg y --sheet */
   --success: #2f6b3a;
-  --danger: #b3261e;
+  --danger: #a8231c;
 
   --beam: rgb(255 255 255 / 0.5); /* haces de luz del fondo */
 
   color-scheme: light;
 }
 
-/* Noche: la tinta pasa a ser el cielo y la hoja pasa a ser la luz */
+/* Noche dentro del tema claro: la tinta pasa a ser el cielo y la hoja la luz */
 .theme-night {
-  --bg: #141a19;
-  --sheet: #1d2523;
-  --raised: #232d2a;
-  --sand: #2c3633;
-  --line: #2c3633;
-  --line-strong: #3d4945;
-  --ink: #f8f4ec;
-  --ink-soft: #c9c2b6;
-  --ink-faint: #93a39e;
+  --bg: #0a0a0a;
+  --sheet: #161513;
+  --raised: #1e1c1a;
+  --sand: #292622;
+  --line: #292622;
+  --line-strong: #443f38;
+  --ink: #f6f0e4;
+  --ink-soft: #cbc1b0;
+  --ink-faint: #9b9283;
   --success: #8fd19e;
   --danger: #f2a199;
   --beam: rgb(248 244 236 / 0.05);
 
   color-scheme: dark;
   color: var(--ink);
+}
+
+/* --- Oscuro: Gala nocturna ---------------------------------------------------- */
+:root[data-theme="dark"] {
+  --bg: #0e0b0c;
+  --sheet: #1a1516;
+  --raised: #231c1d;
+  --sand: #2c2425;
+  --line: #2c2425;
+  --line-strong: #4a3e3f;
+  --ink: #f6efe6;
+  --ink-soft: #cbbfb5;
+  --ink-faint: #a99d95;
+
+  --copper: #c23b44; /* premio (carmín) */
+  --copper-duo: #b9474e;
+  --sage: #d9ae4f; /* honorífica (oro) */
+  --sage-duo: #dcb867;
+
+  --on-copper: #fff6ee;
+  --on-sage: #14100b;
+
+  --success: #8fd19e;
+  --danger: #f2a199;
+  --beam: rgb(248 244 236 / 0.05);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] .theme-night {
+  --bg: #070606;
+  --sheet: #141011;
+  --raised: #1c1718;
+  --sand: #262021;
+  --line: #262021;
+  --line-strong: #40383a;
+  --ink: #f6efe6;
+  --ink-soft: #cbbfb5;
+  --ink-faint: #9a8f88;
+}
+
+/* Texto sobre los rellenos de acento (botones, sellos, etiquetas). Va fuera de
+   las capas de Tailwind a propósito: así gana a un text-ink/text-bg puesto en
+   el mismo elemento y el contraste queda bien en los dos temas. */
+.bg-copper {
+  color: var(--on-copper);
+}
+.bg-sage {
+  color: var(--on-sage);
+}
+.bg-\(--accent\) {
+  color: var(--on-accent);
 }
 
 @theme inline {
@@ -211,10 +272,12 @@
 .accent-prize {
   --accent: var(--copper);
   --accent-duo: var(--copper-duo);
+  --on-accent: var(--on-copper);
 }
 .accent-honor {
   --accent: var(--sage);
   --accent-duo: var(--sage-duo);
+  --on-accent: var(--on-sage);
 }
 
 /* Carta boca abajo: un pedacito de noche con puntos del color de la categoría

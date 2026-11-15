@@ -7,6 +7,7 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Countdown } from "@/components/ui/Countdown";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { prisma } from "@/lib/db";
 import { boardCountdown, boardState, roomAction } from "@/lib/event/nominees";
 import { canRegister } from "@/lib/event/rules";
@@ -25,7 +26,7 @@ type Params = Promise<{ roomCode: string }>;
 export default function NomineesPage({ params }: { params: Params }) {
   return (
     <main className="mx-auto w-full max-w-[80rem] flex-1 space-y-5 px-4 pb-10 sm:px-6 lg:space-y-8 lg:px-10 lg:pb-14">
-      <header className="-mx-4 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:-mx-6 sm:px-6">
+      <header className="relative -mx-4 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:-mx-6 sm:px-6">
         <Logo className="py-3" />
         <nav aria-label="Sala" className="flex gap-6 text-[15px] font-semibold max-sm:w-full">
           <span aria-current="page" className="border-b-[3px] border-copper pt-3 pb-2.5 sm:pt-5 sm:pb-4">
@@ -35,6 +36,7 @@ export default function NomineesPage({ params }: { params: Params }) {
             ¿Quién ve mi voto?
           </Link>
         </nav>
+        <ThemeToggle className="ml-auto max-sm:absolute max-sm:top-2 max-sm:right-4" />
       </header>
       <Suspense
         fallback={

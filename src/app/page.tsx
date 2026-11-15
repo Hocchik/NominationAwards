@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 // Portada. Cada evento se juega en su sala (/s/[código]), que el organizador
 // comparte por WhatsApp; aquí solo se explica cómo entrar.
@@ -11,9 +12,12 @@ export default function Home() {
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Logo />
-        <Link href="/admin" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:underline">
-          Soy el organizador
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/admin" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:underline">
+            Soy el organizador
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="space-y-5 pt-6 sm:pt-12">

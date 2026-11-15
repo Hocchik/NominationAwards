@@ -5,7 +5,7 @@ import { CategoryTopBar, NightStage, type StageCategory, WinnerView, pad } from 
 import { Button } from "@/components/ui/Button";
 import { celebrate } from "@/lib/ceremony/effects";
 import { cn } from "@/lib/cn";
-import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_EXAMPLE_WINNERS, byName } from "@/lib/demo/fixtures";
+import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_EXAMPLE_PLACES, DEMO_EXAMPLE_WINNERS, byName } from "@/lib/demo/fixtures";
 
 const categories: StageCategory[] = DEMO_CATEGORIES.map((c) => ({
   id: c.id,
@@ -53,12 +53,13 @@ export function DemoWinner() {
       <div className="space-y-2">
         <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-ink-soft uppercase">
           <span aria-hidden="true" className="size-2 bg-copper" />
-          Así se anuncia en la reunión
+          Ejemplo de la ceremonia
         </p>
-        <h1 className="font-display text-3xl font-extrabold sm:text-4xl">El ganador</h1>
+        <h1 className="font-display text-3xl font-extrabold sm:text-4xl">Así se anuncia el ganador</h1>
         <p className="max-w-2xl text-ink-soft">
-          En la premiación, cada categoría termina con esta pantalla en el proyector. Los ganadores de este demo son de
-          ejemplo; en el evento real salen de los votos del grupo.
+          Esto no aparece en el celular de quien vota: en la reunión, el organizador abre la ceremonia a la hora que fije y la
+          proyecta. Cada categoría termina con esta pantalla. Los ganadores de este ejemplo son inventados; en el evento real
+          salen de los votos del grupo.
           <span className="sm:hidden"> Gira el celular para verlo más grande.</span>
         </p>
       </div>
@@ -79,6 +80,7 @@ export function DemoWinner() {
           winnerIds={DEMO_EXAMPLE_WINNERS[category.id] ?? []}
           winnerPercent={null}
           showWinnerPercent={false}
+          places={DEMO_EXAMPLE_PLACES[category.id]}
           year={year}
         />
       </div>

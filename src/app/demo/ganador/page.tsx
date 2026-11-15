@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DemoWinner } from "./DemoWinner";
 
-export const metadata: Metadata = { title: "Demo · Ganador" };
+export const metadata: Metadata = { title: "Demo · Ceremonia (ejemplo)" };
 
 export default function DemoWinnerPage() {
   return (
