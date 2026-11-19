@@ -25,7 +25,8 @@ export function DemoBanner() {
   };
 
   return (
-    <div className="theme-night sticky top-0 z-10 bg-bg">
+    // data-sticky-top: el hilo de categorías de Nominados se pega justo debajo de esta franja
+    <div data-sticky-top className="theme-night sticky top-0 z-20 bg-bg">
       <div className="mx-auto flex max-w-[80rem] flex-wrap items-center justify-between gap-x-6 px-4 sm:px-6 lg:px-10">
         <Link
           href="/demo"

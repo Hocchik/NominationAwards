@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { Countdown } from "@/components/ui/Countdown";
 import { LoaderLink } from "@/components/ui/LoaderLink";
+import { CategoryNav } from "./CategoryNav";
 import { cn } from "@/lib/cn";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
 import { initials } from "@/lib/initials";
@@ -212,12 +213,21 @@ export function NomineesShow({
 
       {strip && <div className="mx-auto max-w-[90rem] px-4 py-6 sm:px-6 lg:px-16">{strip}</div>}
 
-      {/* 2 · Un capítulo por categoría */}
-      {categories.map((c, ci) => (
+      {/* 2 · Un capítulo por categoría, con el hilo pegado arriba (y el riel en PC) */}
+      {categories.length > 1 && (
+        <CategoryNav
+          categories={categories.map((c) => ({
+            num: c.num,
+            name: c.name,
+            type: c.type,
+            initials: c.finalists.map((f) => initials(f.name)),
+          }))}
+        />
+      )}
+      {categories.map((c) => (
         <Chapter
           key={c.id}
           category={c}
-          index={ci}
           all={categories}
           revealed={revealed}
           slots={slots}
@@ -254,7 +264,6 @@ function VoteButton({ vote, size, className }: { vote: VoteCta; size?: "lg"; cla
 
 function Chapter({
   category,
-  index,
   all,
   revealed,
   slots,
@@ -262,7 +271,6 @@ function Chapter({
   vote,
 }: {
   category: BoardCategory;
-  index: number;
   all: BoardCategory[];
   revealed: boolean;
   slots: number;
@@ -274,7 +282,7 @@ function Chapter({
   const ribbon = Array.from({ length: 6 }, () => category.name).join("  ✦  ");
   const count = revealed ? category.finalists.length : slots;
   return (
-    <section id={`categoria-${category.num}`} className={cn("nx-chapter relative border-t border-line", prize ? "accent-prize" : "accent-honor")}>
+    <section id={`categoria-${category.num}`} className={cn("nx-chapter relative scroll-mt-(--nav-top) border-t border-line", prize ? "accent-prize" : "accent-honor")}>
       {/* Cinta con el nombre de la categoría, se desliza con el scroll */}
       <div aria-hidden="true" className="overflow-hidden border-b border-line py-4 whitespace-nowrap lg:py-6">
         <span className="nx-marquee inline-block font-display text-[34px] font-extrabold tracking-[-0.03em] text-transparent uppercase [-webkit-text-stroke:1.5px_var(--line-strong)] lg:text-[64px]">
@@ -283,7 +291,7 @@ function Chapter({
       </div>
 
       <div className="mx-auto grid max-w-[90rem] gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(250px,30%)_minmax(0,1fr)] lg:gap-16 lg:px-16 lg:py-24">
-        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-8">
+        <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-[calc(var(--nav-top,0px)+2rem)]">
           <span className="self-start bg-(--accent) px-2.5 py-1.5 text-xs font-bold tracking-[0.22em] uppercase chamfer-6">
             {TYPE_LABEL[category.type]}
           </span>
@@ -298,24 +306,6 @@ function Chapter({
           <div className="h-0.5 bg-line">
             <div className="nx-progress h-0.5 bg-(--accent)" />
           </div>
-          {/* Índice: atajo a cada categoría */}
-          <nav aria-label="Categorías" className="mt-3 hidden flex-col lg:flex">
-            {all.map((other, i) => {
-              const current = i === index;
-              return (
-                <a
-                  key={other.id}
-                  href={`#categoria-${other.num}`}
-                  aria-current={current ? "true" : undefined}
-                  className={cn("flex min-h-10 items-center gap-3 text-[15px] transition-colors hover:text-ink", current ? "font-bold text-ink" : "text-ink-soft")}
-                >
-                  <span aria-hidden="true" className={cn("size-2.5 shrink-0 rotate-45 border-[1.5px]", current ? "border-(--accent) bg-(--accent)" : "border-line-strong")} />
-                  <span className="w-6 font-display text-xs font-bold">{other.num}</span>
-                  <span>{other.name}</span>
-                </a>
-              );
-            })}
-          </nav>
         </aside>
 
         <div>
