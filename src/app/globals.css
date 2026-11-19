@@ -103,6 +103,33 @@
   --ink-faint: #9a8f88;
 }
 
+/* Nominados y la ceremonia van siempre con la paleta clara «Oro y carmín» (oro
+   para premio, carmín para honorífica), aunque la persona use el tema oscuro
+   (decisión del usuario, 2026-11-19). El botón claro/oscuro solo cambia la
+   entrada, las papeletas, el demo y el panel. */
+:root[data-theme="dark"] .palette-claro {
+  --copper: #e3b14e;
+  --copper-duo: #d9a94d;
+  --sage: #c23b44;
+  --sage-duo: #b9474e;
+  --on-copper: #14100b;
+  --on-sage: #fff6ee;
+  --on-accent: var(--on-copper);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .palette-claro.theme-night,
+:root[data-theme="dark"] .palette-claro .theme-night {
+  --bg: #0a0a0a;
+  --sheet: #161513;
+  --raised: #1e1c1a;
+  --sand: #292622;
+  --line: #292622;
+  --line-strong: #443f38;
+  --ink: #f6f0e4;
+  --ink-soft: #cbc1b0;
+  --ink-faint: #9b9283;
+}
+
 /* Texto sobre los rellenos de acento (botones, sellos, etiquetas). Va fuera de
    las capas de Tailwind a propósito: así gana a un text-ink/text-bg puesto en
    el mismo elemento y el contraste queda bien en los dos temas. */
@@ -283,6 +310,17 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* Fondo de la ceremonia: un degradado con luz desde arriba, para que no sea tan oscuro */
+.stage-gradient {
+  background: radial-gradient(
+      130% 105% at 50% -12%,
+      color-mix(in oklab, var(--accent) 24%, color-mix(in oklab, var(--sheet) 74%, var(--ink))) 0%,
+      color-mix(in oklab, var(--sheet) 86%, var(--ink)) 38%,
+      var(--sheet) 70%,
+      var(--bg) 100%
+    );
 }
 
 /* Portada, asistencia y cierre de la ceremonia (la revelación vive en components/ceremony/reveal.css) */

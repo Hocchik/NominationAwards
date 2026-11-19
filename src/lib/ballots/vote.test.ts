@@ -12,18 +12,22 @@ describe("papeleta de voto", () => {
   ];
 
   it("pide una opción en cada categoría", () => {
-    expect(Object.keys(validateVotes({ [uuid(1)]: uuid(11) }, categories, true))).toEqual([uuid(2)]);
+    expect(Object.keys(validateVotes({ [uuid(1)]: uuid(11) }, categories))).toEqual([uuid(2)]);
   });
 
-  it("acepta «Me abstengo» solo si el evento lo permite", () => {
+  it("no hay «Me abstengo»: en cada categoría hay que votar por alguien", () => {
     const votes = { [uuid(1)]: uuid(11), [uuid(2)]: null };
-    expect(validateVotes(votes, categories, true)).toEqual({});
-    expect(Object.keys(validateVotes(votes, categories, false))).toEqual([uuid(2)]);
+    expect(Object.keys(validateVotes(votes, categories))).toEqual([uuid(2)]);
+  });
+
+  it("si no hay a quién votar (eras el único finalista), esa categoría no se pide", () => {
+    const soloYo = [categories[0]!, { id: uuid(3), finalistIds: [] }];
+    expect(validateVotes({ [uuid(1)]: uuid(11) }, soloYo)).toEqual({});
   });
 
   it("rechaza un finalista que no es de esa categoría", () => {
     const votes = { [uuid(1)]: uuid(21), [uuid(2)]: uuid(21) };
-    expect(Object.keys(validateVotes(votes, categories, true))).toEqual([uuid(1)]);
+    expect(Object.keys(validateVotes(votes, categories))).toEqual([uuid(1)]);
   });
 
   it("la papeleta trae todas las categorías activas y se puede volver a leer", () => {

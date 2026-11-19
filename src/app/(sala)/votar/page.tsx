@@ -73,7 +73,6 @@ async function Vote() {
           isSelf: f.participantId === participant.id,
         })),
       }))}
-      allowAbstention={event.allowVoteAbstention}
       publicKey={event.votePublicKey}
       ballotBytes={voteBallotBytes(categories.length)}
       closesAt={event.votingClosesAt?.toISOString() ?? null}

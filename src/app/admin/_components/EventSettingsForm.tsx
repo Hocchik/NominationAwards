@@ -15,7 +15,6 @@ export interface EventSettingsValues {
   maxPrizeCategories: number;
   showWinnerPercent: boolean;
   allowNominationSkip: boolean;
-  allowVoteAbstention: boolean;
 }
 
 /** true = se puede editar en la fase actual (ver lib/event/rules.ts). */
@@ -27,7 +26,7 @@ export interface EventSettingsEditable {
   voteRules: boolean;
 }
 
-type BooleanSetting = "showWinnerPercent" | "allowNominationSkip" | "allowVoteAbstention";
+type BooleanSetting = "showWinnerPercent" | "allowNominationSkip";
 
 const LOCKED = "Bloqueado en esta fase para que las reglas sean iguales para todos.";
 
@@ -127,12 +126,6 @@ export function EventSettingsForm({
               editable: editable.structure,
               label: "Al nominar, se puede dejar una categoría vacía",
               hint: "Si no, hay que nominar al menos el mínimo en todas las categorías.",
-            },
-            {
-              name: "allowVoteAbstention",
-              editable: editable.voteRules,
-              label: "Al votar, se puede abstener en una categoría",
-              hint: "Aparece la opción «Me abstengo» junto a los finalistas.",
             },
             {
               name: "showWinnerPercent",

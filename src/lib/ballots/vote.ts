@@ -6,7 +6,7 @@ import { z } from "zod";
 export interface VoteBallot {
   v: 1;
   kind: "vote";
-  /** categoryId → finalistId, o null si se abstuvo (cuando el evento lo permite). */
+  /** categoryId → finalistId; null solo si en esa categoría no había a quién votar (eras el único finalista). */
   votes: Record<string, string | null>;
 }
 
@@ -26,19 +26,22 @@ export function voteBallotBytes(activeCategoryCount: number): number {
   return Math.max(1024, Math.ceil((BASE + activeCategoryCount * PER_CATEGORY) / 1024) * 1024);
 }
 
-/** Problemas por categoría (id → mensaje). Sin problemas = se puede sellar. */
+/**
+ * Problemas por categoría (id → mensaje). Sin problemas = se puede sellar.
+ * No hay «Me abstengo» (decisión del usuario, 2026-11-19): en cada categoría se
+ * vota por alguien. La única excepción es una categoría sin opciones válidas
+ * (la persona era su único finalista): ahí no se pide nada.
+ */
 export function validateVotes(
   votes: Record<string, string | null | undefined>,
   categories: VoteCategory[],
-  allowAbstention: boolean,
 ): Record<string, string> {
   const issues: Record<string, string> = {};
   for (const category of categories) {
+    if (category.finalistIds.length === 0) continue;
     const choice = votes[category.id];
-    if (choice === undefined) {
-      issues[category.id] = allowAbstention ? "Elige un finalista o «Me abstengo»." : "Elige un finalista.";
-    } else if (choice === null) {
-      if (!allowAbstention) issues[category.id] = "En esta votación no se permite abstenerse.";
+    if (choice === undefined || choice === null) {
+      issues[category.id] = "Elige un finalista.";
     } else if (!category.finalistIds.includes(choice)) {
       issues[category.id] = "Esa opción ya no es válida. Elige de nuevo.";
     }

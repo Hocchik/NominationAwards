@@ -148,11 +148,11 @@ export function CeremonyShow({
 
   return (
     <main
-      className="theme-night fixed inset-0 z-20 flex cursor-none items-center justify-center bg-black"
+      className="theme-night palette-claro fixed inset-0 z-20 flex cursor-none items-center justify-center bg-black"
       onClick={next}
       aria-live="polite"
     >
-      <div className="@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden bg-bg accent-prize">
+      <div className="@container relative flex aspect-video w-[min(100vw,177.78vh)] items-center justify-center overflow-hidden stage-gradient accent-prize">
         {slide.kind === "category" ? (
           // La misma escena para los dos pasos de la categoría: al avanzar, sigue la animación.
           <RevealScene

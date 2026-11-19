@@ -190,7 +190,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 | `/` | La sala (decisión del usuario, 2026-11-14: todo en la raíz). Según la fase (`homeView` en `lib/event/nominees.ts`): SETUP o sin evento → «la sala todavía no abre», con enlaces a «Probar la demo» y «Ver el diseño» (`/diseno.html`); NOMINATIONS → entrada con la lista de invitados y luego a `/nominar` (quien ya nominó ve «¡Listo!» con la cuenta regresiva al cierre); desde NOMINATIONS_CLOSED → **Nominados**, la vista que queda el resto del evento. La ceremonia nunca aparece aquí |
 | `/entrar?ir=nominar\|votar` | Tarjetas con los nombres de la lista de invitados + buscador; se toca el nombre, se confirma «Sí, soy yo» (sin PIN) y sigue a nominar o votar |
 | `/nominar` | Una tarjeta por categoría con su consigna; autocompletado con la lista de invitados (menos uno mismo) + opción "Otro (referente externo)" con texto libre; barra de progreso; revisión final y envío único |
-| Nominados (en `/`) | Siempre de noche (`components/nominees/NomineesShow.tsx`): entrada con las fotos grupales y un capítulo por categoría con foto o iniciales, nombre y apodo, en orden alfabético y **sin conteos** (regla 8) (ver §9). Botón **Votar** (`voteButton`): visible pero apagado hasta que abre la votación (con cuenta regresiva), activo mientras está abierta (`votingOpensAt`–`votingClosesAt`, lo fija el admin), «✔ Ya votaste» y «Votación cerrada» después. Antes de que existan finalistas: cartas boca abajo. Pública (sin enviar finalistas al navegador mientras estén boca abajo); con sesión se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas`. `/nominados` redirige a `/` |
+| Nominados (en `/`) | Siempre de noche (`components/nominees/NomineesShow.tsx`): entrada con las fotos grupales y un capítulo por categoría con foto o iniciales, nombre y apodo, en orden alfabético y **sin conteos** (regla 8) (ver §9). Botón **Votar** (`voteButton`): visible pero apagado hasta que abre la votación (con cuenta regresiva), activo mientras está abierta (`votingOpensAt`–`votingClosesAt`, lo fija el admin), «✔ Ya votaste» y «Votación cerrada» después. Va arriba en la entrada y, mientras la votación está abierta, también en cada capítulo junto al número grande (al lado en el celular, debajo en PC, donde queda pegado al bajar); no hay botón al final de la página (decisión del usuario, 2026-11-19). Antes de que existan finalistas: cartas boca abajo. Pública (sin enviar finalistas al navegador mientras estén boca abajo); con sesión se muestra la franja de participación. Una categoría se publica al activarla en `/admin/finalistas`. `/nominados` redirige a `/` |
 | `/votar` | Una categoría por pantalla, tarjetas de finalistas (la propia sale como «Eres tú» y no se puede elegir), resumen final y confirmación. Al enviar: «¡Listo! Tu voto quedó guardado en secreto» |
 | `/transparencia` | "¿Quién puede ver mi voto? Nadie." Explicación del cifrado, la llave del notario, los sobres que pierden el nombre al cerrar y link al repo público |
 
@@ -247,7 +247,7 @@ Una sola identidad con dos momentos: **de día** (la web: Nominar, Nominados, Vo
 
 ### Dos temas: claro y oscuro (decisión del usuario, 2026-11-14)
 
-Cada persona elige con el botón `ThemeToggle` (en la entrada de la sala, las papeletas, el demo y el panel; Nominados es siempre de noche). La elección se guarda solo en su dispositivo (`localStorage` «tema»); si nunca eligió, manda su sistema. Un script en `layout.tsx` pone `data-theme` en `<html>` antes de pintar. La ceremonia siempre es de noche.
+Cada persona elige con el botón `ThemeToggle` (en la entrada de la sala, las papeletas, el demo y el panel; Nominados es siempre de noche). **Nominados y la ceremonia usan siempre la paleta clara «Oro y carmín»** (oro premio, carmín honorífica) aunque la persona tenga el tema oscuro: clase `.palette-claro` en `globals.css` (decisión del usuario, 2026-11-19). La elección se guarda solo en su dispositivo (`localStorage` «tema»); si nunca eligió, manda su sistema. Un script en `layout.tsx` pone `data-theme` en `<html>` antes de pintar. La ceremonia siempre es de noche.
 
 | Token | Claro · «Oro y carmín» | Oscuro · «Gala nocturna» | Uso |
 |---|---|---|---|
@@ -285,7 +285,7 @@ Noche (`.theme-night`): en el tema claro `--bg #0A0A0A`, `--sheet #161513`, `--i
 - **Papeleta (Nominar / Votar):** hoja `--sheet` con filo `--line` sobre `--bg`, cabecera con doble regla (2px + 1px de tinta) y sello de tipo de categoría rotado. En Votar, fila completa tocable con foto, frase, «Tu voto» y casilla que se llena de cobre. En PC, la papeleta va al centro con el índice o el resumen a un costado.
 - **Nominados = «Estreno con recuerdos»** (lienzo R8 · A2, siempre de noche): entrada con las 3 fotos grupales que sube el admin (`GroupPhoto`, en `/admin/evento`) en abanico; al bajar, cada una pasa a pantalla completa como diapositiva con una frase (animaciones atadas al scroll, `nominados/show.css`). Luego un capítulo por categoría: cinta con el nombre, número con contorno que se llena, índice, y tarjetas con foto, nombre y apodo (sin frases ni conteos). Antes de los finalistas: cartas boca abajo y cuenta regresiva.
 - **¡Listo! (voto sellado):** sobre kraft con sello de cera cobre, «Tu voto quedó guardado en secreto» y por qué nadie lo ve. Sin comprobante.
-- **Premiación (noche):** portada, asistencia y cierre sobre el escenario con reflectores y piso en perspectiva; cada categoría usa la escena de §8 (1280 × 720 escalada al proyector).
+- **Premiación (noche):** portada, asistencia y cierre sobre el escenario con reflectores y piso en perspectiva; cada categoría usa la escena de §8 (1280 × 720 escalada al proyector). Fondo con degradado de luz desde arriba (`.stage-gradient`), para que no sea tan oscuro; el confeti cae por los costados y queda en el piso, sin tapar el nombre ni «Le siguen».
 
 ---
 
@@ -343,7 +343,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 - ~~Nombre del evento y del grupo (identidad visual)~~ **Decidido (2026-11-15):** «Premios del Grupo», con la estatuilla de brazos cruzados como logo (§9).
 - Fecha de la reunión (para programar fases)
 - ~~¿Quién será el notario?~~ **Decidido (2026-11-12):** el mismo organizador.
-- ~~¿Se permite omitir una categoría al nominar o votar (abstención)?~~ **Decidido (por ahora):** sí en ambos casos; queda configurable por evento (`allowNominationSkip`, `allowVoteAbstention`) por si cambia. Nadie puede nominarse a sí mismo.
+- ~~¿Se permite omitir una categoría al nominar o votar (abstención)?~~ **Decidido:** al nominar se puede dejar una categoría vacía (configurable, `allowNominationSkip`). **Al votar no hay «Me abstengo»** (decisión del usuario, 2026-11-19): en cada categoría se vota por alguien; solo se salta una categoría si la persona era su único finalista. La columna `allowVoteAbstention` queda en la base sin uso. Nadie puede nominarse a sí mismo.
 - ¿Mostrar el % del ganador o solo el nombre?
 - Número de finalistas por categoría (3, 4 o 5)
 - ¿Fotos de los finalistas en la ceremonia?

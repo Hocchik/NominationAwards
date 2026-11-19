@@ -88,7 +88,6 @@ async function EventPanel() {
             maxPrizeCategories: event.maxPrizeCategories,
             showWinnerPercent: event.showWinnerPercent,
             allowNominationSkip: event.allowNominationSkip,
-            allowVoteAbstention: event.allowVoteAbstention,
           }}
           editable={{
             structure: canEditStructure(event.phase),

@@ -18,7 +18,13 @@
   height: 720px;
   overflow: hidden;
   transform-origin: 0 0;
-  background: radial-gradient(80% 60% at 50% 10%, var(--sheet), var(--bg) 70%);
+  background: radial-gradient(
+      130% 105% at 50% -12%,
+      color-mix(in oklab, var(--accent) 24%, color-mix(in oklab, var(--sheet) 74%, var(--ink))) 0%,
+      color-mix(in oklab, var(--sheet) 86%, var(--ink)) 38%,
+      var(--sheet) 70%,
+      var(--bg) 100%
+    );
   color: var(--ink);
   font-family: var(--font-schibsted), system-ui, sans-serif;
 }

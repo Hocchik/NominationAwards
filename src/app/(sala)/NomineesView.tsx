@@ -18,7 +18,7 @@ import { ParticipantStrip } from "./ParticipantStrip";
 export function NomineesView({ event, participant }: { event: Event; participant: Participant | null }) {
   // Siempre de noche (decisión del usuario, 2026-11-14): es la antesala de la gala.
   return (
-    <main className="theme-night flex w-full flex-1 flex-col bg-bg text-ink">
+    <main className="theme-night palette-claro flex w-full flex-1 flex-col bg-bg text-ink">
       <header className="relative z-10 flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line-strong/50 px-4 sm:px-6 lg:px-16">
         <AdminDoor>
           <Logo className="py-3" />

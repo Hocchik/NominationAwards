@@ -118,7 +118,7 @@ export function NomineesShow({
   const sayRanges = ["contain 17% contain 38%", "contain 37% contain 60%", "contain 70% contain 140%"];
 
   return (
-    <div className="theme-night bg-bg text-ink">
+    <div className="theme-night palette-claro bg-bg text-ink">
       {/* 1 · Entrada */}
       <section className="nx-intro" aria-label="Entrada">
         <div className="nx-stage">
@@ -214,26 +214,18 @@ export function NomineesShow({
 
       {/* 2 · Un capítulo por categoría */}
       {categories.map((c, ci) => (
-        <Chapter key={c.id} category={c} index={ci} all={categories} revealed={revealed} slots={slots} revealNote={revealNote} />
+        <Chapter
+          key={c.id}
+          category={c}
+          index={ci}
+          all={categories}
+          revealed={revealed}
+          slots={slots}
+          revealNote={revealNote}
+          // Solo con la votación abierta: veinte botones apagados serían ruido (arriba ya está el de la cuenta regresiva).
+          vote={vote?.href ? vote : null}
+        />
       ))}
-
-      {/* 3 · Cierre */}
-      {vote?.href && (
-        <section className="mx-auto flex max-w-[90rem] flex-wrap items-end justify-between gap-8 border-t border-line px-4 py-20 sm:px-6 lg:px-16 lg:py-28">
-          <p className="max-w-3xl font-display text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.03em]">
-            {revealed ? (
-              <>
-                ¿Ya sabes <em className="font-sans font-semibold italic">por quién</em> votar?
-              </>
-            ) : (
-              <>
-                Los nominados <em className="font-sans font-semibold italic">se revelan</em> pronto.
-              </>
-            )}
-          </p>
-          <VoteButton vote={vote} size="lg" className="max-sm:w-full" />
-        </section>
-      )}
     </div>
   );
 }
@@ -267,6 +259,7 @@ function Chapter({
   revealed,
   slots,
   revealNote,
+  vote,
 }: {
   category: BoardCategory;
   index: number;
@@ -274,6 +267,8 @@ function Chapter({
   revealed: boolean;
   slots: number;
   revealNote: string;
+  /** Votar a mano en cada capítulo (en PC queda pegado con el número al bajar). */
+  vote: VoteCta | null;
 }) {
   const prize = category.type === "PRIZE";
   const ribbon = Array.from({ length: 6 }, () => category.name).join("  ✦  ");
@@ -292,9 +287,13 @@ function Chapter({
           <span className="self-start bg-(--accent) px-2.5 py-1.5 text-xs font-bold tracking-[0.22em] uppercase chamfer-6">
             {TYPE_LABEL[category.type]}
           </span>
-          <span aria-hidden="true" className="nx-num font-display text-[clamp(120px,15vw,230px)] leading-[0.8] font-black tracking-[-0.07em]">
-            {category.num}
-          </span>
+          {/* En el celular, Votar va al lado del número; en PC, debajo (y queda pegado con él al bajar) */}
+          <div className="flex items-end justify-between gap-4 lg:flex-col lg:items-start">
+            <span aria-hidden="true" className="nx-num font-display text-[clamp(120px,15vw,230px)] leading-[0.8] font-black tracking-[-0.07em]">
+              {category.num}
+            </span>
+            {vote && <VoteButton vote={vote} className="shrink-0 max-lg:mb-1" />}
+          </div>
           <p className="text-[17px] leading-relaxed text-ink-soft lg:text-[19px]">{category.description}</p>
           <div className="h-0.5 bg-line">
             <div className="nx-progress h-0.5 bg-(--accent)" />

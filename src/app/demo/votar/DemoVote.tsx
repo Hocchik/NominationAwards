@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { VoteBallotForm } from "@/app/(sala)/votar/VoteBallotForm";
 import { voteBallotBytes } from "@/lib/ballots/vote";
-import { DEMO_ALLOW_ABSTENTION, DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName } from "@/lib/demo/fixtures";
+import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";
 import { demoPause } from "@/lib/demo/pause";
 import { useDemo } from "../DemoProvider";
@@ -50,7 +50,6 @@ export function DemoVote() {
       roomCode={`${DEMO_ROOM_CODE}-${self.id}`}
       eventName={DEMO_EVENT_NAME}
       categories={categories}
-      allowAbstention={DEMO_ALLOW_ABSTENTION}
       publicKey={keys.publicKey}
       ballotBytes={voteBallotBytes(DEMO_CATEGORIES.length)}
       closesAt={null}

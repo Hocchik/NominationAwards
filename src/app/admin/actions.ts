@@ -23,7 +23,6 @@ import {
   canEditNominationsClose,
   canEditSchedule,
   canEditStructure,
-  canEditVoteRules,
   canEditWinnerPercent,
 } from "@/lib/event/rules";
 import {
@@ -125,9 +124,6 @@ export async function updateEventAction(_prev: FormState, formData: FormData): P
     allowNominationSkip: canEditStructure(phase)
       ? formData.get("allowNominationSkip") === "on"
       : event.allowNominationSkip,
-    allowVoteAbstention: canEditVoteRules(phase)
-      ? formData.get("allowVoteAbstention") === "on"
-      : event.allowVoteAbstention,
   });
   if (!parsed.success) return fieldErrors(parsed.error, formData);
 

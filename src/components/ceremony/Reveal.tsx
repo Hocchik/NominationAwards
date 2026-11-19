@@ -144,15 +144,16 @@ export function RevealScene({
   // Banderines y confeti: el acento de la categoría, la tinta y el otro acento.
   const other = prize ? "var(--sage)" : "var(--copper)";
   const rnd = seeded(13 + number);
-  const confetti = Array.from({ length: 64 }, (_, i) => ({
-    x: rnd() * W,
+  // Por los costados: el centro (nombre y «Le siguen») queda limpio.
+  const confetti = Array.from({ length: 52 }, (_, i) => ({
+    x: i % 2 ? 940 + rnd() * 330 : 10 + rnd() * 430,
     w: 7 + rnd() * 6,
     h: 10 + rnd() * 8,
     c: [`var(--ink)`, "var(--accent)", other][i % 3],
     d: 4.4 + rnd() * 1.8,
     t: 2 + rnd() * 1.6,
     sway: (rnd() - 0.5) * 120,
-    land: 590 + rnd() * 50,
+    land: 640 + rnd() * 60,
     spin: (rnd() - 0.5) * 720,
   }));
   const flags = Array.from({ length: 23 }, (_, i) => {

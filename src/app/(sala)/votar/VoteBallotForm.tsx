@@ -41,7 +41,7 @@ interface CategoryInfo {
   finalists: FinalistInfo[];
 }
 
-/** Elección por categoría: id del finalista, null = me abstengo, undefined = sin elegir. */
+/** Elección por categoría: id del finalista; undefined = sin elegir (null solo si no había a quién votar). */
 type Votes = Record<string, string | null>;
 
 // Borrador en sessionStorage: sobrevive a una recarga y se borra al cerrar la
@@ -53,7 +53,6 @@ export function VoteBallotForm({
   roomCode,
   eventName,
   categories,
-  allowAbstention,
   publicKey,
   ballotBytes,
   closesAt,
@@ -64,7 +63,6 @@ export function VoteBallotForm({
   roomCode: string;
   eventName: string;
   categories: CategoryInfo[];
-  allowAbstention: boolean;
   publicKey: string;
   ballotBytes: number;
   closesAt: string | null;
@@ -87,7 +85,6 @@ export function VoteBallotForm({
     votes,
     // Nadie puede votarse a sí mismo: su propia tarjeta no cuenta como opción.
     categories.map((c) => ({ id: c.id, finalistIds: c.finalists.filter((f) => !f.isSelf).map((f) => f.id) })),
-    allowAbstention,
   );
 
   useEffect(() => {
@@ -112,7 +109,7 @@ export function VoteBallotForm({
   function choiceLabel(category: CategoryInfo): string {
     const choice = votes[category.id];
     if (choice === undefined) return "Sin elegir";
-    if (choice === null) return "Me abstengo";
+    if (choice === null) return "Sin opciones (eras el único finalista)";
     return category.finalists.find((f) => f.id === choice)?.name ?? "Sin elegir";
   }
 
@@ -250,26 +247,6 @@ export function VoteBallotForm({
                       </label>
                     );
                   })}
-                  {allowAbstention && (
-                    <label
-                      className={cn(
-                        "flex min-h-14 cursor-pointer items-center gap-3 border-b border-l-[3px] border-b-line py-2 pr-1.5 pl-2.5 text-[15px] transition-colors",
-                        "has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ink",
-                        votes[category.id] === null ? "border-l-ink bg-raised font-semibold" : "border-l-transparent text-ink-soft hover:bg-raised/60",
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name={`voto-${category.id}`}
-                        value="abstencion"
-                        checked={votes[category.id] === null}
-                        onChange={() => choose(category.id, null)}
-                        className="sr-only"
-                      />
-                      <span className="flex-1">Me abstengo en esta categoría</span>
-                      <CheckBox checked={votes[category.id] === null} />
-                    </label>
-                  )}
                 </div>
               </fieldset>
             </>

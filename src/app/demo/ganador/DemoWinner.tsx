@@ -77,7 +77,7 @@ export function DemoWinner() {
         </p>
       </div>
 
-      <div className="theme-night overflow-hidden chamfer-12 sm:chamfer-24">
+      <div className="theme-night palette-claro overflow-hidden chamfer-12 sm:chamfer-24">
         <RevealScene
           key={`${category.id}-${take}`}
           category={category}

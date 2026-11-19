@@ -25,7 +25,6 @@ export const DEMO_EVENT_NAME = "Premios de prueba";
 /** Solo nombra los borradores que las papeletas guardan en sessionStorage. */
 export const DEMO_ROOM_CODE = "DEMO";
 export const DEMO_RULES: NominationRules = { min: 3, max: 5, allowSkip: true };
-export const DEMO_ALLOW_ABSTENTION = true;
 
 const P = {
   ana: "3a6bcb65-679f-4914-a5b9-50f13d1a4963",
