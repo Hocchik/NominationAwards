@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/cn";
 import { useDemo } from "./DemoProvider";
 
@@ -36,12 +35,11 @@ export function DemoBanner() {
           Demo · nada <span className="max-sm:hidden">de esto</span> se guarda
         </Link>
         <div className="flex items-center gap-3 sm:order-last">
-          <ThemeToggle className="min-h-9" />
           <Link href="/" className="flex min-h-11 items-center text-sm text-ink-soft underline-offset-4 hover:text-ink hover:underline">
             Salir del demo
           </Link>
         </div>
-        <nav aria-label="Pasos del demo" className="-mx-2 flex w-full gap-0.5 overflow-x-auto text-sm font-semibold sm:mx-0 sm:w-auto sm:flex-1">
+        <nav aria-label="Pasos del demo" className="no-scrollbar -mx-2 flex w-full gap-0.5 overflow-x-auto text-sm font-semibold sm:mx-0 sm:w-auto sm:flex-1">
           {STEPS.map((step, i) => {
             const current = pathname === step.href;
             return (

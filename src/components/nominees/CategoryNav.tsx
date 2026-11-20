@@ -111,10 +111,17 @@ export function CategoryNav({ categories }: { categories: NavCategory[] }) {
           <button
             type="button"
             onClick={() => dialog.current?.showModal()}
-            className="-mr-2 inline-flex min-h-10 items-center gap-1.5 px-2 text-[13px] text-ink-soft hover:text-ink"
+            aria-haspopup="dialog"
+            className="inline-flex min-h-9 shrink-0 items-center gap-2 border-[1.5px] border-ink/70 px-3 text-[13px] font-semibold transition-colors chamfer-6 hover:border-ink hover:bg-ink hover:text-bg"
           >
-            <span className="lg:hidden">de {total}</span>
-            <span className="max-lg:hidden">Ver las {total} categorías</span>
+            <ListIcon />
+            <span>
+              Categorías
+              <span className="font-normal opacity-70 max-sm:hidden">
+                {" "}
+                · {active.num}/{total}
+              </span>
+            </span>
             <Chevron />
           </button>
         </div>
@@ -242,6 +249,21 @@ export function CategoryNav({ categories }: { categories: NavCategory[] }) {
         </div>
       </dialog>
     </>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <g fill="currentColor">
+        <rect x="1.5" y="3" width="2.4" height="2.4" />
+        <rect x="1.5" y="6.8" width="2.4" height="2.4" />
+        <rect x="1.5" y="10.6" width="2.4" height="2.4" />
+        <rect x="5.5" y="3.5" width="9" height="1.4" />
+        <rect x="5.5" y="7.3" width="9" height="1.4" />
+        <rect x="5.5" y="11.1" width="9" height="1.4" />
+      </g>
+    </svg>
   );
 }
 

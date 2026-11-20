@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, Fragment, type ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { Countdown } from "@/components/ui/Countdown";
 import { LoaderLink } from "@/components/ui/LoaderLink";
@@ -279,14 +279,18 @@ function Chapter({
   vote: VoteCta | null;
 }) {
   const prize = category.type === "PRIZE";
-  const ribbon = Array.from({ length: 6 }, () => category.name).join("  ✦  ");
   const count = revealed ? category.finalists.length : slots;
   return (
     <section id={`categoria-${category.num}`} className={cn("nx-chapter relative scroll-mt-(--nav-top) border-t border-line", prize ? "accent-prize" : "accent-honor")}>
-      {/* Cinta con el nombre de la categoría, se desliza con el scroll */}
-      <div aria-hidden="true" className="overflow-hidden border-b border-line py-4 whitespace-nowrap lg:py-6">
-        <span className="nx-marquee inline-block font-display text-[34px] font-extrabold tracking-[-0.03em] text-transparent uppercase [-webkit-text-stroke:1.5px_var(--line-strong)] lg:text-[64px]">
-          {ribbon}
+      {/* Cinta «fina y espaciada» (lienzo R23 · E): un detalle que se desliza con el scroll, sin competir con el título */}
+      <div aria-hidden="true" className="overflow-hidden border-b border-line py-4 whitespace-nowrap lg:py-[18px]">
+        <span className="nx-marquee inline-flex items-center font-display text-[13px] font-bold tracking-[0.32em] text-ink/25 uppercase lg:text-lg">
+          {Array.from({ length: 10 }, (_, i) => (
+            <Fragment key={i}>
+              {i > 0 && <span className="mx-3.5 inline-block size-1.5 shrink-0 rotate-45 bg-(--accent)/60 lg:mx-6" />}
+              <span>{category.name}</span>
+            </Fragment>
+          ))}
         </span>
       </div>
 
@@ -295,17 +299,18 @@ function Chapter({
           <span className="self-start bg-(--accent) px-2.5 py-1.5 text-xs font-bold tracking-[0.22em] uppercase chamfer-6">
             {TYPE_LABEL[category.type]}
           </span>
-          {/* En el celular, Votar va al lado del número; en PC, debajo (y queda pegado con él al bajar) */}
+          {/* En el celular, Votar va al lado del número; en PC, bajo la raya de avance (y queda pegado al bajar) */}
           <div className="flex items-end justify-between gap-4 lg:flex-col lg:items-start">
             <span aria-hidden="true" className="nx-num font-display text-[clamp(120px,15vw,230px)] leading-[0.8] font-black tracking-[-0.07em]">
               {category.num}
             </span>
-            {vote && <VoteButton vote={vote} className="shrink-0 max-lg:mb-1" />}
+            {vote && <VoteButton vote={vote} className="shrink-0 mb-1 lg:hidden" />}
           </div>
           <p className="text-[17px] leading-relaxed text-ink-soft lg:text-[19px]">{category.description}</p>
           <div className="h-0.5 bg-line">
             <div className="nx-progress h-0.5 bg-(--accent)" />
           </div>
+          {vote && <VoteButton vote={vote} className="mt-4 self-start max-lg:hidden" />}
         </aside>
 
         <div>

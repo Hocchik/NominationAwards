@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { DEMO_EVENT_NAME } from "@/lib/demo/fixtures";
 import { DemoEnter } from "./DemoEnter";
 
@@ -8,6 +9,10 @@ export const metadata: Metadata = { title: "Demo · Entrar" };
 export default function DemoEnterPage() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 pt-8 pb-16">
+      {/* Como en la sala real: el botón de tema va con la tarjeta de entrada, no en la franja del demo */}
+      <div className="flex justify-end">
+        <ThemeToggle />
+      </div>
       <Card className="space-y-6">
         <div className="space-y-1">
           <p className="text-sm text-ink-soft">Te damos la bienvenida a</p>

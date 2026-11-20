@@ -375,3 +375,21 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Barra de desplazamiento del navegador: fina y con los colores de la página,
+   no la gris de sistema. Nominados es siempre de noche, así que su barra también. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) var(--bg);
+}
+html:has(.nx-intro) {
+  color-scheme: dark;
+  scrollbar-color: #443f38 #0a0a0a;
+}
+/* Tiras que se deslizan de costado (pasos del demo): sin barra visible */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
