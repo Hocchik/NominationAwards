@@ -38,7 +38,7 @@ export function RoundBar({ label, step, adminDoor = false }: { label: string; st
       {/* En la papeleta real, el logo es la puerta escondida al panel (no en el demo) */}
       {adminDoor ? <AdminDoor>{brand}</AdminDoor> : brand}
       <span className="flex items-center gap-3">
-        {step && <span className="font-display text-xs font-bold">{step}</span>}
+        {step && <span className="font-display text-xs font-bold whitespace-nowrap tabular-nums">{step}</span>}
         <ThemeToggle className="min-h-9 px-2" />
       </span>
     </div>
@@ -88,14 +88,15 @@ export function CategoryHeading({
   description: string;
 }) {
   return (
-    <div className="relative space-y-1.5 pr-[6.75rem]">
+    // Solo el título deja lugar al sello (que cae bajo el rótulo); la consigna usa todo el ancho.
+    <div className="relative space-y-1.5">
       <p className="inline-flex items-center gap-[7px] font-display text-[10px] font-semibold tracking-[0.16em] text-ink-soft uppercase">
         <span aria-hidden="true" className={cn("size-[7px]", type === "PRIZE" ? "bg-copper" : "bg-sage")} />
         {eyebrow}
         {/* El sello ya dice el tipo a la vista; aquí solo para lectores de pantalla */}
         <span className="sr-only"> · {TYPE_LABEL[type]}</span>
       </p>
-      <h1 className="font-display text-[25px] leading-[1.08] font-bold sm:text-3xl">{name}</h1>
+      <h1 className="pr-[6.75rem] font-display text-[25px] leading-[1.08] font-bold sm:text-3xl">{name}</h1>
       <p className="text-[15px] leading-snug text-ink-soft sm:text-base">{description}</p>
       <TypeStamp type={type} className="absolute top-4 -right-0.5" />
     </div>

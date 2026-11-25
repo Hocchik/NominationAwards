@@ -339,7 +339,8 @@ function Chapter({
             </span>
             {vote && <VoteButton vote={vote} className="shrink-0 mb-1 lg:hidden" />}
           </div>
-          <p className="text-[17px] leading-relaxed text-ink-soft lg:text-[19px]">{category.description}</p>
+          {/* En PC la consigna va en la columna del número; en el celular, bajo el título (se lee después del nombre) */}
+          <p className="text-[19px] leading-relaxed text-ink-soft max-lg:hidden">{category.description}</p>
           <div className="h-0.5 bg-line">
             <div className="nx-progress h-0.5 bg-(--accent)" />
           </div>
@@ -357,6 +358,7 @@ function Chapter({
           <h2 className="nx-reveal mt-4 font-display text-[clamp(40px,6.2vw,92px)] leading-[0.98] font-extrabold tracking-[-0.04em]">
             {category.name}
           </h2>
+          <p className="mt-4 text-[17px] leading-relaxed text-ink-soft lg:hidden">{category.description}</p>
 
           <ul className="mt-10 grid grid-cols-2 gap-x-3.5 gap-y-8 lg:mt-16 lg:gap-x-9 lg:gap-y-12">
             {revealed

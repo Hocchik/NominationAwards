@@ -1,25 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { type RevealItem, insertIntoReveal, suggestedRevealOrder } from "./reveal";
+import { isFullOrder, moveItem, presetRevealOrder, revealSequence } from "./reveal";
 
-const item = (id: string, type: RevealItem["type"], sortOrder: number): RevealItem => ({ id, type, sortOrder });
+const item = (id: string, name: string, revealOrder: number, sortOrder = 0) => ({ id, name, revealOrder, sortOrder });
 
-describe("orden de revelación", () => {
-  it("sugiere honoríficas primero y premios al final, respetando el orden de categorías", () => {
-    const items = [item("p2", "PRIZE", 3), item("h1", "HONORARY", 2), item("p1", "PRIZE", 0), item("h0", "HONORARY", 1)];
-    expect(suggestedRevealOrder(items)).toEqual(["h0", "h1", "p1", "p2"]);
+describe("orden de la ceremonia", () => {
+  it("sigue el orden guardado y desempata con el orden de categorías", () => {
+    expect(revealSequence([item("a", "A", 2), item("b", "B", 1), item("c", "C", 1, 5), item("d", "D", 1, 2)])).toEqual(["b", "d", "c", "a"]);
   });
 
-  it("una honorífica nueva entra al final de las honoríficas", () => {
-    const current = [item("h1", "HONORARY", 0), item("p1", "PRIZE", 1)];
-    expect(insertIntoReveal(current, item("h2", "HONORARY", 2))).toEqual(["h1", "h2", "p1"]);
+  it("el orden de fábrica pone las del preset en su orden y las agregadas al final", () => {
+    const presets = [
+      { name: "EOTY", revealOrder: 3 },
+      { name: "Chill", revealOrder: 1 },
+      { name: "Pepa", revealOrder: 2 },
+    ];
+    const items = [item("e", "EOTY", 1), item("x", "Nueva", 0), item("c", "Chill", 9), item("p", "Pepa", 4)];
+    expect(presetRevealOrder(items, presets)).toEqual(["c", "p", "e", "x"]);
   });
 
-  it("si no hay honoríficas, la nueva va antes de los premios", () => {
-    expect(insertIntoReveal([item("p1", "PRIZE", 1)], item("h1", "HONORARY", 0))).toEqual(["h1", "p1"]);
+  it("solo acepta un orden con todas las categorías, sin repetir", () => {
+    expect(isFullOrder(["b", "a"], ["a", "b"])).toBe(true);
+    expect(isFullOrder(["a", "a"], ["a", "b"])).toBe(false);
+    expect(isFullOrder(["a"], ["a", "b"])).toBe(false);
+    expect(isFullOrder(["a", "c"], ["a", "b"])).toBe(false);
   });
 
-  it("un premio nuevo va al final, sin desordenar lo que ya se acomodó", () => {
-    const current = [item("p2", "PRIZE", 2), item("h1", "HONORARY", 0)];
-    expect(insertIntoReveal(current, item("p1", "PRIZE", 1))).toEqual(["p2", "h1", "p1"]);
+  it("mueve un elemento a otra posición", () => {
+    expect(moveItem(["a", "b", "c", "d"], 3, 0)).toEqual(["d", "a", "b", "c"]);
+    expect(moveItem(["a", "b", "c", "d"], 0, 2)).toEqual(["b", "c", "a", "d"]);
+    expect(moveItem(["a", "b"], 0, 5)).toEqual(["a", "b"]);
   });
 });

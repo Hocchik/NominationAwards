@@ -364,7 +364,13 @@ export function NominationBallot({
             </Button>
             {!reviewing && (
               <Button className="flex-1" onClick={() => setIndex((i) => i + 1)}>
-                {index === categories.length - 1 ? "Revisar todo →" : "Siguiente ficha →"}
+                {index === categories.length - 1 ? (
+                  "Revisar todo →"
+                ) : (
+                  <>
+                    Siguiente<span className="max-sm:hidden"> ficha</span> →
+                  </>
+                )}
               </Button>
             )}
           </div>

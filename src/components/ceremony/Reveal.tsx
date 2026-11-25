@@ -159,8 +159,15 @@ export function RevealScene({
   const nameSize = single ? fitSize(lines, 440, 84) : 0;
   const tieSize = tie ? fitSize(winners.map((w) => w.name), 440, 52) : 0;
   const isOption = single?.kind === "option";
-  const nick = single && !isOption ? (single.nickname ?? (single.external ? null : single.name.split(/\s+/)[0])) : null;
-  const cheer = tie ? (winners.length === 2 ? "¡Felicidades a los dos!" : "¡Felicidades a todos!") : nick ? `¡Felicidades, ${nick}!` : "¡Felicidades!";
+  // En la ceremonia no se usan apodos (decisión del usuario, 2026-11-25): se felicita por el nombre.
+  const pair = single?.kind === "pair";
+  const firstName = single && !isOption && !pair && !single.external ? single.name.split(/\s+/)[0] : null;
+  // Cuántas personas ganan: una pareja son dos; un empate de parejas, más de dos.
+  const people = winners.reduce((sum, w) => sum + (w.kind === "pair" ? 2 : 1), 0);
+  const cheer =
+    tie || pair
+      ? people === 2 ? "¡Felicidades a los dos!" : "¡Felicidades a todos!"
+      : firstName ? `¡Felicidades, ${firstName}!` : "¡Felicidades!";
   const followers = finalists
     .filter((f) => places[f.id])
     .sort((a, b) => places[a.id]! - places[b.id]!)
@@ -270,7 +277,6 @@ export function RevealScene({
               <Photo finalist={f} initialsSize={Math.round(cw * 0.3)} />
               <span className="rv-label">
                 <span className="rv-display block text-[17px] leading-tight font-bold tracking-[-0.01em]">{f.name}</span>
-                {f.nickname && <span className="mt-[3px] block text-sm text-(--accent) italic">«{f.nickname}»</span>}
               </span>
               {/* En la primera foto ganadora: en un empate, la de atrás, para no tapar el nombre */}
               {reveal && w === 0 && f.kind !== "option" && (

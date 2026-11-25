@@ -6,11 +6,11 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { phaseIndex } from "@/lib/event/phases";
 import { getCurrentEvent } from "@/lib/event/queries";
-import { insertIntoReveal, suggestedRevealOrder } from "@/lib/event/reveal";
 import { canEditVoteRules } from "@/lib/event/rules";
 
 // Finalistas (CLAUDE.md §3, paso 4): elegir qué categorías pasan a la
-// votación, su orden en la ceremonia, y foto o frase opcional por finalista.
+// votación y foto o frase opcional por finalista. El orden de la ceremonia se
+// acomoda aparte (reveal-actions.ts) y activar una categoría no lo cambia.
 
 /** Evento con finalistas y todavía antes de la votación (o de la ceremonia). */
 async function eventAfterClosing(until: "VOTING" | "CEREMONY") {
@@ -20,20 +20,6 @@ async function eventAfterClosing(until: "VOTING" | "CEREMONY") {
   const index = phaseIndex(event.phase);
   if (index < phaseIndex("FINALISTS_READY") || index >= phaseIndex(until)) return null;
   return event;
-}
-
-async function activeCategories(eventId: string) {
-  return prisma.category.findMany({
-    where: { eventId, activeForVote: true },
-    select: { id: true, type: true, sortOrder: true },
-    orderBy: [{ revealOrder: "asc" }, { sortOrder: "asc" }],
-  });
-}
-
-async function saveRevealOrder(ids: string[]) {
-  await prisma.$transaction(
-    ids.map((id, index) => prisma.category.update({ where: { id }, data: { revealOrder: index } })),
-  );
 }
 
 export async function setCategoryActiveAction(formData: FormData): Promise<void> {
@@ -54,32 +40,10 @@ export async function setCategoryActiveAction(formData: FormData): Promise<void>
       });
       if (prizes >= event.maxPrizeCategories) return;
     }
-    const order = insertIntoReveal(await activeCategories(event.id), category);
     await prisma.category.update({ where: { id: category.id }, data: { activeForVote: true } });
-    await saveRevealOrder(order);
   } else {
-    await prisma.category.update({ where: { id: category.id }, data: { activeForVote: false, revealOrder: 0 } });
-    await saveRevealOrder((await activeCategories(event.id)).map((c) => c.id));
+    await prisma.category.update({ where: { id: category.id }, data: { activeForVote: false } });
   }
-  refresh();
-}
-
-export async function moveRevealAction(formData: FormData): Promise<void> {
-  const event = await eventAfterClosing("VOTING");
-  if (!event) return;
-  const ids = (await activeCategories(event.id)).map((c) => c.id);
-  const from = ids.indexOf(String(formData.get("id") ?? ""));
-  const to = from + (formData.get("direction") === "up" ? -1 : 1);
-  if (from < 0 || to < 0 || to >= ids.length) return;
-  [ids[from], ids[to]] = [ids[to], ids[from]];
-  await saveRevealOrder(ids);
-  refresh();
-}
-
-export async function suggestRevealOrderAction(): Promise<void> {
-  const event = await eventAfterClosing("VOTING");
-  if (!event) return;
-  await saveRevealOrder(suggestedRevealOrder(await activeCategories(event.id)));
   refresh();
 }
 

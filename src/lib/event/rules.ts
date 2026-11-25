@@ -10,6 +10,11 @@ import { isBefore } from "./phases";
  */
 export const MAX_FINALISTS = 5;
 
+/** El orden de la ceremonia no toca papeletas: se acomoda hasta que empieza. */
+export function canEditRevealOrder(phase: EventPhase): boolean {
+  return isBefore(phase, "CEREMONY");
+}
+
 /** Crear, borrar, cambiar tipo y reordenar categorías; mínimo/máximo de nominaciones. */
 export function canEditStructure(phase: EventPhase): boolean {
   return phase === "SETUP";

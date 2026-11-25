@@ -245,10 +245,11 @@ export async function createCategoryAction(
 
   const last = await prisma.category.aggregate({
     where: { eventId: event.id },
-    _max: { sortOrder: true },
+    _max: { sortOrder: true, revealOrder: true },
   });
   await prisma.category.create({
-    data: { ...parsed.data, eventId: event.id, sortOrder: (last._max.sortOrder ?? -1) + 1 },
+    // Una categoría nueva va al final de Nominados y al final de la ceremonia.
+    data: { ...parsed.data, eventId: event.id, sortOrder: (last._max.sortOrder ?? -1) + 1, revealOrder: (last._max.revealOrder ?? 0) + 1 },
   });
   refresh();
   return { ok: true, message: `Categoría «${parsed.data.name}» creada.` };

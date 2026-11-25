@@ -8,9 +8,11 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { isBefore } from "@/lib/event/phases";
 import { getCurrentEvent } from "@/lib/event/queries";
-import { canEditVoteRules } from "@/lib/event/rules";
-import { moveRevealAction, setCategoryActiveAction, suggestRevealOrderAction } from "../../finalist-actions";
+import { revealSequence } from "@/lib/event/reveal";
+import { canEditRevealOrder, canEditVoteRules } from "@/lib/event/rules";
+import { setCategoryActiveAction } from "../../finalist-actions";
 import { PanelLoading } from "../../_components/PanelLoading";
+import { RevealOrderEditor } from "../../_components/RevealOrderEditor";
 import { SectionCard } from "../../_components/SectionCard";
 import { categoryTitle } from "@/lib/event/categoryKinds";
 import { FinalistCard } from "./FinalistCard";
@@ -51,9 +53,8 @@ async function FinalistsPanel() {
   });
   const votingRulesEditable = canEditVoteRules(event.phase);
   const finalistsEditable = isBefore(event.phase, "CEREMONY");
-  const active = categories
-    .filter((c) => c.activeForVote)
-    .sort((a, b) => a.revealOrder - b.revealOrder || a.sortOrder - b.sortOrder);
+  const active = categories.filter((c) => c.activeForVote);
+  const byId = new Map(categories.map((c) => [c.id, c]));
   const activePrize = active.filter((c) => c.type === "PRIZE").length;
   const activeHonorary = active.length - activePrize;
 
@@ -67,7 +68,7 @@ async function FinalistsPanel() {
           están en orden alfabético y sin conteos.
         </p>
         {!votingRulesEditable && (
-          <p className="text-sm text-ink-soft">La votación ya empezó: las categorías activas y su orden quedan fijos.</p>
+          <p className="text-sm text-ink-soft">La votación ya empezó: las categorías activas quedan fijas (el orden de la ceremonia se puede mover hasta que empiece).</p>
         )}
       </div>
 
@@ -121,47 +122,16 @@ async function FinalistsPanel() {
       {active.length > 0 && (
         <SectionCard
           id="orden"
-          title="Orden de revelación"
-          description="Así se presentan en la ceremonia. Por defecto, las honoríficas primero y los premios al final."
+          title="Orden de la ceremonia"
+          description="Así se revelan en la premiación. Activar o quitar una categoría no cambia el orden: la ceremonia se salta las que no van a la votación. Muévelas con las flechas, arrastrando o eligiendo el puesto, y guarda."
         >
-          <ol className="space-y-2">
-            {active.map((category, index) => (
-              <li key={category.id} className="flex items-center gap-3 border border-line px-3 py-2">
-                <span className="w-6 text-sm text-ink-soft tabular-nums">{index + 1}</span>
-                <span className="flex-1 text-sm font-medium">{categoryTitle(category)}</span>
-                {votingRulesEditable && (
-                  <>
-                    <form action={moveRevealAction}>
-                      <input type="hidden" name="id" value={category.id} />
-                      <input type="hidden" name="direction" value="up" />
-                      <Button type="submit" variant="ghost" disabled={index === 0} aria-label={`Subir «${categoryTitle(category)}»`}>
-                        ↑
-                      </Button>
-                    </form>
-                    <form action={moveRevealAction}>
-                      <input type="hidden" name="id" value={category.id} />
-                      <input type="hidden" name="direction" value="down" />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        disabled={index === active.length - 1}
-                        aria-label={`Bajar «${categoryTitle(category)}»`}
-                      >
-                        ↓
-                      </Button>
-                    </form>
-                  </>
-                )}
-              </li>
-            ))}
-          </ol>
-          {votingRulesEditable && (
-            <form action={suggestRevealOrderAction}>
-              <Button type="submit" variant="secondary">
-                Usar el orden sugerido
-              </Button>
-            </form>
-          )}
+          <RevealOrderEditor
+            editable={canEditRevealOrder(event.phase)}
+            items={revealSequence(categories).map((id) => {
+              const c = byId.get(id)!;
+              return { id, title: categoryTitle(c), type: c.type, skipped: !c.activeForVote };
+            })}
+          />
         </SectionCard>
       )}
 

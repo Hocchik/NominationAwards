@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getCategories, getCurrentEvent } from "@/lib/event/queries";
-import { canAddCategoryOptions, canEditCategoryText, canEditFinalistsCount, canEditStructure } from "@/lib/event/rules";
+import { categoryTitle } from "@/lib/event/categoryKinds";
+import { isBefore } from "@/lib/event/phases";
+import { revealSequence } from "@/lib/event/reveal";
+import { canAddCategoryOptions, canEditCategoryText, canEditFinalistsCount, canEditRevealOrder, canEditStructure } from "@/lib/event/rules";
 import { loadPresetCategoriesAction } from "../../actions";
 import { CategoryForm } from "../../_components/CategoryForm";
 import { CategoryItem } from "../../_components/CategoryItem";
 import { PanelLoading } from "../../_components/PanelLoading";
+import { RevealOrderEditor } from "../../_components/RevealOrderEditor";
 import { SectionCard } from "../../_components/SectionCard";
 
 export const metadata: Metadata = { title: "Categorías" };
@@ -114,6 +118,26 @@ async function CategoriesPanel() {
             />
           ))}
         </ol>
+      )}
+
+      {categories.length > 0 && (
+        <SectionCard
+          id="orden-ceremonia"
+          title="Orden de la ceremonia"
+          description="Así se revelan en la premiación. Muévelas con las flechas, arrastrando la fila o eligiendo el puesto, y guarda. Puedes cambiarlo hasta que empiece la ceremonia; las que no vayan a la votación se saltan solas."
+        >
+          <RevealOrderEditor
+            editable={canEditRevealOrder(event.phase)}
+            items={(() => {
+              const byId = new Map(categories.map((c) => [c.id, c]));
+              const finalistsReady = !isBefore(event.phase, "FINALISTS_READY");
+              return revealSequence(categories).map((id) => {
+                const c = byId.get(id)!;
+                return { id, title: categoryTitle(c), type: c.type, skipped: finalistsReady && !c.activeForVote };
+              });
+            })()}
+          />
+        </SectionCard>
       )}
 
       {structure && (
