@@ -1,7 +1,7 @@
 "use client";
 
 import { type BoardCategory, NomineesShow } from "@/components/nominees/NomineesShow";
-import { DEMO_ALIASES, DEMO_CATEGORIES, byName } from "@/lib/demo/fixtures";
+import { DEMO_CATEGORIES, byName, demoFinalistDisplay } from "@/lib/demo/fixtures";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
 import { useDemo } from "../DemoProvider";
 
@@ -12,13 +12,9 @@ const board: BoardCategory[] = DEMO_CATEGORIES.map((c, i) => ({
   name: c.name,
   description: c.description,
   type: c.type,
-  finalists: byName(c.finalists).map((f) => ({
-    id: f.id,
-    name: f.name,
-    photoUrl: null,
-    nickname: (f.participantId && DEMO_ALIASES[f.participantId]?.[0]) || null,
-    external: f.participantId === null,
-  })),
+  framing: c.framing,
+  slots: c.finalistCount,
+  finalists: byName(c.finalists).map((f) => ({ id: f.id, name: f.name, blurb: f.blurb || null, ...demoFinalistDisplay(f, c.nomineeKind) })),
 }));
 const totalFinalists = board.reduce((sum, c) => sum + c.finalists.length, 0);
 

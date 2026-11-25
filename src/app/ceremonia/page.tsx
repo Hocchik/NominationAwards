@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
-import { finalistNicknames } from "@/lib/event/nicknames";
+import { finalistDisplay } from "@/lib/event/finalistDisplay";
+import { finalistGuests } from "@/lib/event/nicknames";
 import { getCurrentEvent } from "@/lib/event/queries";
 import { CeremonyShow } from "./CeremonyShow";
 
@@ -57,7 +58,7 @@ async function Ceremony() {
     orderBy: [{ revealOrder: "asc" }, { sortOrder: "asc" }],
     include: { finalists: { orderBy: { displayName: "asc" } } },
   });
-  const nicknames = await finalistNicknames(event.id, categories);
+  const guests = await finalistGuests(event.id, categories);
 
   return (
     <CeremonyShow
@@ -69,13 +70,8 @@ async function Ceremony() {
         name: c.name,
         description: c.description,
         type: c.type,
-        finalists: c.finalists.map((f) => ({
-          id: f.id,
-          name: f.displayName,
-          photoUrl: f.photoUrl,
-          nickname: (f.participantId && nicknames.get(f.participantId)) || null,
-          external: f.participantId === null,
-        })),
+        framing: c.framing,
+        finalists: c.finalists.map((f) => ({ id: f.id, name: f.displayName, ...finalistDisplay(f, guests, c.nomineeKind) })),
       }))}
     />
   );

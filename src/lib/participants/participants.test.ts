@@ -53,14 +53,24 @@ describe("lista de invitados", () => {
 
   it("lee los apodos entre paréntesis", () => {
     expect(parseGuestList("Gabriel Mendoza (Gabo, Gabito)\nAna Torres").guests).toEqual([
-      { name: "Gabriel Mendoza", aliases: ["Gabo", "Gabito"] },
-      { name: "Ana Torres", aliases: [] },
+      { name: "Gabriel Mendoza", aliases: ["Gabo", "Gabito"], searchNames: [] },
+      { name: "Ana Torres", aliases: [], searchNames: [] },
+    ]);
+  });
+
+  it("los corchetes son otros nombres solo para buscar, en cualquier orden con los apodos", () => {
+    expect(parseGuestList("Gabriel Mendoza (Gabo) [Armando, Mendoza Salcedo]\nAndres Pineda [Andres Arthuro, Pineda Paredes]").guests).toEqual([
+      { name: "Gabriel Mendoza", aliases: ["Gabo"], searchNames: ["Armando", "Salcedo"] },
+      { name: "Andres Pineda", aliases: [], searchNames: ["Arthuro", "Paredes"] },
+    ]);
+    expect(parseGuestList("Lorena Kim [Kim Negrillo] (Duermes)").guests).toEqual([
+      { name: "Lorena Kim", aliases: ["Duermes"], searchNames: ["Negrillo"] },
     ]);
   });
 
   it("junta los apodos de un nombre repetido y no repite apodos ni el nombre", () => {
     expect(parseGuestList("Gabriel Mendoza (Gabo)\ngabriel mendoza (GABO, Mendo, Gabriel Mendoza)").guests).toEqual([
-      { name: "Gabriel Mendoza", aliases: ["Gabo", "Mendo"] },
+      { name: "Gabriel Mendoza", aliases: ["Gabo", "Mendo"], searchNames: [] },
     ]);
   });
 

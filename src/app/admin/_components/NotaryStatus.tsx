@@ -43,9 +43,9 @@ export async function NotaryStatus({ event }: { event: Event }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-soft">
-        El notario es una persona de confianza del grupo (no tú). Con este link genera en su
-        navegador dos llaves: una para abrir las nominaciones y otra para abrir los votos. Al
-        servidor solo llegan las públicas.
+        El notario guarda las llaves que abren las papeletas: puedes ser tú u otra persona de
+        confianza. Con este link genera en su navegador dos llaves: una para abrir las
+        nominaciones y otra para abrir los votos. Al servidor solo llegan las públicas.
       </p>
       <NotaryLinkForm hasPendingLink={Boolean(event.notarySetupTokenHash)} />
     </div>

@@ -14,10 +14,9 @@ import {
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LoaderOverlay } from "@/components/ui/Loader";
-import type { CategoryType } from "@/generated/prisma/enums";
+import type { CategoryFraming, CategoryType, NomineeKind } from "@/generated/prisma/enums";
 import {
   type Candidate,
-  type NominationRules,
   type Nominee,
   addNominee,
   buildNominationBallot,
@@ -25,14 +24,25 @@ import {
 } from "@/lib/ballots/nomination";
 import { cn } from "@/lib/cn";
 import { sealPayload } from "@/lib/crypto/seal";
+import { categoryTitle, pickInstruction } from "@/lib/event/categoryKinds";
 import { type SubmitResult, submitNominationAction } from "./actions";
 import { NomineePicker } from "./NomineePicker";
+import { type NominationOption, OptionGrid } from "./OptionGrid";
+import { PairPicker } from "./PairPicker";
+import { TextPicker } from "./TextPicker";
 
-interface CategoryInfo {
+export interface NominationCategoryInfo {
   id: string;
   name: string;
   description: string;
   type: CategoryType;
+  framing: CategoryFraming;
+  nomineeKind: NomineeKind;
+  maxPicks: number;
+  /** Mínimo obligatorio (0 = se puede dejar vacía). */
+  minPicks: number;
+  allowExternal: boolean;
+  options: NominationOption[];
 }
 
 // El borrador se guarda en sessionStorage (solo esta pestaña; se borra al
@@ -53,7 +63,7 @@ export function NominationBallot({
   eventName,
   categories,
   candidates,
-  rules,
+  allowSkip,
   publicKey,
   ballotBytes,
   selfName,
@@ -63,9 +73,10 @@ export function NominationBallot({
 }: {
   roomCode: string;
   eventName: string;
-  categories: CategoryInfo[];
+  categories: NominationCategoryInfo[];
   candidates: Candidate[];
-  rules: NominationRules;
+  /** Se puede dejar una categoría vacía. */
+  allowSkip: boolean;
   publicKey: string;
   ballotBytes: number;
   selfName: string;
@@ -85,7 +96,11 @@ export function NominationBallot({
 
   const ids = useMemo(() => categories.map((c) => c.id), [categories]);
   const names = useMemo(() => new Map(candidates.map((c) => [c.id, c.name])), [candidates]);
-  const issues = validateNominations(selections, ids, rules);
+  const optionLabels = useMemo(
+    () => new Map(categories.flatMap((c) => c.options.map((o) => [o.id, o.label] as const))),
+    [categories],
+  );
+  const issues = validateNominations(selections, categories, allowSkip);
 
   // Recupera el borrador al montar (en el servidor no existe sessionStorage).
   useEffect(() => {
@@ -108,8 +123,28 @@ export function NominationBallot({
   }
 
   function label(nominee: Nominee): string {
-    return nominee.type === "participant" ? (names.get(nominee.id) ?? "Alguien del grupo") : nominee.name;
+    switch (nominee.type) {
+      case "participant":
+        return names.get(nominee.id) ?? "Alguien del grupo";
+      case "external":
+        return nominee.name;
+      case "pair":
+        return nominee.ids.map((id) => names.get(id) ?? "Alguien del grupo").join(" y ");
+      case "option":
+        return optionLabels.get(nominee.id) ?? "Una opción";
+      case "text":
+        return `«${nominee.text}»`;
+    }
   }
+
+  const nomineeKey = (n: Nominee) =>
+    n.type === "external"
+      ? `x-${n.name}`
+      : n.type === "pair"
+        ? `pp-${n.ids.join("+")}`
+        : n.type === "text"
+          ? `t-${n.text}`
+          : `${n.type}-${n.id}`;
 
   function submit() {
     setError(null);
@@ -154,7 +189,10 @@ export function NominationBallot({
   const reviewing = index >= categories.length;
   const category = categories[index];
   const picked = category ? (selections[category.id] ?? []) : [];
-  const range = `de ${rules.min} a ${rules.max} nombres${rules.allowSkip ? ", o ninguno" : ""}`;
+  // Con un solo cupo nunca se bloquea: elegir otro reemplaza al anterior.
+  const full = category ? category.maxPicks > 1 && picked.length >= category.maxPicks : false;
+  const single = category?.maxPicks === 1;
+  const accent = category?.type === "PRIZE" ? "copper" : "sage";
 
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-8">
@@ -181,18 +219,24 @@ export function NominationBallot({
               <CategoryHeading
                 type={category.type}
                 eyebrow={`Categoría · ${category.type === "PRIZE" ? "Premio" : "Honorífica"}`}
-                name={category.name}
+                name={categoryTitle(category)}
                 description={category.description}
               />
               <p className="text-[13px] text-ink-soft" aria-live="polite">
-                Escribe {range} · llevas <strong className="text-ink">{picked.length}</strong>
-                {picked.length > 0 && picked.length < rules.min && ` · faltan ${rules.min - picked.length} para el mínimo`}
+                {pickInstruction(category.nomineeKind, category.maxPicks, category.minPicks)}
+                {allowSkip && category.minPicks === 0 && category.nomineeKind !== "TEXT" && ", o déjala vacía"}
+                {category.maxPicks > 1 && (
+                  <>
+                    {" "}
+                    · llevas <strong className="text-ink">{picked.length}</strong>
+                  </>
+                )}
               </p>
-              {picked.length > 0 && (
+              {picked.length > 0 && category.nomineeKind !== "OPTION" && category.nomineeKind !== "TEXT" && (
                 <ol className="space-y-2">
                   {picked.map((nominee, i) => (
                     <li
-                      key={nominee.type === "participant" ? nominee.id : `x-${nominee.name}`}
+                      key={nomineeKey(nominee)}
                       className="relative isolate flex min-h-11 items-center gap-2.5 bg-line pr-0.5 pl-2.5 chamfer-8 before:absolute before:inset-px before:-z-10 before:bg-raised before:chamfer-7"
                     >
                       <span
@@ -223,15 +267,47 @@ export function NominationBallot({
                 </ol>
               )}
 
-              <NomineePicker
-                candidates={candidates}
-                picked={picked}
-                disabled={picked.length >= rules.max}
-                selfName={selfName}
-                step={picked.length + 1}
-                accent={category.type === "PRIZE" ? "copper" : "sage"}
-                onAdd={(nominee) => update(category.id, addNominee(picked, nominee, candidates))}
-              />
+              {category.nomineeKind === "TEXT" ? (
+                <TextPicker
+                  key={category.id}
+                  picked={picked}
+                  maxPicks={category.maxPicks}
+                  placeholder={/profe/i.test(category.name) ? "Nombre del profe, como lo recuerdes" : "Escríbela como la recuerdes"}
+                  onChange={(list) => update(category.id, list)}
+                />
+              ) : category.nomineeKind === "OPTION" ? (
+                <OptionGrid
+                  options={category.options}
+                  picked={picked}
+                  maxPicks={category.maxPicks}
+                  accent={accent}
+                  onChange={(list) => update(category.id, list)}
+                />
+              ) : category.nomineeKind === "PAIR" ? (
+                <PairPicker
+                  key={category.id}
+                  candidates={candidates}
+                  disabled={full}
+                  selfName={selfName}
+                  accent={accent}
+                  onAdd={(nominee) => update(category.id, addNominee(single ? [] : picked, nominee, candidates))}
+                />
+              ) : (
+                <NomineePicker
+                  candidates={candidates}
+                  picked={picked}
+                  disabled={full}
+                  selfName={selfName}
+                  step={picked.length + 1}
+                  accent={accent}
+                  allowExternal={category.allowExternal}
+                  label={single ? (picked.length ? "¿Cambiar? Escribe otro nombre" : "Escribe un nombre") : undefined}
+                  onAdd={(nominee) =>
+                    // Con un solo cupo, elegir a otra persona la reemplaza
+                    update(category.id, addNominee(single ? [] : picked, nominee, candidates))
+                  }
+                />
+              )}
               <SealNote>Al final tus fichas se sellan en tu dispositivo. Nadie las abre hasta el cierre.</SealNote>
             </>
           )}
@@ -251,12 +327,12 @@ export function NominationBallot({
                       <div className="min-w-0 space-y-0.5">
                         <p className="flex items-center gap-2 font-display text-sm font-bold">
                           <span aria-hidden="true" className={cn("size-2 shrink-0", c.type === "PRIZE" ? "bg-copper" : "bg-sage")} />
-                          {c.name}
+                          {categoryTitle(c)}
                         </p>
                         <p className="text-sm text-ink-soft">{list.length ? list.map(label).join(" · ") : "Sin nominaciones"}</p>
                         {issues[c.id] && <p className="text-sm font-semibold text-danger">{issues[c.id]}</p>}
                       </div>
-                      <Button variant="ghost" onClick={() => setIndex(i)} aria-label={`Cambiar ${c.name}`}>
+                      <Button variant="ghost" onClick={() => setIndex(i)} aria-label={`Cambiar ${categoryTitle(c)}`}>
                         Cambiar
                       </Button>
                     </li>
@@ -304,10 +380,10 @@ export function NominationBallot({
             const count = (selections[c.id] ?? []).length;
             return {
               id: c.id,
-              name: c.name,
+              name: categoryTitle(c),
               type: c.type,
-              status: count ? `${count} ${count === 1 ? "nombre" : "nombres"}` : "Sin nominar",
-              done: count >= rules.min,
+              status: count ? (c.maxPicks === 1 ? "Listo" : `${count} de ${c.maxPicks}`) : c.minPicks > 0 ? "Falta (obligatoria)" : "Sin nominar",
+              done: count >= Math.max(1, c.minPicks),
             };
           })}
         />

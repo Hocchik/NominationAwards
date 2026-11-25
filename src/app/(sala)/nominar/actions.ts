@@ -25,8 +25,12 @@ export async function submitNominationAction(ciphertext: string): Promise<Submit
     return { ok: false, message: "Tu sesión terminó. Vuelve a entrar a la sala y toca tu nombre." };
   }
 
-  const categoryCount = await prisma.category.count({ where: { eventId: event.id } });
-  const expected = sealedBase64Length(nominationBallotBytes(categoryCount, event.maxNominations));
+  // El tamaño depende de cómo se nomina en cada categoría (congelado desde que abren las nominaciones).
+  const categories = await prisma.category.findMany({
+    where: { eventId: event.id },
+    select: { nomineeKind: true, maxPicks: true, allowExternal: true },
+  });
+  const expected = sealedBase64Length(nominationBallotBytes(categories));
   if (typeof ciphertext !== "string" || ciphertext.length !== expected || !isBase64(ciphertext)) {
     return { ok: false, message: "La papeleta no tiene el formato esperado. Recarga la página." };
   }

@@ -24,6 +24,8 @@ export interface FinalistCardData {
   id: string;
   displayName: string;
   external: boolean;
+  /** Opción del organizador (profe, evento, frase). */
+  option?: boolean;
   photoUrl: string | null;
   blurb: string | null;
 }
@@ -61,7 +63,7 @@ export function FinalistCard({ finalist, editable }: { finalist: FinalistCardDat
         )}
         <div className="min-w-0">
           <p className="font-semibold">{finalist.displayName}</p>
-          <p className="text-xs text-ink-soft">{finalist.external ? "De fuera del grupo" : "Del grupo"}</p>
+          <p className="text-xs text-ink-soft">{finalist.external ? "De fuera del grupo" : finalist.option ? "Opción" : "Del grupo"}</p>
         </div>
       </div>
 

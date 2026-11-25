@@ -5,7 +5,10 @@ import { Suspense } from "react";
 import { Loader } from "@/components/ui/Loader";
 import { prisma } from "@/lib/db";
 import { voteBallotBytes } from "@/lib/ballots/vote";
-import { getCurrentEvent } from "@/lib/event/queries";
+import { categoryTitle } from "@/lib/event/categoryKinds";
+import { finalistDisplay } from "@/lib/event/finalistDisplay";
+import { finalistGuests } from "@/lib/event/nicknames";
+import { getCurrentEvent, sortByType } from "@/lib/event/queries";
 import { getSessionParticipant } from "@/lib/participants/session";
 import { SalaNotice } from "../SalaNotice";
 import { VoteBallotForm } from "./VoteBallotForm";
@@ -44,15 +47,19 @@ async function Vote() {
     return <SalaNotice title="Todavía no se puede votar" text="Falta la llave de votación del notario. Avísale al organizador." />;
   }
 
-  // Categorías en el orden de siempre; finalistas en orden alfabético (nada insinúa conteos).
-  const categories = await prisma.category.findMany({
-    where: { eventId: event.id, activeForVote: true },
-    orderBy: { sortOrder: "asc" },
-    include: { finalists: { orderBy: { displayName: "asc" } } },
-  });
+  // Categorías en el orden de la sala (premios y luego honoríficas); finalistas
+  // en orden alfabético (nada insinúa conteos).
+  const categories = sortByType(
+    await prisma.category.findMany({
+      where: { eventId: event.id, activeForVote: true },
+      orderBy: { sortOrder: "asc" },
+      include: { finalists: { orderBy: { displayName: "asc" } } },
+    }),
+  );
   if (categories.length === 0) {
     return <SalaNotice title="No hay categorías en la votación" text="El organizador aún no las activa." />;
   }
+  const guests = await finalistGuests(event.id, categories);
 
   return (
     <VoteBallotForm
@@ -60,18 +67,23 @@ async function Vote() {
       eventName={event.name}
       categories={categories.map((c) => ({
         id: c.id,
-        name: c.name,
+        name: categoryTitle(c),
         description: c.description,
         type: c.type,
         // Solo se marca su propia tarjeta (para que no pueda votarse); el
         // servidor no necesita ver el voto para eso.
-        finalists: c.finalists.map((f) => ({
-          id: f.id,
-          name: f.displayName,
-          photoUrl: f.photoUrl,
-          blurb: f.blurb,
-          isSelf: f.participantId === participant.id,
-        })),
+        finalists: c.finalists.map((f) => {
+          const shown = finalistDisplay(f, guests, c.nomineeKind);
+          return {
+            id: f.id,
+            name: f.displayName,
+            photoUrl: shown.photoUrl,
+            partnerPhotoUrl: shown.partnerPhotoUrl,
+            kind: shown.kind,
+            blurb: f.blurb,
+            isSelf: f.participantId === participant.id || f.partnerParticipantId === participant.id,
+          };
+        }),
       }))}
       publicKey={event.votePublicKey}
       ballotBytes={voteBallotBytes(categories.length)}

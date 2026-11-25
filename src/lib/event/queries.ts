@@ -49,11 +49,23 @@ export async function applySchedule(event: Event): Promise<Event> {
   return (await prisma.event.findUnique({ where: { id: event.id } })) ?? event;
 }
 
-export function getCategories(eventId: string) {
-  return prisma.category.findMany({
+/**
+ * Categorías en el orden de la sala: primero las de premio y luego las
+ * honoríficas (decisión del usuario, 2026-11-21), cada grupo en su orden.
+ * Con sus opciones (profes, eventos, frases) si las tienen.
+ */
+export async function getCategories(eventId: string) {
+  const categories = await prisma.category.findMany({
     where: { eventId },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    include: { options: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }] } },
   });
+  return sortByType(categories);
+}
+
+/** Premio antes que honorífica, sin cambiar el orden dentro de cada grupo. */
+export function sortByType<T extends { type: "PRIZE" | "HONORARY" }>(categories: T[]): T[] {
+  return [...categories.filter((c) => c.type === "PRIZE"), ...categories.filter((c) => c.type === "HONORARY")];
 }
 
 export async function getPhaseContext(event: Event): Promise<PhaseContext> {

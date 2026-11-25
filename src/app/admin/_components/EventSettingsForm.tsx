@@ -9,9 +9,6 @@ import { updateEventAction } from "../actions";
 export interface EventSettingsValues {
   name: string;
   capacity: number;
-  minNominations: number;
-  maxNominations: number;
-  finalistsPerCategory: number;
   maxPrizeCategories: number;
   showWinnerPercent: boolean;
   allowNominationSkip: boolean;
@@ -65,45 +62,6 @@ export function EventSettingsForm({
           errors={state.errors?.capacity}
         />
         <TextField
-          name="finalistsPerCategory"
-          type="number"
-          inputMode="numeric"
-          label="Finalistas por categoría"
-          hint={editable.finalists ? "Si hay empate en el último puesto, entran todos." : LOCKED}
-          min={2}
-          max={8}
-          defaultValue={v("finalistsPerCategory")}
-          disabled={!editable.finalists}
-          required
-          errors={state.errors?.finalistsPerCategory}
-        />
-        <TextField
-          name="minNominations"
-          type="number"
-          inputMode="numeric"
-          label="Mínimo de nominados por categoría"
-          hint={editable.structure ? undefined : LOCKED}
-          min={1}
-          max={10}
-          defaultValue={v("minNominations")}
-          disabled={!editable.structure}
-          required
-          errors={state.errors?.minNominations}
-        />
-        <TextField
-          name="maxNominations"
-          type="number"
-          inputMode="numeric"
-          label="Máximo de nominados por categoría"
-          hint={editable.structure ? undefined : LOCKED}
-          min={1}
-          max={10}
-          defaultValue={v("maxNominations")}
-          disabled={!editable.structure}
-          required
-          errors={state.errors?.maxNominations}
-        />
-        <TextField
           name="maxPrizeCategories"
           type="number"
           inputMode="numeric"
@@ -125,7 +83,7 @@ export function EventSettingsForm({
               name: "allowNominationSkip",
               editable: editable.structure,
               label: "Al nominar, se puede dejar una categoría vacía",
-              hint: "Si no, hay que nominar al menos el mínimo en todas las categorías.",
+              hint: "Si no, hay que nominar en todas las categorías.",
             },
             {
               name: "showWinnerPercent",

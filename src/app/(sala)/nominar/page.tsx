@@ -49,11 +49,13 @@ async function Nominate() {
     getCategories(event.id),
     prisma.participant.findMany({
       where: { eventId: event.id, id: { not: participant.id } }, // no autonominarse
-      select: { id: true, displayName: true },
+      select: { id: true, displayName: true, aliases: true, searchNames: true, photoUrl: true },
       orderBy: { normalizedName: "asc" },
     }),
   ]);
-  if (categories.length === 0) {
+  // Las de finalistas directos (p. ej. Evento del año) no se nominan: solo se votan.
+  const toNominate = categories.filter((c) => c.nomineeKind !== "DIRECT");
+  if (toNominate.length === 0) {
     return <SalaNotice title="Todavía no hay categorías" text="El organizador aún no las agrega." />;
   }
 
@@ -61,11 +63,23 @@ async function Nominate() {
     <NominationBallot
       roomCode={event.roomCode}
       eventName={event.name}
-      categories={categories.map((c) => ({ id: c.id, name: c.name, description: c.description, type: c.type }))}
-      candidates={approved.map((p) => ({ id: p.id, name: p.displayName }))}
-      rules={{ min: event.minNominations, max: event.maxNominations, allowSkip: event.allowNominationSkip }}
+      categories={toNominate.map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        type: c.type,
+        framing: c.framing,
+        nomineeKind: c.nomineeKind,
+        maxPicks: c.maxPicks,
+        minPicks: c.minPicks,
+        allowExternal: c.allowExternal,
+        options: c.options.map((o) => ({ id: o.id, label: o.label, photoUrl: o.photoUrl, blurb: o.blurb })),
+      }))}
+      // El buscador encuentra por apodo y también por segundo nombre o apellidos.
+      candidates={approved.map((p) => ({ id: p.id, name: p.displayName, aliases: [...p.aliases, ...p.searchNames], photoUrl: p.photoUrl }))}
+      allowSkip={event.allowNominationSkip}
       publicKey={event.nominationPublicKey}
-      ballotBytes={nominationBallotBytes(categories.length, event.maxNominations)}
+      ballotBytes={nominationBallotBytes(categories)}
       selfName={participant.displayName}
     />
   );

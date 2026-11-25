@@ -12,6 +12,7 @@ import { canEditVoteRules } from "@/lib/event/rules";
 import { moveRevealAction, setCategoryActiveAction, suggestRevealOrderAction } from "../../finalist-actions";
 import { PanelLoading } from "../../_components/PanelLoading";
 import { SectionCard } from "../../_components/SectionCard";
+import { categoryTitle } from "@/lib/event/categoryKinds";
 import { FinalistCard } from "./FinalistCard";
 
 export const metadata: Metadata = { title: "Finalistas" };
@@ -83,7 +84,7 @@ async function FinalistsPanel() {
             return (
               <li key={category.id} className="flex flex-wrap items-center gap-3 py-3">
                 <span className="min-w-40 flex-1">
-                  <span className="font-medium">{category.name}</span>{" "}
+                  <span className="font-medium">{categoryTitle(category)}</span>{" "}
                   <Chip size="sm" tone={isPrize ? "copper" : "sage"}>
                     {isPrize ? "Premio" : "Honorífica"}
                   </Chip>
@@ -127,13 +128,13 @@ async function FinalistsPanel() {
             {active.map((category, index) => (
               <li key={category.id} className="flex items-center gap-3 border border-line px-3 py-2">
                 <span className="w-6 text-sm text-ink-soft tabular-nums">{index + 1}</span>
-                <span className="flex-1 text-sm font-medium">{category.name}</span>
+                <span className="flex-1 text-sm font-medium">{categoryTitle(category)}</span>
                 {votingRulesEditable && (
                   <>
                     <form action={moveRevealAction}>
                       <input type="hidden" name="id" value={category.id} />
                       <input type="hidden" name="direction" value="up" />
-                      <Button type="submit" variant="ghost" disabled={index === 0} aria-label={`Subir «${category.name}»`}>
+                      <Button type="submit" variant="ghost" disabled={index === 0} aria-label={`Subir «${categoryTitle(category)}»`}>
                         ↑
                       </Button>
                     </form>
@@ -144,7 +145,7 @@ async function FinalistsPanel() {
                         type="submit"
                         variant="ghost"
                         disabled={index === active.length - 1}
-                        aria-label={`Bajar «${category.name}»`}
+                        aria-label={`Bajar «${categoryTitle(category)}»`}
                       >
                         ↓
                       </Button>
@@ -167,7 +168,7 @@ async function FinalistsPanel() {
       {categories
         .filter((c) => c.finalists.length > 0)
         .map((category) => (
-          <SectionCard key={category.id} id={`finalistas-${category.id}`} title={category.name}>
+          <SectionCard key={category.id} id={`finalistas-${category.id}`} title={categoryTitle(category)}>
             <ul className="grid gap-3 sm:grid-cols-2">
               {category.finalists.map((f) => (
                 <FinalistCard
@@ -176,7 +177,8 @@ async function FinalistsPanel() {
                   finalist={{
                     id: f.id,
                     displayName: f.displayName,
-                    external: f.participantId === null,
+                    external: f.participantId === null && f.optionId === null,
+                    option: f.optionId !== null,
                     photoUrl: f.photoUrl,
                     blurb: f.blurb,
                   }}

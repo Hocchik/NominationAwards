@@ -6,22 +6,36 @@ const finalists = DEMO_CATEGORIES.flatMap((c) => c.finalists);
 
 describe("datos del demo", () => {
   it("todos los ids son UUID v4 y no se repiten", () => {
-    const ids = [...DEMO_CANDIDATES.map((p) => p.id), ...DEMO_CATEGORIES.map((c) => c.id), ...finalists.map((f) => f.id)];
+    const ids = [
+      ...DEMO_CANDIDATES.map((p) => p.id),
+      ...DEMO_CATEGORIES.map((c) => c.id),
+      ...finalists.map((f) => f.id),
+      ...DEMO_CATEGORIES.flatMap((c) => c.options.map((o) => o.id)),
+    ];
     for (const id of ids) expect(id).toMatch(UUID_V4);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("los finalistas del grupo existen en el grupo y con el mismo nombre", () => {
     const group = new Map(DEMO_CANDIDATES.map((p) => [p.id, p.name]));
-    for (const f of finalists.filter((f) => f.participantId !== null)) {
+    for (const f of finalists.filter((f) => f.participantId !== null && !f.partnerParticipantId)) {
       expect(group.get(f.participantId!)).toBe(f.name);
     }
   });
 
-  it("hay premios, honoríficas y al menos un referente de fuera del grupo", () => {
+  it("hay premios, honoríficas y los tipos nuevos: pareja, «más propenso» y opciones", () => {
     expect(DEMO_CATEGORIES.some((c) => c.type === "PRIZE")).toBe(true);
     expect(DEMO_CATEGORIES.some((c) => c.type === "HONORARY")).toBe(true);
-    expect(finalists.some((f) => f.participantId === null)).toBe(true);
+    expect(DEMO_CATEGORIES.some((c) => c.nomineeKind === "PAIR")).toBe(true);
+    expect(DEMO_CATEGORIES.some((c) => c.framing === "PRONE")).toBe(true);
+    expect(DEMO_CATEGORIES.some((c) => c.nomineeKind === "TEXT" && c.minPicks === 1)).toBe(true);
+  });
+
+  it("los finalistas de opciones son opciones de su categoría", () => {
+    for (const c of DEMO_CATEGORIES.filter((c) => c.nomineeKind === "OPTION")) {
+      const ids = new Set(c.options.map((o) => o.id));
+      for (const f of c.finalists) expect(ids.has(f.optionId!)).toBe(true);
+    }
   });
 
   it("cada categoría tiene de 3 a 4 finalistas", () => {

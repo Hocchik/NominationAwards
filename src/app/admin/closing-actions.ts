@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { getCurrentEvent } from "@/lib/event/queries";
+import { MAX_FINALISTS } from "@/lib/event/rules";
 import { unlinkClosedUrns } from "@/lib/event/transition";
 
 // Cierre de nominaciones (CLAUDE.md §3, paso 3). Antes de tocar este archivo,
@@ -38,11 +39,13 @@ const finalistsSchema = z
       finalists: z
         .array(
           z.object({
-            name: z.string().trim().min(1).max(60),
+            name: z.string().trim().min(1).max(200),
             participantId: z.string().min(1).nullable(),
+            partnerParticipantId: z.string().min(1).nullable().default(null),
+            optionId: z.string().min(1).nullable().default(null),
           }),
         )
-        .max(40),
+        .max(MAX_FINALISTS, `Máximo ${MAX_FINALISTS} finalistas por categoría.`),
     }),
   )
   .max(100);
@@ -59,26 +62,43 @@ export async function saveFinalistsAction(
   if (!parsed.success) return { ok: false, message: "Los finalistas no tienen el formato esperado." };
 
   const [categories, participants] = await Promise.all([
-    prisma.category.findMany({ where: { eventId: event.id }, select: { id: true } }),
+    prisma.category.findMany({
+      where: { eventId: event.id },
+      select: { id: true, options: { select: { id: true, photoUrl: true, blurb: true } } },
+    }),
     prisma.participant.findMany({ where: { eventId: event.id }, select: { id: true } }),
   ]);
-  const categoryIds = new Set(categories.map((c) => c.id));
+  const optionsByCategory = new Map(categories.map((c) => [c.id, new Map(c.options.map((o) => [o.id, o]))]));
   const participantIds = new Set(participants.map((p) => p.id));
   for (const group of parsed.data) {
-    if (!categoryIds.has(group.categoryId)) return { ok: false, message: "Hay una categoría desconocida." };
+    const options = optionsByCategory.get(group.categoryId);
+    if (!options) return { ok: false, message: "Hay una categoría desconocida." };
     for (const f of group.finalists) {
-      if (f.participantId && !participantIds.has(f.participantId)) {
+      const people = [f.participantId, f.partnerParticipantId].filter((id): id is string => Boolean(id));
+      if (people.some((id) => !participantIds.has(id))) {
         return { ok: false, message: "Hay un finalista que no es del grupo." };
       }
+      if (f.optionId && !options.has(f.optionId)) return { ok: false, message: "Hay una opción desconocida." };
     }
   }
 
   // Se guardan en orden alfabético: el orden de inserción no debe insinuar
-  // quién tuvo más nominaciones.
+  // quién tuvo más nominaciones. Las opciones llevan su foto y su detalle.
   const rows = parsed.data.flatMap((group) =>
     [...group.finalists]
       .sort((a, b) => a.name.localeCompare(b.name, "es"))
-      .map((f) => ({ categoryId: group.categoryId, displayName: f.name, participantId: f.participantId })),
+      .map((f) => {
+        const option = f.optionId ? optionsByCategory.get(group.categoryId)?.get(f.optionId) : undefined;
+        return {
+          categoryId: group.categoryId,
+          displayName: f.name,
+          participantId: f.participantId,
+          partnerParticipantId: f.partnerParticipantId,
+          optionId: f.optionId,
+          photoUrl: option?.photoUrl ?? null,
+          blurb: option?.blurb ?? null,
+        };
+      }),
   );
 
   try {

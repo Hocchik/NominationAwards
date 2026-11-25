@@ -29,8 +29,37 @@ interface FinalistInfo {
   name: string;
   photoUrl: string | null;
   blurb: string | null;
-  /** Es quien está votando: su tarjeta se muestra pero no se puede elegir. */
+  /** Es quien está votando (o está en la pareja): se muestra pero no se puede elegir. */
   isSelf?: boolean;
+  /** Pareja: lleva las dos fotos. */
+  kind?: "person" | "pair" | "option";
+  partnerPhotoUrl?: string | null;
+}
+
+/** Foto chica de la fila (en parejas, partida al medio). */
+function Thumb({ finalist }: { finalist: FinalistInfo }) {
+  const one = (photoUrl: string | null | undefined, name: string, className: string) =>
+    photoUrl ? (
+      <span className={cn("photo-duotone overflow-hidden", className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
+        <img src={photoUrl} alt="" className="size-full object-cover" />
+      </span>
+    ) : (
+      <span aria-hidden="true" className={cn("grid place-items-center bg-sand font-display font-extrabold", className)}>
+        {initials(name)}
+      </span>
+    );
+  if (finalist.kind === "pair") {
+    const at = finalist.name.indexOf(" y ");
+    const [a, b] = at < 0 ? [finalist.name, ""] : [finalist.name.slice(0, at), finalist.name.slice(at + 3)];
+    return (
+      <span className="grid h-[68px] w-16 shrink-0 grid-cols-2 gap-[2px] overflow-hidden chamfer-10">
+        {one(finalist.photoUrl, a, "text-xs")}
+        {one(finalist.partnerPhotoUrl, b, "text-xs")}
+      </span>
+    );
+  }
+  return one(finalist.photoUrl, finalist.name, "h-[68px] w-16 shrink-0 text-xl chamfer-10");
 }
 
 interface CategoryInfo {
@@ -219,19 +248,7 @@ export function VoteBallotForm({
                           onChange={() => choose(category.id, finalist.id)}
                           className="sr-only"
                         />
-                        {finalist.photoUrl ? (
-                          <span className="photo-duotone h-[68px] w-16 shrink-0 overflow-hidden chamfer-10">
-                            {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
-                            <img src={finalist.photoUrl} alt="" className="size-full object-cover" />
-                          </span>
-                        ) : (
-                          <span
-                            aria-hidden="true"
-                            className="grid h-[68px] w-16 shrink-0 place-items-center bg-sand font-display text-xl font-extrabold chamfer-10"
-                          >
-                            {initials(finalist.name)}
-                          </span>
-                        )}
+                        <Thumb finalist={finalist} />
                         <span className="flex min-w-0 flex-1 flex-col gap-1">
                           <span className="font-display text-[15px] leading-tight font-bold">{finalist.name}</span>
                           {finalist.blurb && (
@@ -339,15 +356,12 @@ export function VoteBallotForm({
 function SelfRow({ finalist }: { finalist: FinalistInfo }) {
   return (
     <div className="flex min-h-[92px] items-center gap-3 border-b border-l-[3px] border-b-line border-l-transparent py-2.5 pr-1.5 pl-2.5 opacity-60">
-      <span
-        aria-hidden="true"
-        className="grid h-[68px] w-16 shrink-0 place-items-center bg-sand font-display text-xl font-extrabold chamfer-10"
-      >
-        {initials(finalist.name)}
-      </span>
+      <Thumb finalist={finalist} />
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="font-display text-[15px] leading-tight font-bold">{finalist.name}</span>
-        <span className="text-[13px] leading-snug text-ink-soft">No puedes votarte a ti mismo.</span>
+        <span className="text-[13px] leading-snug text-ink-soft">
+          {finalist.kind === "pair" ? "No puedes votar por una pareja en la que estás." : "No puedes votarte a ti mismo."}
+        </span>
       </span>
       <span className="shrink-0 bg-ink px-2 py-1 font-display text-[9px] font-bold tracking-[0.14em] text-sheet uppercase">
         Eres tú

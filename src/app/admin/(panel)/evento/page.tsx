@@ -82,9 +82,6 @@ async function EventPanel() {
           values={{
             name: event.name,
             capacity: event.capacity,
-            minNominations: event.minNominations,
-            maxNominations: event.maxNominations,
-            finalistsPerCategory: event.finalistsPerCategory,
             maxPrizeCategories: event.maxPrizeCategories,
             showWinnerPercent: event.showWinnerPercent,
             allowNominationSkip: event.allowNominationSkip,

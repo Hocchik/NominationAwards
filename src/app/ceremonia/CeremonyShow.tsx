@@ -8,6 +8,7 @@ import { NightStage, type StageCategory } from "@/components/ceremony/Stage";
 import { LogoMark } from "@/components/ui/Logo";
 import { type VoteResults, openAndTallyVotes } from "@/lib/ballots/openVotes";
 import { cn } from "@/lib/cn";
+import { categoryTitle } from "@/lib/event/categoryKinds";
 import { parseKeyFile } from "@/lib/crypto/keyFile";
 import { getVoteBallotsAction } from "./actions";
 
@@ -234,7 +235,7 @@ function SlideView({
               <li key={c.id} className="flex items-baseline gap-[0.8cqw]">
                 <span aria-hidden="true" className={cn("size-[0.7cqw] shrink-0", c.type === "PRIZE" ? "bg-copper" : "bg-sage")} />
                 <span>
-                  <span className="text-ink-soft">{c.name}:</span>{" "}
+                  <span className="text-ink-soft">{categoryTitle(c)}:</span>{" "}
                   <strong className="font-display font-bold">{names.length ? names.join(" y ") : "desierta"}</strong>
                 </span>
               </li>

@@ -21,16 +21,10 @@ export const eventSettingsSchema = z
   .object({
     name: eventNameSchema,
     capacity: intField("Capacidad", 2, 200),
-    minNominations: intField("Mínimo de nominaciones", 1, 10),
-    maxNominations: intField("Máximo de nominaciones", 1, 10),
-    finalistsPerCategory: intField("Finalistas por categoría", 2, 8),
+    // Cuántos pone cada persona y cuántos finalistas pasan se definen por categoría.
     maxPrizeCategories: intField("Máximo de categorías de premio", 1, 50),
     showWinnerPercent: z.boolean(),
     allowNominationSkip: z.boolean(),
-  })
-  .refine((d) => d.maxNominations >= d.minNominations, {
-    path: ["maxNominations"],
-    message: "El máximo de nominaciones no puede ser menor que el mínimo.",
   });
 
 /** "" = sin definir; si no, una fecha ISO que arma el navegador del admin. */
@@ -71,7 +65,13 @@ export const categorySchema = z.object({
   description: z
     .string("Escribe la consigna.")
     .trim()
-    .min(2, "Escribe la consigna (la pregunta que verá el grupo).")
-    .max(240, "La consigna puede tener hasta 240 caracteres."),
+    .min(2, "Escribe el criterio (lo que verá el grupo).")
+    .max(400, "El criterio puede tener hasta 400 caracteres."),
   type: z.enum(["PRIZE", "HONORARY"], "Elige si es de premio u honorífica."),
+  framing: z.enum(["NORMAL", "PRONE", "QUESTION"], "Elige cómo se lee el título."),
+  nomineeKind: z.enum(["PERSON", "PAIR", "OPTION", "TEXT", "DIRECT"], "Elige qué se nomina."),
+  maxPicks: intField("Cuántos pone cada persona", 1, 5),
+  minPicks: intField("Mínimo obligatorio", 0, 5),
+  finalistCount: intField("Finalistas", 3, 5),
+  allowExternal: z.boolean(),
 });

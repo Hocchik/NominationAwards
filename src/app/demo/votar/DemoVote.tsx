@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { VoteBallotForm } from "@/app/(sala)/votar/VoteBallotForm";
 import { voteBallotBytes } from "@/lib/ballots/vote";
-import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName } from "@/lib/demo/fixtures";
+import { categoryTitle } from "@/lib/event/categoryKinds";
+import { DEMO_CATEGORIES, DEMO_EVENT_NAME, DEMO_ROOM_CODE, byName, demoFinalistDisplay } from "@/lib/demo/fixtures";
 import { DemoLoading, DemoNeedsName, DemoSent } from "../DemoParts";
 import { demoPause } from "@/lib/demo/pause";
 import { useDemo } from "../DemoProvider";
@@ -31,17 +32,22 @@ export function DemoVote() {
 
   const categories = DEMO_CATEGORIES.map((c) => ({
     id: c.id,
-    name: c.name,
+    name: categoryTitle(c),
     description: c.description,
     type: c.type,
-    finalists: byName(c.finalists).map((f) => ({
-      id: f.id,
-      name: f.name,
-      photoUrl: null,
-      blurb: f.blurb,
-      // Tu propia tarjeta se ve, pero no se puede elegir.
-      isSelf: f.participantId === self.id,
-    })),
+    finalists: byName(c.finalists).map((f) => {
+      const shown = demoFinalistDisplay(f, c.nomineeKind);
+      return {
+        id: f.id,
+        name: f.name,
+        photoUrl: null,
+        partnerPhotoUrl: null,
+        kind: shown.kind,
+        blurb: f.blurb || null,
+        // Tu propia tarjeta (o una pareja en la que estás) se ve, pero no se puede elegir.
+        isSelf: f.participantId === self.id || f.partnerParticipantId === self.id,
+      };
+    }),
   }));
 
   return (

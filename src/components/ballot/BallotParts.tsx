@@ -88,7 +88,7 @@ export function CategoryHeading({
   description: string;
 }) {
   return (
-    <div className="relative space-y-1.5 pr-[5.5rem]">
+    <div className="relative space-y-1.5 pr-[6.75rem]">
       <p className="inline-flex items-center gap-[7px] font-display text-[10px] font-semibold tracking-[0.16em] text-ink-soft uppercase">
         <span aria-hidden="true" className={cn("size-[7px]", type === "PRIZE" ? "bg-copper" : "bg-sage")} />
         {eyebrow}

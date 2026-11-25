@@ -112,6 +112,26 @@
   filter: grayscale(1) contrast(1.15);
   mix-blend-mode: multiply;
 }
+/* Pareja: la foto partida al medio, una mitad para cada uno */
+.rv-half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+}
+.rv-half-b {
+  left: 50%;
+}
+.rv-split {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 1.5px);
+  width: 3px;
+  background: var(--bg);
+}
 .rv-sample {
   position: absolute;
   inset: 0;

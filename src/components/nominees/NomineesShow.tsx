@@ -3,6 +3,9 @@ import { type CSSProperties, Fragment, type ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { Countdown } from "@/components/ui/Countdown";
 import { LoaderLink } from "@/components/ui/LoaderLink";
+import type { CategoryFraming } from "@/generated/prisma/enums";
+import { categoryKicker, categoryTitle } from "@/lib/event/categoryKinds";
+import type { FinalistKind } from "@/lib/event/finalistDisplay";
 import { CategoryNav } from "./CategoryNav";
 import { cn } from "@/lib/cn";
 import type { GroupPhotoView } from "@/lib/event/groupPhotos";
@@ -24,6 +27,11 @@ export interface BoardFinalist {
   nickname: string | null;
   /** Referente de fuera del grupo (no es participante). */
   external: boolean;
+  /** Persona, pareja (dos fotos) u opción del organizador. */
+  kind?: FinalistKind;
+  partnerPhotoUrl?: string | null;
+  /** Detalle de una opción: quién dijo la frase, el curso del profe… */
+  blurb?: string | null;
 }
 
 export interface BoardCategory {
@@ -33,6 +41,9 @@ export interface BoardCategory {
   name: string;
   description: string;
   type: "PRIZE" | "HONORARY";
+  framing?: CategoryFraming;
+  /** Cartas boca abajo de esta categoría (cuántos finalistas pasan). */
+  slots?: number;
   /** Vacío mientras los nominados no se revelan. */
   finalists: BoardFinalist[];
 }
@@ -218,24 +229,46 @@ export function NomineesShow({
         <CategoryNav
           categories={categories.map((c) => ({
             num: c.num,
-            name: c.name,
+            name: categoryTitle(c),
             type: c.type,
             initials: c.finalists.map((f) => initials(f.name)),
           }))}
         />
       )}
-      {categories.map((c) => (
-        <Chapter
-          key={c.id}
-          category={c}
-          all={categories}
-          revealed={revealed}
-          slots={slots}
-          revealNote={revealNote}
-          // Solo con la votación abierta: veinte botones apagados serían ruido (arriba ya está el de la cuenta regresiva).
-          vote={vote?.href ? vote : null}
-        />
+      {categories.map((c, i) => (
+        <Fragment key={c.id}>
+          {/* Premios primero y luego honoríficas: un título al empezar cada sección */}
+          {categories.some((o) => o.type !== c.type) && categories[i - 1]?.type !== c.type && (
+            <SectionTitle type={c.type} count={categories.filter((o) => o.type === c.type).length} />
+          )}
+          <Chapter
+            category={c}
+            all={categories}
+            revealed={revealed}
+            slots={c.slots ?? slots}
+            revealNote={revealNote}
+            // Solo con la votación abierta: veinte botones apagados serían ruido (arriba ya está el de la cuenta regresiva).
+            vote={vote?.href ? vote : null}
+          />
+        </Fragment>
       ))}
+    </div>
+  );
+}
+
+function SectionTitle({ type, count }: { type: "PRIZE" | "HONORARY"; count: number }) {
+  const prize = type === "PRIZE";
+  return (
+    <div className={cn("border-t border-line", prize ? "accent-prize" : "accent-honor")}>
+      <div className="mx-auto flex max-w-[90rem] flex-wrap items-end justify-between gap-x-8 gap-y-2 px-4 pt-16 pb-6 sm:px-6 lg:px-16 lg:pt-24">
+        <h2 className="font-display text-[clamp(44px,8vw,120px)] leading-[0.9] font-black tracking-[-0.05em] uppercase">
+          {prize ? "Premios" : "Honoríficas"}
+        </h2>
+        <p className="flex items-center gap-2.5 pb-2 text-sm font-bold tracking-[0.2em] text-ink-soft uppercase">
+          <span aria-hidden="true" className="size-2.5 rotate-45 bg-(--accent)" />
+          {count} {count === 1 ? "categoría" : "categorías"}
+        </p>
+      </div>
     </div>
   );
 }
@@ -288,7 +321,7 @@ function Chapter({
           {Array.from({ length: 10 }, (_, i) => (
             <Fragment key={i}>
               {i > 0 && <span className="mx-3.5 inline-block size-1.5 shrink-0 rotate-45 bg-(--accent)/60 lg:mx-6" />}
-              <span>{category.name}</span>
+              <span>{categoryTitle(category)}</span>
             </Fragment>
           ))}
         </span>
@@ -318,6 +351,9 @@ function Chapter({
             Categoría {category.num} de {String(all.length).padStart(2, "0")}
             {revealed && ` · ${count} ${count === 1 ? "nominado" : "nominados"}`}
           </p>
+          {categoryKicker(category) && (
+            <p className="mt-4 text-xl font-bold text-(--accent) italic lg:text-[26px]">{categoryKicker(category)}…</p>
+          )}
           <h2 className="nx-reveal mt-4 font-display text-[clamp(40px,6.2vw,92px)] leading-[0.98] font-extrabold tracking-[-0.04em]">
             {category.name}
           </h2>
@@ -346,29 +382,61 @@ function Chapter({
   );
 }
 
+function CardPhoto({ photoUrl, name, small = false }: { photoUrl: string | null | undefined; name: string; small?: boolean }) {
+  return photoUrl ? (
+    <div className="photo-duotone size-full">
+      {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
+      <img src={photoUrl} alt={`Foto de ${name}`} className="size-full object-cover" />
+    </div>
+  ) : (
+    <span
+      className={cn(
+        "grid size-full place-items-center bg-sand font-display font-extrabold text-(--accent)",
+        small ? "text-[clamp(20px,3.4vw,44px)]" : "text-[clamp(28px,5vw,64px)]",
+      )}
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
 function FinalistCard({ finalist, number }: { finalist: BoardFinalist; number: number }) {
+  // Pareja: la foto partida al medio, una mitad para cada uno.
+  const at = finalist.name.indexOf(" y ");
+  const halves = at < 0 ? [finalist.name, ""] : [finalist.name.slice(0, at), finalist.name.slice(at + 3)];
   return (
     <article>
       <div className="relative aspect-[4/5] bg-(--accent) p-px chamfer-14 lg:chamfer-22">
         <div className="relative size-full overflow-hidden [clip-path:inherit]">
-          {finalist.photoUrl ? (
-            <div className="photo-duotone size-full">
-              {/* eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL */}
-              <img src={finalist.photoUrl} alt={`Foto de ${finalist.name}`} className="size-full object-cover" />
+          {finalist.kind === "pair" ? (
+            <div className="grid size-full grid-cols-2 gap-[3px] bg-bg">
+              <div className="relative overflow-hidden">
+                <CardPhoto photoUrl={finalist.photoUrl} name={halves[0]!} small />
+              </div>
+              <div className="relative overflow-hidden">
+                <CardPhoto photoUrl={finalist.partnerPhotoUrl} name={halves[1]!} small />
+              </div>
             </div>
           ) : (
-            <span className="grid size-full place-items-center bg-sand font-display text-[clamp(28px,5vw,64px)] font-extrabold text-(--accent)">
-              {initials(finalist.name)}
-            </span>
+            <CardPhoto photoUrl={finalist.photoUrl} name={finalist.name} />
           )}
           <span className="absolute top-2.5 left-3 bg-black px-2 py-1 font-display text-[10px] font-bold tracking-[0.14em] text-white lg:top-4 lg:left-5 lg:text-xs">
             Nº {String(number).padStart(2, "0")}
           </span>
         </div>
       </div>
-      <h3 className="mt-3 font-display text-base leading-tight font-bold tracking-[-0.02em] lg:mt-5 lg:text-[27px]">{finalist.name}</h3>
+      <h3
+        className={cn(
+          "mt-3 font-display leading-tight font-bold tracking-[-0.02em] lg:mt-5",
+          // Una frase larga no puede verse del tamaño de un nombre
+          finalist.name.length > 40 ? "text-sm lg:text-lg" : "text-base lg:text-[27px]",
+        )}
+      >
+        {finalist.name.length > 40 ? `«${finalist.name}»` : finalist.name}
+      </h3>
       {finalist.nickname && <p className="mt-1 text-sm text-(--accent) italic lg:text-[15px]">«{finalist.nickname}»</p>}
       {finalist.external && !finalist.nickname && <p className="mt-1 text-sm text-ink-soft italic">De fuera del grupo</p>}
+      {finalist.kind === "option" && finalist.blurb && <p className="mt-1 text-sm text-ink-soft lg:text-[15px]">{finalist.blurb}</p>}
     </article>
   );
 }

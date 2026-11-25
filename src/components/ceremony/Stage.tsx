@@ -1,4 +1,5 @@
-import type { CategoryType } from "@/generated/prisma/enums";
+import type { CategoryFraming, CategoryType } from "@/generated/prisma/enums";
+import type { FinalistKind } from "@/lib/event/finalistDisplay";
 import { CUP, CUP_PLAQUE, LAUREL, type TrophyTone } from "./trophyShapes";
 
 // Piezas de la pantalla de la premiación (16:9, noche): el escenario de la
@@ -13,6 +14,10 @@ export interface StageFinalist {
   nickname: string | null;
   /** Referente de fuera del grupo. */
   external: boolean;
+  /** Persona, pareja (dos fotos) u opción del organizador (profe, evento, frase). */
+  kind?: FinalistKind;
+  /** Foto de la otra mitad de la pareja. */
+  partnerPhotoUrl?: string | null;
 }
 
 export interface StageCategory {
@@ -20,7 +25,15 @@ export interface StageCategory {
   name: string;
   description: string;
   type: CategoryType;
+  /** «Más propenso/a a…» lleva un rótulo sobre el título. */
+  framing?: CategoryFraming;
   finalists: StageFinalist[];
+}
+
+/** Las dos mitades del nombre de una pareja («Ana Torres y Bruno Díaz»). */
+export function pairParts(name: string): [string, string] {
+  const at = name.indexOf(" y ");
+  return at < 0 ? [name, ""] : [name.slice(0, at), name.slice(at + 3)];
 }
 
 export const pad = (n: number) => String(n).padStart(2, "0");

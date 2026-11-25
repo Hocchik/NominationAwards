@@ -4,9 +4,23 @@ import { isBefore } from "./phases";
 // Qué se puede editar en cada fase. Lo que cambia las reglas del juego se
 // congela en cuanto el grupo empieza a participar, para que sea justo para todos.
 
+/**
+ * Tope duro de finalistas por categoría, con empates incluidos (decisión del
+ * usuario, 2026-11-25): más de 5 no caben bien en Nominados ni en la ceremonia.
+ */
+export const MAX_FINALISTS = 5;
+
 /** Crear, borrar, cambiar tipo y reordenar categorías; mínimo/máximo de nominaciones. */
 export function canEditStructure(phase: EventPhase): boolean {
   return phase === "SETUP";
+}
+
+/**
+ * Agregar opciones (profes, eventos, frases) o cambiar su foto: hasta que
+ * cierran las nominaciones. Quitarlas, solo en preparación.
+ */
+export function canAddCategoryOptions(phase: EventPhase): boolean {
+  return phase === "SETUP" || phase === "NOMINATIONS";
 }
 
 /** Corregir nombre o consigna de una categoría (las papeletas usan su id, no su texto). */

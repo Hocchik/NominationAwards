@@ -6,9 +6,11 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { discardBallot, removeGuest } from "@/lib/ballots/record";
 import { prisma } from "@/lib/db";
 import { getCurrentEvent } from "@/lib/event/queries";
+import { isBefore } from "@/lib/event/phases";
 import { canManageParticipants } from "@/lib/event/rules";
+import { isSmallJpegDataUrl } from "@/lib/photos";
 import type { FormState } from "@/lib/forms";
-import { mergeAliases, parseAliases, parseGuestList } from "@/lib/participants/guests";
+import { mergeAliases, mergeSearchNames, parseAliases, parseGuestList, searchNamesFor } from "@/lib/participants/guests";
 import { normalizeName } from "@/lib/participants/names";
 
 // Lista de invitados (CLAUDE.md §5). El admin ve los nombres y si cada uno ya
@@ -40,7 +42,7 @@ export async function addGuestsAction(_prev: FormState, formData: FormData): Pro
 
   const existing = await prisma.participant.findMany({
     where: { eventId: event.id },
-    select: { id: true, displayName: true, normalizedName: true, aliases: true },
+    select: { id: true, displayName: true, normalizedName: true, aliases: true, searchNames: true },
   });
   const byKey = new Map(existing.map((p) => [p.normalizedName, p]));
   const fresh = guests.filter((g) => !byKey.has(normalizeName(g.name)));
@@ -60,6 +62,7 @@ export async function addGuestsAction(_prev: FormState, formData: FormData): Pro
         displayName: g.name,
         normalizedName: normalizeName(g.name),
         aliases: g.aliases,
+        searchNames: g.searchNames ?? [],
       })),
       skipDuplicates: true,
     });
@@ -69,8 +72,9 @@ export async function addGuestsAction(_prev: FormState, formData: FormData): Pro
   for (const g of repeated) {
     const current = byKey.get(normalizeName(g.name))!;
     const merged = mergeAliases(current.aliases, g.aliases, current.displayName);
-    if (merged.length === current.aliases.length) continue;
-    await prisma.participant.update({ where: { id: current.id }, data: { aliases: merged } });
+    const search = mergeSearchNames(current.searchNames, g.searchNames ?? [], current.displayName, merged);
+    if (merged.length === current.aliases.length && search.length === current.searchNames.length) continue;
+    await prisma.participant.update({ where: { id: current.id }, data: { aliases: merged, searchNames: search } });
     withNewAliases++;
   }
   refresh();
@@ -91,7 +95,10 @@ export async function setAliasesAction(formData: FormData): Promise<void> {
   const guest = await prisma.participant.findFirst({ where: { id, eventId: event.id } });
   if (!guest) return;
   const { aliases } = parseAliases(String(formData.get("aliases") ?? ""), guest.displayName);
-  await prisma.participant.update({ where: { id: guest.id }, data: { aliases } });
+  const searchNames = formData.has("searchNames")
+    ? searchNamesFor(String(formData.get("searchNames") ?? ""), guest.displayName, aliases)
+    : guest.searchNames;
+  await prisma.participant.update({ where: { id: guest.id }, data: { aliases, searchNames } });
   refresh();
 }
 
@@ -124,4 +131,20 @@ export async function removeGuestAction(formData: FormData): Promise<void> {
   if (!event || !id) return;
   await removeGuest({ eventId: event.id, participantId: id });
   refresh();
+}
+
+/**
+ * Foto de un invitado (se puede subir cuando quieras, hasta la ceremonia). Se
+ * usa en el buscador de Nominar, Nominados, Votar y la ceremonia; `null` la quita.
+ */
+export async function setGuestPhotoAction(id: string, photoUrl: string | null): Promise<{ ok: boolean; message?: string }> {
+  await requireAdmin();
+  const event = await getCurrentEvent();
+  if (!event || !isBefore(event.phase, "CEREMONY")) return { ok: false, message: "En la ceremonia ya no se cambian las fotos." };
+  if (photoUrl !== null && !isSmallJpegDataUrl(photoUrl)) return { ok: false, message: "La foto no tiene el formato esperado." };
+  const guest = await prisma.participant.findFirst({ where: { id, eventId: event.id } });
+  if (!guest) return { ok: false, message: "Ese nombre ya no está en la lista." };
+  await prisma.participant.update({ where: { id: guest.id }, data: { photoUrl } });
+  refresh();
+  return { ok: true };
 }

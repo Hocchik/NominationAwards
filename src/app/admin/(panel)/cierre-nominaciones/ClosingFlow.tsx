@@ -5,47 +5,84 @@ import { type ChangeEvent, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
-import type { CategoryType } from "@/generated/prisma/enums";
+import type { CategoryFraming, CategoryType } from "@/generated/prisma/enums";
 import { type NominationBallot, nominationBallotSchema } from "@/lib/ballots/nomination";
 import {
   type NomineeKey,
   type Tally,
-  applyMerges,
-  pickFinalists,
+  type TallyCategory,
+  countMerged,
   resolveMerge,
+  splitAtCut,
   tallyNominations,
+  textEntries,
 } from "@/lib/ballots/tally";
 import { parseKeyFile } from "@/lib/crypto/keyFile";
 import type { KeyPair } from "@/lib/crypto/keys";
 import { openPayload } from "@/lib/crypto/open";
+import { categoryTitle } from "@/lib/event/categoryKinds";
+import { MAX_FINALISTS } from "@/lib/event/rules";
 import { getNominationBallotsAction, saveFinalistsAction } from "../../closing-actions";
 
 // Todo lo de esta pantalla pasa en ESTE navegador (regla 7): la llave privada
 // y los conteos viven solo en memoria y desaparecen al cerrar la pestaña.
 // La pantalla nunca muestra conteos (regla 8).
 
-interface CategoryInfo {
-  id: string;
+interface CategoryInfo extends TallyCategory {
   name: string;
   type: CategoryType;
+  framing: CategoryFraming;
+  /** Cuántos pasan a la votación (3, 4 o 5). */
+  finalistCount: number;
+  /** Solo en las de finalistas directos: las opciones que pasan tal cual. */
+  directOptions: { id: string; label: string }[];
+}
+
+interface ChosenFinalist {
+  name: string;
+  participantId: string | null;
+  partnerParticipantId: string | null;
+  optionId: string | null;
 }
 
 type Step = "key" | "unify" | "finalists";
+
+/**
+ * Qué hacer cuando el empate del último puesto se pasa del número de finalistas:
+ * que entren todos, elegir cuáles completan o quedarse solo con los de arriba.
+ */
+type TieMode = "all" | "pick" | "top";
+interface TieChoiceValue {
+  mode: TieMode;
+  picked: NomineeKey[];
+}
+
+/**
+ * La elección que vale para un empate: si «que entren todos» pasaría del tope de
+ * 5, no se ofrece y se arranca eligiendo entre los empatados.
+ */
+function effectiveTie(value: TieChoiceValue | undefined, sure: number, tied: number): TieChoiceValue {
+  const allFits = sure + tied <= MAX_FINALISTS;
+  if (!value) return { mode: allFits ? "all" : "pick", picked: [] };
+  if (value.mode === "all" && !allFits) return { ...value, mode: "pick" };
+  return value;
+}
 
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, "es");
 
 export function ClosingFlow({
   publicKey,
-  finalistsPerCategory,
   ballotCount,
   categories,
   participantNames,
+  optionLabels,
 }: {
   publicKey: string;
-  finalistsPerCategory: number;
   ballotCount: number;
   categories: CategoryInfo[];
   participantNames: Record<string, string>;
+  /** Opciones del organizador (profes, eventos, frases): id → texto. */
+  optionLabels: Record<string, string>;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("key");
@@ -53,6 +90,10 @@ export function ClosingFlow({
   const [tally, setTally] = useState<Tally | null>(null);
   const [unreadable, setUnreadable] = useState(0);
   const [merges, setMerges] = useState<Record<NomineeKey, NomineeKey>>({});
+  // Texto libre, por categoría: qué variantes son lo mismo y cómo se verá cada grupo.
+  const [textMerges, setTextMerges] = useState<Record<string, Record<NomineeKey, NomineeKey>>>({});
+  const [textNames, setTextNames] = useState<Record<string, Record<NomineeKey, string>>>({});
+  const [ties, setTies] = useState<Record<string, TieChoiceValue>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -92,31 +133,92 @@ export function ClosingFlow({
           failed++;
         }
       }
-      setTally(tallyNominations(ballots, categories.map((c) => c.id), participantNames));
+      setTally(tallyNominations(ballots, categories, participantNames, optionLabels));
       setUnreadable(failed);
       setKeys(null); // la llave privada se borra de la memoria apenas termina
       setStep("unify");
     });
   }
 
-  const entries = useMemo(() => (tally ? Object.values(tally.entries).sort(byName) : []), [tally]);
+  // Solo las personas sueltas se pueden unificar (parejas y opciones ya son exactas).
+  const entries = useMemo(
+    () =>
+      tally
+        ? Object.values(tally.entries)
+            .filter((e) => e.key.startsWith("p:") || e.key.startsWith("x:"))
+            .sort(byName)
+        : [],
+    [tally],
+  );
+  const hasExternal = entries.some((e) => !e.participantId);
+  const textCategories = categories.filter((c) => c.nomineeKind === "TEXT");
 
-  const finalists = useMemo(() => {
+  const finalists = useMemo((): {
+    category: CategoryInfo;
+    list: ChosenFinalist[];
+    sure: string[];
+    tied: { key: NomineeKey; name: string }[];
+  }[] => {
     if (!tally) return [];
     return categories.map((category) => {
-      const keysForCategory = pickFinalists(applyMerges(tally.counts[category.id] ?? {}, merges), finalistsPerCategory);
-      const list = keysForCategory.map((key) => tally.entries[key]).filter(Boolean).sort(byName);
-      return { category, list };
+      if (category.nomineeKind === "DIRECT") {
+        const list = category.directOptions.map((o) => ({ name: o.label, participantId: null, partnerParticipantId: null, optionId: o.id }));
+        return { category, list: list.sort(byName), sure: [], tied: [] };
+      }
+      const text = category.nomineeKind === "TEXT";
+      const names = textNames[category.id] ?? {};
+      const toFinalist = (key: NomineeKey): ChosenFinalist | null => {
+        const entry = tally.entries[key];
+        if (!entry) return null;
+        if (!text) return entry;
+        const name = (names[key] ?? entry.name).trim() || entry.name;
+        return { name, participantId: null, partnerParticipantId: null, optionId: null };
+      };
+      const counts = countMerged(tally, category.id, text ? (textMerges[category.id] ?? {}) : merges);
+      const { sure, tied } = splitAtCut(counts, category.finalistCount);
+      const choice = effectiveTie(ties[category.id], sure.length, tied.length);
+      const chosenTied = choice.mode === "all" ? tied : choice.mode === "pick" ? tied.filter((key) => choice.picked.includes(key)) : [];
+      const list = [...sure, ...chosenTied]
+        .map(toFinalist)
+        .filter((f): f is ChosenFinalist => f !== null)
+        .sort(byName);
+      return {
+        category,
+        list,
+        sure: sure.map((key) => toFinalist(key)?.name ?? "").filter(Boolean).sort((a, b) => a.localeCompare(b, "es")),
+        tied: tied
+          .map((key) => ({ key, name: toFinalist(key)?.name ?? "" }))
+          .filter((t) => t.name)
+          .sort(byName),
+      };
     });
-  }, [tally, merges, categories, finalistsPerCategory]);
+  }, [tally, merges, categories, textMerges, textNames, ties]);
+
+  // Elegir entre empatados sin marcar a nadie (o pasando de 5) dejaría la categoría mal armada.
+  const pendingTie = finalists.find(({ category, sure, tied }) => {
+    if (tied.length === 0) return false;
+    const choice = effectiveTie(ties[category.id], sure.length, tied.length);
+    if (choice.mode !== "pick") return false;
+    const picked = tied.filter((t) => choice.picked.includes(t.key)).length;
+    return picked === 0 || sure.length + picked > MAX_FINALISTS;
+  });
 
   function save() {
     setError(null);
+    if (pendingTie) {
+      setError(`En «${categoryTitle(pendingTie.category)}» marca entre los empatados (al menos 1, máximo ${MAX_FINALISTS} finalistas en total), o elige otra opción.`);
+      return;
+    }
     startTransition(async () => {
       const result = await saveFinalistsAction(
         finalists.map(({ category, list }) => ({
           categoryId: category.id,
-          finalists: list.map((entry) => ({ name: entry.name, participantId: entry.participantId })),
+          finalists: list.map((entry) => ({
+            name: entry.name.slice(0, 200),
+            participantId: entry.participantId,
+            partnerParticipantId: entry.partnerParticipantId,
+            optionId: entry.optionId,
+          })),
         })),
       );
       if (!result.ok) {
@@ -167,9 +269,10 @@ export function ClosingFlow({
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">2. Unifica nombres repetidos</h2>
             <p className="text-sm text-ink-soft">
-              Todos los nombres que aparecieron, en orden alfabético y sin conteos. Si dos son la
-              misma persona (por ejemplo, «Tía Rosa» y «La tía Rosa»), une uno con el otro y sus
-              nominaciones se suman.
+              Todo lo que escribió el grupo, en orden alfabético y sin conteos ni autor. Si dos son
+              la misma persona o la misma frase (por ejemplo, «Profe Ramírez» e «Ing. Ramírez»),
+              une uno con el otro: sus nominaciones se suman y una papeleta que puso las dos cuenta
+              una sola vez. Después el sistema saca los finalistas solo.
             </p>
             {unreadable > 0 && (
               <p className="text-sm text-danger">
@@ -177,8 +280,24 @@ export function ClosingFlow({
               </p>
             )}
           </div>
-          {entries.length === 0 ? (
-            <p className="text-sm text-ink-soft">No hay nominaciones.</p>
+          {textCategories.map((category) => (
+            <TextGroups
+              key={category.id}
+              title={categoryTitle(category)}
+              entries={textEntries(tally, category.id)}
+              merges={textMerges[category.id] ?? {}}
+              names={textNames[category.id] ?? {}}
+              onMerge={(next) => setTextMerges((prev) => ({ ...prev, [category.id]: next }))}
+              onRename={(next) => setTextNames((prev) => ({ ...prev, [category.id]: next }))}
+            />
+          ))}
+          {hasExternal && <h3 className="font-semibold">Personas de fuera del grupo</h3>}
+          {!hasExternal ? (
+            textCategories.length === 0 && (
+              <p className="text-sm text-ink-soft">
+                Nadie escribió nombres de fuera del grupo: no hay nada que unificar. Sigue al paso 3.
+              </p>
+            )
           ) : (
             <ul className="divide-y divide-line">
               {entries.map((entry) => {
@@ -236,22 +355,39 @@ export function ClosingFlow({
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">3. Revisa los finalistas</h2>
             <p className="text-sm text-ink-soft">
-              Los {finalistsPerCategory} más nominados de cada categoría, en orden alfabético. Si
-              hubo empate en el último puesto, entran todos los empatados.
+              Los más nominados de cada categoría (3, 4 o 5, según la categoría), en orden
+              alfabético y sin conteos. Si el empate del último puesto hace pasar del número,
+              decides tú en esa categoría: que entren todos, elegir cuáles completan o quedarte con
+              los de arriba. En las de texto libre se cuentan los grupos que armaste en el paso 2.
+              Las de finalistas directos pasan con las opciones que cargaste.
             </p>
           </div>
           <ol className="space-y-3">
-            {finalists.map(({ category, list }) => (
+            {finalists.map(({ category, list, sure, tied }) => (
               <li key={category.id} className=" border border-line px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{category.name}</span>
+                  <span className="font-medium">{categoryTitle(category)}</span>
                   <Chip size="sm" tone={category.type === "PRIZE" ? "copper" : "sage"}>
                     {category.type === "PRIZE" ? "Premio" : "Honorífica"}
                   </Chip>
                 </div>
                 <p className="mt-1 text-sm text-ink-soft">
-                  {list.length ? list.map((e) => e.name).join(" · ") : "Sin nominaciones: no tendrá finalistas."}
+                  {list.length
+                    ? list.map((e) => e.name).join(" · ")
+                    : category.nomineeKind === "DIRECT"
+                      ? "Todavía no cargaste las opciones de esta categoría en Categorías."
+                      : "Sin nominaciones: no tendrá finalistas."}
                 </p>
+                {tied.length > 0 && (
+                  <TieChoice
+                    name={category.id}
+                    target={category.finalistCount}
+                    sure={sure}
+                    tied={tied}
+                    value={effectiveTie(ties[category.id], sure.length, tied.length)}
+                    onChange={(value) => setTies((prev) => ({ ...prev, [category.id]: value }))}
+                  />
+                )}
               </li>
             ))}
           </ol>
@@ -276,5 +412,174 @@ export function ClosingFlow({
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * Lo que escribió el grupo en una categoría de texto libre, en orden alfabético
+ * y sin conteos ni autor (regla 8). El organizador une las variantes que son lo
+ * mismo («ing. ramirez» → «Ing. Ramírez») y corrige cómo se verá cada grupo; los
+ * finalistas los saca el sistema contando los grupos.
+ */
+function TextGroups({
+  title,
+  entries,
+  merges,
+  names,
+  onMerge,
+  onRename,
+}: {
+  title: string;
+  entries: { key: string; name: string }[];
+  merges: Record<string, string>;
+  names: Record<string, string>;
+  onMerge: (merges: Record<string, string>) => void;
+  onRename: (names: Record<string, string>) => void;
+}) {
+  const groups = new Set(entries.map((entry) => resolveMerge(entry.key, merges))).size;
+  const nameOf = (key: string) => names[key] ?? entries.find((entry) => entry.key === key)?.name ?? "";
+  return (
+    <section className="space-y-2 border border-line px-4 py-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-semibold">{title}</h3>
+        <span className="text-xs text-ink-soft">
+          {entries.length === 0
+            ? "Nadie escribió nada"
+            : `${entries.length} ${entries.length === 1 ? "texto distinto" : "textos distintos"} · ${groups} ${groups === 1 ? "grupo" : "grupos"}`}
+        </span>
+      </div>
+      {entries.length > 0 && (
+        <ul className="divide-y divide-line">
+          {entries.map((entry) => {
+            const target = resolveMerge(entry.key, merges);
+            const head = target === entry.key;
+            return (
+              <li key={entry.key} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
+                <span className={head ? "min-w-40 flex-1 font-medium" : "min-w-40 flex-1 text-ink-soft"}>«{entry.name}»</span>
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="text-ink-soft">Es lo mismo que</span>
+                  <select
+                    value={merges[entry.key] ?? ""}
+                    onChange={(event) => {
+                      const next = { ...merges };
+                      if (event.target.value) next[entry.key] = event.target.value;
+                      else delete next[entry.key];
+                      onMerge(next);
+                    }}
+                    className="min-h-11 max-w-60 border border-line bg-sheet px-3 text-sm text-ink"
+                  >
+                    <option value="" className="bg-bg">
+                      — nada más —
+                    </option>
+                    {entries
+                      .filter((other) => other.key !== entry.key)
+                      .map((other) => (
+                        <option key={other.key} value={other.key} className="bg-bg">
+                          {other.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                {head ? (
+                  <label className="flex w-full items-center gap-2 text-xs text-ink-soft">
+                    <span className="shrink-0">Se verá como</span>
+                    <input
+                      value={nameOf(entry.key)}
+                      maxLength={200}
+                      onChange={(event) => onRename({ ...names, [entry.key]: event.target.value })}
+                      className="min-h-11 w-full border border-line bg-sheet px-3 text-sm text-ink sm:w-80"
+                    />
+                  </label>
+                ) : (
+                  <span className="w-full text-xs text-ink-soft">Se cuenta como «{nameOf(target)}».</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Empate en el último puesto que se pasa del número de finalistas. Solo dice
+ * quiénes entran fijos y quiénes están empatados en el corte, nunca cuántas
+ * nominaciones tuvo nadie (decisión del usuario, 2026-11-25).
+ */
+function TieChoice({
+  name,
+  target,
+  sure,
+  tied,
+  value,
+  onChange,
+}: {
+  name: string;
+  target: number;
+  sure: string[];
+  tied: { key: string; name: string }[];
+  value: TieChoiceValue;
+  onChange: (value: TieChoiceValue) => void;
+}) {
+  const missing = Math.max(0, target - sure.length);
+  const picked = tied.filter((t) => value.picked.includes(t.key)).length;
+  const room = MAX_FINALISTS - sure.length;
+  const options: { mode: TieMode; label: string }[] = [];
+  if (sure.length + tied.length <= MAX_FINALISTS) {
+    options.push({ mode: "all", label: `Que entren los ${tied.length} empatados (${sure.length + tied.length} finalistas)` });
+  }
+  options.push({ mode: "pick", label: "Elijo cuáles entran de los empatados" });
+  if (sure.length >= 2) options.push({ mode: "top", label: `Quedarme con los ${sure.length} de arriba` });
+  return (
+    <fieldset className="mt-3 space-y-2 border-l-2 border-copper pl-3">
+      <legend className="text-sm font-semibold">Empate en el último puesto</legend>
+      <p className="text-xs text-ink-soft">
+        {sure.length === 0
+          ? "Nadie quedó claramente arriba"
+          : `${sure.length === 1 ? "Entra fijo" : `Entran fijos ${sure.length}`}: ${sure.join(", ")}`}
+        . {tied.length} empatados por {missing === 1 ? "1 lugar" : `${missing} lugares`}. No se muestra cuántas nominaciones tuvo nadie.
+        {sure.length + tied.length > MAX_FINALISTS && ` Como pasarían de ${MAX_FINALISTS}, no pueden entrar todos.`}
+      </p>
+      <div className="space-y-1">
+        {options.map((option) => (
+          <label key={option.mode} className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm">
+            <input
+              type="radio"
+              name={`empate-${name}`}
+              checked={value.mode === option.mode}
+              onChange={() => onChange({ ...value, mode: option.mode })}
+              className="size-4 shrink-0 accent-copper"
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+      {value.mode === "pick" && (
+        <div className="space-y-1 pl-6">
+          <p className="text-xs text-ink-soft">
+            Elegiste {picked} · para llegar a {target} {missing === 1 ? "falta 1" : `faltan ${missing}`} · como máximo{" "}
+            {room === 1 ? "1 más" : `${room} más`} ({MAX_FINALISTS} en total)
+          </p>
+          {tied.map((t) => {
+            const on = value.picked.includes(t.key);
+            return (
+              <label key={t.key} className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  disabled={!on && picked >= room}
+                  onChange={() =>
+                    onChange({ ...value, picked: on ? value.picked.filter((k) => k !== t.key) : [...value.picked, t.key] })
+                  }
+                  className="size-4 shrink-0 accent-copper"
+                />
+                <span className={on ? "font-semibold" : undefined}>{t.name}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </fieldset>
   );
 }

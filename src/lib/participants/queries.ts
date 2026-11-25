@@ -22,8 +22,8 @@ export function countGuests(eventId: string): Promise<number> {
 export async function listGuests(eventId: string): Promise<GuestEntry[]> {
   const rows = await prisma.participant.findMany({
     where: { eventId },
-    select: { displayName: true, aliases: true },
+    select: { displayName: true, aliases: true, searchNames: true },
     orderBy: { normalizedName: "asc" },
   });
-  return rows.map((row) => ({ name: row.displayName, aliases: row.aliases }));
+  return rows.map((row) => ({ name: row.displayName, aliases: row.aliases, searchNames: row.searchNames }));
 }

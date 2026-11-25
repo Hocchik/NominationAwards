@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getCategories, getCurrentEvent } from "@/lib/event/queries";
-import { canEditCategoryText, canEditStructure } from "@/lib/event/rules";
+import { canAddCategoryOptions, canEditCategoryText, canEditFinalistsCount, canEditStructure } from "@/lib/event/rules";
+import { loadPresetCategoriesAction } from "../../actions";
 import { CategoryForm } from "../../_components/CategoryForm";
 import { CategoryItem } from "../../_components/CategoryItem";
 import { PanelLoading } from "../../_components/PanelLoading";
@@ -62,11 +64,26 @@ async function CategoriesPanel() {
         )}
       </div>
 
+      {categories.length === 0 && structure && (
+        <Card className="space-y-3">
+          <h2 className="font-display text-lg font-semibold">Las 25 categorías de Premios del Grupo</h2>
+          <p className="text-sm text-ink-soft">
+            13 de premio y 12 honoríficas (normales, «Más propenso/a a…», la pregunta y las de opciones),
+            con el orden de Nominados y el de la ceremonia ya puestos y EOTY al final. Las consignas son
+            un borrador: después las corriges aquí. Las opciones de Evento del año, La mejor frase y
+            Mejor profe se agregan en cada una.
+          </p>
+          <form action={loadPresetCategoriesAction}>
+            <Button type="submit">Cargar las 25 categorías</Button>
+          </form>
+        </Card>
+      )}
+
       {categories.length === 0 ? (
         <Card>
           <p className="text-sm text-ink-soft">
-            Aún no hay categorías. Agrega la primera aquí abajo; el orden en que aparecen es el
-            orden en que el grupo las verá al nominar.
+            Aún no hay categorías. Agrega la primera aquí abajo. El grupo las ve primero las de
+            premio y luego las honoríficas, cada grupo en este orden.
           </p>
         </Card>
       ) : (
@@ -79,7 +96,16 @@ async function CategoriesPanel() {
                 name: category.name,
                 description: category.description,
                 type: category.type,
+                framing: category.framing,
+                nomineeKind: category.nomineeKind,
+                maxPicks: category.maxPicks,
+                minPicks: category.minPicks,
+                finalistCount: category.finalistCount,
+                allowExternal: category.allowExternal,
               }}
+              options={category.options.map((o) => ({ id: o.id, label: o.label, blurb: o.blurb, photoUrl: o.photoUrl }))}
+              canAddOptions={canAddCategoryOptions(event.phase)}
+              canEditFinalists={canEditFinalistsCount(event.phase)}
               position={index + 1}
               isFirst={index === 0}
               isLast={index === categories.length - 1}

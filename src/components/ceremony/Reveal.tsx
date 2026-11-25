@@ -2,8 +2,9 @@
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { categoryKicker, categoryTitle } from "@/lib/event/categoryKinds";
 import { initials } from "@/lib/initials";
-import { type StageCategory, type StageFinalist, TYPE_LABEL, Trophy, pad } from "./Stage";
+import { type StageCategory, type StageFinalist, TYPE_LABEL, Trophy, pad, pairParts } from "./Stage";
 import "./reveal.css";
 
 // La revelación de una categoría, igual en la ceremonia real y en el demo
@@ -47,20 +48,38 @@ function nameLines(name: string, maxChars: number) {
 const fitSize = (lines: string[], width: number, max: number) =>
   Math.min(max, Math.floor(width / (0.74 * Math.max(...lines.map((l) => l.length)))));
 
+function PhotoOrInitials({ photoUrl, name, size }: { photoUrl: string | null | undefined; name: string; size: number }) {
+  return photoUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL
+    <img src={photoUrl} alt="" />
+  ) : (
+    <span className="rv-sample">
+      <span className="rv-initials" style={{ fontSize: size }}>
+        {initials(name)}
+      </span>
+    </span>
+  );
+}
+
 function Photo({ finalist, initialsSize }: { finalist: StageFinalist; initialsSize: number }) {
+  // Las parejas van con la foto partida al medio: una mitad para cada uno.
+  const [a, b] = finalist.kind === "pair" ? pairParts(finalist.name) : [finalist.name, ""];
   return (
     <span className="rv-frame">
       <span className="rv-fill">
         <span className="rv-photo">
-          {finalist.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- foto pequeña guardada como data URL
-            <img src={finalist.photoUrl} alt="" />
-          ) : (
-            <span className="rv-sample">
-              <span className="rv-initials" style={{ fontSize: initialsSize }}>
-                {initials(finalist.name)}
+          {finalist.kind === "pair" ? (
+            <>
+              <span className="rv-half">
+                <PhotoOrInitials photoUrl={finalist.photoUrl} name={a} size={Math.round(initialsSize * 0.62)} />
               </span>
-            </span>
+              <span className="rv-half rv-half-b">
+                <PhotoOrInitials photoUrl={finalist.partnerPhotoUrl} name={b} size={Math.round(initialsSize * 0.62)} />
+              </span>
+              <span className="rv-split" />
+            </>
+          ) : (
+            <PhotoOrInitials photoUrl={finalist.photoUrl} name={finalist.name} size={initialsSize} />
           )}
         </span>
       </span>
@@ -111,9 +130,11 @@ export function RevealScene({
   const winners = finalists.filter((f) => winnerIds.includes(f.id));
   const n = Math.max(finalists.length, 1);
 
-  // Fila de finalistas, centrada; con más de 5 (empates en el corte) se achican.
+  // Fila de finalistas, centrada; con más de 5 (datos viejos, antes del tope) se
+  // achican. Con el rótulo «Más propenso/a a…» el título baja ~40 px: las tarjetas
+  // son un poco más bajas para que la consigna (hasta 3 líneas) no las toque.
   const gap = n <= 5 ? 40 : 24;
-  const cw = n <= 5 ? 200 : Math.floor((W - 120 - (n - 1) * gap) / n);
+  const cw = n <= 5 ? (categoryKicker(category) ? 176 : 200) : Math.floor((W - 120 - (n - 1) * gap) / n);
   const ch = Math.round(cw * 1.25);
   const left = (W - (n * cw + (n - 1) * gap)) / 2;
   const spots = winnerSpots(winners.length);
@@ -124,6 +145,9 @@ export function RevealScene({
     : W / 2;
 
   // Título: la segunda mitad en cursiva («El alma <em>de la fiesta</em>»).
+  // En «Más propenso/a a…» el rótulo va arriba y el título es el final de la frase.
+  const kicker = categoryKicker(category);
+  const fullTitle = categoryTitle(category);
   const words = category.name.split(/\s+/);
   const cut = words.length > 1 ? Math.floor(words.length / 2) : words.length;
   const titleA = words.slice(0, cut).join(" ");
@@ -134,7 +158,8 @@ export function RevealScene({
   const lines = single ? nameLines(single.name, Math.max(9, Math.ceil(single.name.length / 3))) : [];
   const nameSize = single ? fitSize(lines, 440, 84) : 0;
   const tieSize = tie ? fitSize(winners.map((w) => w.name), 440, 52) : 0;
-  const nick = single ? (single.nickname ?? (single.external ? null : single.name.split(/\s+/)[0])) : null;
+  const isOption = single?.kind === "option";
+  const nick = single && !isOption ? (single.nickname ?? (single.external ? null : single.name.split(/\s+/)[0])) : null;
   const cheer = tie ? (winners.length === 2 ? "¡Felicidades a los dos!" : "¡Felicidades a todos!") : nick ? `¡Felicidades, ${nick}!` : "¡Felicidades!";
   const followers = finalists
     .filter((f) => places[f.id])
@@ -168,7 +193,7 @@ export function RevealScene({
     };
   });
 
-  const label = `Categoría ${number} de ${total}: ${category.name}.`;
+  const label = `Categoría ${number} de ${total}: ${fullTitle}.`;
   const announcement = !reveal
     ? `${label} Nominados: ${finalists.map((f) => f.name).join(", ")}.`
     : winners.length
@@ -205,6 +230,11 @@ export function RevealScene({
           <span className="rv-in rv-chip" style={{ animationDelay: "0.2s" }}>
             Categoría {pad(number)} · {TYPE_LABEL[category.type]}
           </span>
+          {kicker && (
+            <span className="rv-in mt-4 block text-[22px] font-bold text-(--accent) italic" style={{ animationDelay: "0.3s" }}>
+              {kicker}…
+            </span>
+          )}
           <h2 className="rv-display mt-4 text-[64px] leading-none font-extrabold tracking-[-0.04em]">
             <span className="rv-mask">
               <span className="rv-word" style={{ animationDelay: "0.4s" }}>
@@ -212,7 +242,7 @@ export function RevealScene({
               </span>
             </span>
           </h2>
-          <p className="rv-in mt-3 text-lg text-ink-soft" style={{ animationDelay: "1s" }}>
+          <p className="rv-in mt-3 line-clamp-3 text-lg leading-7 text-ink-soft" style={{ animationDelay: "1s" }}>
             {category.description}
           </p>
         </div>
@@ -243,9 +273,9 @@ export function RevealScene({
                 {f.nickname && <span className="mt-[3px] block text-sm text-(--accent) italic">«{f.nickname}»</span>}
               </span>
               {/* En la primera foto ganadora: en un empate, la de atrás, para no tapar el nombre */}
-              {reveal && w === 0 && (
+              {reveal && w === 0 && f.kind !== "option" && (
                 <span className="rv-pop rv-bubble" style={{ animationDelay: "6.4s" }}>
-                  {tie ? "¡que hablen!" : "¡que hable!"}
+                  {tie || f.kind === "pair" ? "¡que hablen!" : "¡que hable!"}
                 </span>
               )}
             </div>
@@ -308,7 +338,7 @@ export function RevealScene({
                 {/* El nombre, al centro */}
                 <div className="absolute top-[160px] left-[476px] z-[4] w-[440px]">
                   <span className="rv-in rv-chip" style={{ animationDelay: "4.5s" }}>
-                    {tie ? "Empate" : "Primer puesto"} · {category.name}
+                    {tie ? "Empate" : "Primer puesto"} · {fullTitle}
                   </span>
                   <span className="rv-in mt-[18px] block text-[30px] font-extrabold text-(--accent) italic" style={{ animationDelay: "4.7s" }}>
                     {cheer}

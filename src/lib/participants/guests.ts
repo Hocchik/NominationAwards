@@ -2,13 +2,16 @@ import { cleanDisplayName, normalizeName } from "./names";
 import { displayNameSchema } from "./schemas";
 
 // Lista de invitados (CLAUDE.md §5): el admin pega los nombres, uno por línea,
-// con los apodos entre paréntesis: «Gabriel Mendoza (Gabo, Gabito)». La
-// tarjeta muestra el nombre real; el buscador de la sala también encuentra
-// los apodos.
+// con los apodos entre paréntesis y otros nombres para buscar entre corchetes:
+// «Gabriel Mendoza (Gabo, el admin) [Armando, Salcedo]». La tarjeta muestra el
+// nombre y apellido; el primer apodo se ve como apodo; los corchetes (segundo
+// nombre, apellidos) solo sirven para que el buscador lo encuentre.
 
 export interface GuestEntry {
   name: string;
   aliases: string[];
+  /** Otros nombres solo para buscar (segundo nombre, apellidos); nunca se muestran como apodo. */
+  searchNames?: string[];
 }
 
 export interface ParsedGuests {
@@ -22,6 +25,8 @@ export interface ParsedGuests {
 const LIST_MARKER = /^\s*(?:[-*•·]|\d+[.)-])\s*/;
 /** Apodos al final de la línea, entre paréntesis. */
 const ALIASES = /\(([^()]*)\)\s*$/;
+/** Otros nombres para buscar al final de la línea, entre corchetes. */
+const SEARCH = /\[([^[\]]*)\]\s*$/;
 
 /**
  * Limpia una lista de apodos separados por coma: sin repetidos (sin
@@ -58,8 +63,22 @@ export function parseGuestList(text: string): ParsedGuests {
   const byKey = new Map<string, GuestEntry>();
   for (const raw of text.split(/\r?\n/)) {
     let line = raw.replace(LIST_MARKER, "");
-    const aliasMatch = line.match(ALIASES);
-    if (aliasMatch) line = line.slice(0, aliasMatch.index);
+    // Paréntesis y corchetes pueden venir en cualquier orden al final.
+    let aliasText = "";
+    let searchText = "";
+    for (let i = 0; i < 2; i++) {
+      const a = line.match(ALIASES);
+      if (a) {
+        aliasText = a[1] ?? "";
+        line = line.slice(0, a.index);
+        continue;
+      }
+      const s = line.match(SEARCH);
+      if (s) {
+        searchText = s[1] ?? "";
+        line = line.slice(0, s.index);
+      }
+    }
     line = cleanDisplayName(line);
     if (!line) continue;
     const parsed = displayNameSchema.safeParse(line);
@@ -68,15 +87,17 @@ export function parseGuestList(text: string): ParsedGuests {
       continue;
     }
     const name = parsed.data;
-    const { aliases, invalid: badAliases } = parseAliases(aliasMatch?.[1] ?? "", name);
+    const { aliases, invalid: badAliases } = parseAliases(aliasText, name);
+    const searchNames = searchNamesFor(searchText, name, aliases);
     invalid.push(...badAliases);
     const key = normalizeName(name);
     const existing = byKey.get(key);
     if (existing) {
       existing.aliases = mergeAliases(existing.aliases, aliases, existing.name);
+      existing.searchNames = mergeSearchNames(existing.searchNames ?? [], searchNames, existing.name, existing.aliases);
       continue;
     }
-    const entry = { name, aliases };
+    const entry = { name, aliases, searchNames };
     byKey.set(key, entry);
     guests.push(entry);
   }
@@ -88,11 +109,33 @@ export function mergeAliases(current: string[], extra: string[], name: string): 
   return parseAliases([...current, ...extra].join(","), name).aliases;
 }
 
-/** ¿El texto buscado coincide con el nombre o con algún apodo? */
+/**
+ * Otros nombres para buscar (segundo nombre, apellidos), separados por coma o
+ * espacio: sin repetir, sin palabras que ya están en el nombre ni en los apodos.
+ */
+export function searchNamesFor(text: string, name: string, aliases: string[] = []): string[] {
+  const taken = new Set([...normalizeName(name).split(" "), ...aliases.map(normalizeName)]);
+  const out: string[] = [];
+  for (const raw of text.split(/[,\s]+/)) {
+    const word = cleanDisplayName(raw);
+    if (word.length < 2 || word.length > 40) continue;
+    const key = normalizeName(word);
+    if (taken.has(key)) continue;
+    taken.add(key);
+    out.push(word);
+  }
+  return out;
+}
+
+export function mergeSearchNames(current: string[], extra: string[], name: string, aliases: string[]): string[] {
+  return searchNamesFor([...current, ...extra].join(","), name, aliases);
+}
+
+/** ¿El texto buscado coincide con el nombre, un apodo u otro nombre? (se muestra lo que coincidió) */
 export function matchesGuest(guest: GuestEntry, query: string): { match: boolean; alias?: string } {
   const q = normalizeName(query);
   if (!q) return { match: true };
   if (normalizeName(guest.name).includes(q)) return { match: true };
-  const alias = guest.aliases.find((a) => normalizeName(a).includes(q));
+  const alias = [...guest.aliases, ...(guest.searchNames ?? [])].find((a) => normalizeName(a).includes(q));
   return alias ? { match: true, alias } : { match: false };
 }

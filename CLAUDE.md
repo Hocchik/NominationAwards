@@ -38,8 +38,8 @@ SETUP → NOMINATIONS → NOMINATIONS_CLOSED → FINALISTS_READY → VOTING → 
 ```
 
 1. **SETUP** — El admin crea el evento, las categorías (tipo `PRIZE` o `HONORARY`), carga la **lista de invitados** y genera el link de configuración para el notario. El notario genera **dos pares de llaves** (uno para nominaciones, otro para votación) en su navegador; las públicas se guardan en el evento, las privadas las descarga y guarda él (con respaldo).
-2. **NOMINATIONS** — Se comparte UN solo link/QR: la raíz del sitio (`/`), por WhatsApp. Mientras están abiertas, la raíz solo muestra la entrada y la papeleta de nominar (no hay pestaña de Nominados). Cada persona toca su nombre en la lista de invitados y entra (sin PIN ni aprobación). Nomina de 3 a 5 personas/referentes por categoría (configurable). El admin puede sumar o quitar invitados hasta el cierre de la votación.
-3. **NOMINATIONS_CLOSED** — Las nominaciones cierran a la hora programada (`nominationsCloseAt`, se aplica al leer el evento) o con el botón de fases. El notario ingresa su llave privada de nominaciones en `/admin/cierre-nominaciones`. Todo se descifra y cuenta **en el navegador**; se muestra una pantalla para unificar nombres duplicados (lista alfabética **sin conteos**). Luego el sistema calcula automáticamente el top N por categoría (empates en el último puesto entran todos) y envía al servidor **solo los finalistas**. Los conteos nunca se muestran ni se guardan.
+2. **NOMINATIONS** — Se comparte UN solo link/QR: la raíz del sitio (`/`), por WhatsApp. Mientras están abiertas, la raíz solo muestra la entrada y la papeleta de nominar (no hay pestaña de Nominados). Cada persona toca su nombre en la lista de invitados y entra (sin PIN ni aprobación). En cada categoría pone lo que esa categoría pide (ver «Tipos de categoría» en §6): **de 1 a 3** nombres, **1 pareja** en las de parejas, o texto libre (La mejor frase y Mejor profe: 1 o 2). Todas son obligatorias (decisión del usuario, 2026-11-22). Evento del año no se nomina: el organizador pone los finalistas. El admin puede sumar o quitar invitados hasta el cierre de la votación.
+3. **NOMINATIONS_CLOSED** — Las nominaciones cierran a la hora programada (`nominationsCloseAt`, se aplica al leer el evento) o con el botón de fases. El notario ingresa su llave privada de nominaciones en `/admin/cierre-nominaciones`. Todo se descifra y cuenta **en el navegador**; se muestra una pantalla para unificar nombres duplicados (lista alfabética **sin conteos**). En las de **texto libre** el organizador ve todos los textos (alfabéticos, sin conteos ni autor), junta las variantes que son lo mismo («ing. ramirez» → «Ing. Ramírez») y corrige cómo se verá cada grupo; una papeleta que escribió dos variantes cuenta una vez (`countMerged`). Luego el sistema calcula el top N por categoría, también en texto libre. **Tope duro de 5 finalistas** (`MAX_FINALISTS`, decisión del usuario, 2026-11-25): si el empate del último puesto se pasa de N, el organizador decide en esa categoría (`splitAtCut`): que entren todos los empatados (solo si no pasan de 5), elegir cuáles entran o quedarse con los de arriba; ve quiénes entran fijos y quiénes están empatados en el corte, nunca conteos. Las de **finalistas directos** pasan con las opciones que cargó (máximo 5). Al servidor van **solo los finalistas**. Los conteos nunca se muestran ni se guardan.
 4. **FINALISTS_READY** — El admin ve los finalistas (orden aleatorio, sin conteos) y elige qué categorías pasan a la votación: **máximo 15 de tipo `PRIZE`** (configurable) y las `HONORARY` que quiera. Define el orden de revelación (por defecto: honoríficas primero, de premio al final).
 5. **VOTING** — Abre en horario programado (un día antes de la reunión). Un voto por categoría activa, una sola vez por participante. Cifrado en el celular.
 6. **VOTING_CLOSED** — Cierre por horario. El admin solo ve participación (✔/⏳).
@@ -56,10 +56,10 @@ Claude Code debe verificar estas reglas en cada cambio que toque nominaciones, v
 2. **Sobres con nombre solo mientras la urna está abierta.** Mientras su fase está abierta (`NOMINATIONS` o `VOTING`), cada `Ballot` guarda `participantId` (el «nombre por fuera del sobre») para que el admin pueda botar el sobre de una persona sin abrirlo si alguien votó en su nombre. **En la misma transacción que cierra la fase**, `participantId` pasa a `null` (`movePhase` y `unlinkClosedUrns` en `lib/event/transition.ts`, usados por el botón de fases, el horario y el cierre de nominaciones); antes de entregar papeletas para abrirlas se vuelve a limpiar por seguridad. Nunca hay relación Prisma con `Participant`, ni `createdAt`/`updatedAt`, IP o user-agent. El ID es UUID v4 aleatorio. Costo aceptado por el usuario (2026-11-12): mientras la urna está abierta, quien tenga la base y la llave del notario podría unir nombres y votos; el historial de Neon puede guardar el vínculo unas horas después de borrarlo.
 3. **Sin marcas de tiempo delatoras.** `Participant` NO tiene `@updatedAt` ni campos de fecha sobre nominar/votar (solo booleanos `hasNominated` / `hasVoted`). `createdAt` (cuándo se agregó a la lista) sí está permitido.
 4. **Envío atómico.** El envío de una papeleta es UNA transacción (`prisma.$transaction`): verificar que la fase siga abierta y que el participante no haya enviado → marcar booleano → insertar `Ballot` (con su `participantId`, regla 2). Si dos dispositivos envían a la vez, solo uno pasa (usar `updateMany` con condición `hasVoted: false` y verificar `count === 1`).
-5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según número de categorías × máximo de nominados, en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB hasta unas 11 categorías activas y de a 1 KB más si hay más (`voteBallotBytes` en `lib/ballots/vote.ts`). El servidor rechaza textos cifrados que no midan exactamente eso.
+5. **Padding de tamaño.** Antes de cifrar, rellenar el JSON a un tamaño fijo para que el largo del texto cifrado no delate nada. Nominaciones: el peor caso según cómo se nomina en cada categoría (cupos × tipo: persona, pareja, opción o «de fuera»), en múltiplos de 1 KB e igual para todo el evento (`nominationBallotBytes` en `lib/ballots/nomination.ts`); votos: 1 KB hasta unas 11 categorías activas y de a 1 KB más si hay más (`voteBallotBytes` en `lib/ballots/vote.ts`). El servidor rechaza textos cifrados que no midan exactamente eso.
 6. **Nunca registrar contenido.** No hacer `console.log` de papeletas, payloads descifrados ni conteos. Nada de analytics con eventos de voto.
 7. **Descifrado solo en el navegador del notario/ceremonia.** Las llaves privadas nunca se envían al servidor ni se guardan en `localStorage`. Viven solo en memoria durante la sesión.
-8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. En la ceremonia se muestra el ganador (opcional: % redondeado del ganador) y, desde el 2026-11-14 (decisión del usuario), **los puestos 2.º, 3.º y 4.º sin conteos**: empates comparten puesto (el siguiente salta, p. ej. 2.º, 2.º, 4.º) y quien tuvo 0 votos no recibe puesto (aparece solo como «Finalista»). Nunca mostrar conteos exactos ni marcar a nadie con 0 votos. Los puestos se calculan en memoria en la ceremonia y no se guardan.
+8. **Sin conteos visibles antes de tiempo.** Ninguna pantalla de admin muestra conteos de nominaciones ni de votos. Única excepción aceptada (2026-11-25): en el cierre, si un empate en el corte pasa de N, el organizador ve quiénes entran fijos y quiénes empatan en el último puesto, sin números. En la ceremonia se muestra el ganador (opcional: % redondeado del ganador) y, desde el 2026-11-14 (decisión del usuario), **los puestos 2.º, 3.º y 4.º sin conteos**: empates comparten puesto (el siguiente salta, p. ej. 2.º, 2.º, 4.º) y quien tuvo 0 votos no recibe puesto (aparece solo como «Finalista»). Nunca mostrar conteos exactos ni marcar a nadie con 0 votos. Los puestos se calculan en memoria en la ceremonia y no se guardan.
 9. **Lecturas sin orden de inserción.** Al leer papeletas, ordenar por `id` (UUID aleatorio) o barajar; nunca depender del orden físico.
 10. **El admin solo ve:** la lista de invitados, participación ✔/⏳ (los que ya enviaron en la urna abierta aparecen «bloqueados» solo en su panel; en la sala todos los nombres se ven iguales), nombres únicos sin conteos al unificar, finalistas sin conteos, y ganadores (con los puestos 2.º–4.º) solo en la ceremonia.
 
@@ -90,7 +90,7 @@ model Event {
   capacity             Int        @default(40)
   minNominations       Int        @default(3)
   maxNominations       Int        @default(5)
-  finalistsPerCategory Int        @default(4)
+  finalistsPerCategory Int        @default(4)   // sin uso: ahora es Category.finalistCount
   maxPrizeCategories   Int        @default(15)
   nominationPublicKey  String?
   votePublicKey        String?
@@ -111,7 +111,9 @@ model Participant {             // un nombre de la lista de invitados
   event          Event    @relation(fields: [eventId], references: [id])
   displayName    String
   normalizedName String
-  aliases        String[] @default([])  // apodos para el buscador
+  aliases        String[] @default([])  // apodos; el 1.º es el que se ve
+  searchNames    String[] @default([])  // otros nombres solo para buscar (2.º nombre, apellidos); nunca se muestran
+  photoUrl       String?                // foto del invitado; se usa en todas las pantallas
   hasNominated   Boolean  @default(false)
   hasVoted       Boolean  @default(false)
   sessionVersion Int      @default(0)  // sube al resetear su envío
@@ -130,6 +132,13 @@ model Category {
   revealOrder   Int          @default(0)
   activeForVote Boolean      @default(false)
   revealed      Boolean      @default(false)
+  framing       CategoryFraming @default(NORMAL)  // NORMAL | PRONE («Más propenso/a a…») | QUESTION
+  nomineeKind   NomineeKind     @default(PERSON)  // PERSON | PAIR | OPTION | TEXT | DIRECT
+  maxPicks      Int             @default(1)       // cuántos pone cada persona al nominar
+  minPicks      Int             @default(0)       // mínimo obligatorio (0 = se puede dejar vacía)
+  finalistCount Int             @default(4)       // 3, 4 o 5; siempre gana uno
+  allowExternal Boolean         @default(false)   // «Otro (fuera del grupo)», solo PERSON
+  options       CategoryOption[]                  // profes, eventos, frases (solo OPTION)
   finalists     Finalist[]
 }
 
@@ -139,8 +148,19 @@ model Finalist {
   category      Category @relation(fields: [categoryId], references: [id])
   displayName   String
   participantId String?  // si es del grupo; null si es referente externo
-  photoUrl      String?
+  partnerParticipantId String?  // la otra mitad, en categorías de parejas
+  optionId      String?  // si es una opción del organizador
+  photoUrl      String?  // si no tiene, se usa la del invitado
   blurb         String?
+}
+
+model CategoryOption {          // opciones que carga el organizador (profes, eventos, frases)
+  id         String   @id @default(uuid())
+  categoryId String
+  label      String
+  photoUrl   String?
+  blurb      String?  // detalle: curso del profe, quién dijo la frase
+  sortOrder  Int      @default(0)
 }
 
 model GroupPhoto {              // fotos grupales de la entrada de Nominados (recuerdos, no tocan votos)
@@ -164,12 +184,28 @@ model Ballot {
 }
 ```
 
+### Tipos de categoría (decisión del usuario, 2026-11-21)
+
+- **Título** (`framing`): normal («El alma de la fiesta»), **«Más propenso/a a…»** (se guarda solo el final, «volverse gay», y el rótulo va arriba) o **pregunta** («¿Con quién dejarías a tu hijo/a?»). `categoryTitle` en `lib/event/categoryKinds.ts` arma el título completo.
+- **Qué se nomina** (`nomineeKind`): una **persona** de la lista; una **pareja** (dos invitados, el orden no importa; shipeo, dúo); **opciones** que carga el organizador (tarjetas con foto al nominar); **texto libre** (La mejor frase, Mejor profe: cada uno escribe lo que quiera, hasta 140 caracteres, y al cierre el organizador elige los finalistas entre todos los textos, sin conteos ni autor); o **finalistas directos** (Evento del año: no aparece al nominar; el organizador carga las opciones con foto y pasan tal cual a votar). (Decisiones del usuario, 2026-11-22.)
+- **Criterio:** la consigna (`description`, hasta 400 caracteres) dice qué cuenta para elegir y qué no («No es tu mejor amigo/a: es el de todos»); se ve al nominar, en Nominados, al votar y en la ceremonia.
+- **Cuántos pone cada uno** (`maxPicks`: 3 en las de persona, 1 pareja, frase y profe hasta 2) y si es **obligatoria** (`minPicks`: 1 en todas las que se nominan, decisión del usuario, 2026-11-22) y **finalistas** (`finalistCount`: 3, 4 o 5; con empates nunca más de 5). **Siempre gana uno.** «Otro (fuera del grupo)» está apagado salvo que se active por categoría.
+- **Orden:** Nominados, Nominar y Votar muestran primero las de premio y luego las honoríficas (`sortByType`), cada grupo por `sortOrder`; la ceremonia usa `revealOrder`. Las 25 categorías de Premios del Grupo (`lib/event/presetCategories.ts`) se cargan con un botón en `/admin/categorias` y traen ambos órdenes: la ceremonia va «2 premios → 1 honorífica → 1 más propenso», cierre emotivo y EOTY al final.
+- **Fotos:** cada invitado puede tener foto (se sube cuando se quiera en `/admin/participantes`); los finalistas la usan si no tienen una propia. Las parejas se ven con la foto partida al medio.
+- **Buscador de Nominar y de la entrada:** encuentra por nombre, apodo, segundo nombre o apellido y muestra lo que coincidió; al elegir se ve solo nombre y apellido. Formato al pegar la lista: `Gabriel Mendoza (Gabo, el admin) [Gabriel Armando Mendoza Salcedo]`: paréntesis = apodos (el 1.º se ve), corchetes = otros nombres solo para buscar (las palabras que ya están en el nombre se omiten).
+
 ### Formato de papeletas (antes de cifrar)
 
 ```ts
 // Nominación
 { v: 1, kind: "nomination",
-  categories: { [categoryId]: Array<{ type: "participant"; id: string } | { type: "external"; name: string }> },
+  categories: { [categoryId]: Array<
+    | { type: "participant"; id: string }
+    | { type: "external"; name: string }
+    | { type: "pair"; ids: [string, string] }   // ordenados: A+B = B+A
+    | { type: "option"; id: string }            // opción del organizador
+    | { type: "text"; text: string }            // texto libre (frase, profe), hasta 140 caracteres
+  > },
   pad: "..." }
 
 // Voto
@@ -345,7 +381,7 @@ Marcar cada ítem al completarlo. No avanzar de fase sin que la anterior funcion
 - ~~¿Quién será el notario?~~ **Decidido (2026-11-12):** el mismo organizador.
 - ~~¿Se permite omitir una categoría al nominar o votar (abstención)?~~ **Decidido:** al nominar se puede dejar una categoría vacía (configurable, `allowNominationSkip`). **Al votar no hay «Me abstengo»** (decisión del usuario, 2026-11-19): en cada categoría se vota por alguien; solo se salta una categoría si la persona era su único finalista. La columna `allowVoteAbstention` queda en la base sin uso. Nadie puede nominarse a sí mismo.
 - ¿Mostrar el % del ganador o solo el nombre?
-- Número de finalistas por categoría (3, 4 o 5)
+- ~~Número de finalistas por categoría~~ **Decidido (2026-11-21):** por categoría (3, 4 o 5; por defecto 4), siempre un ganador.
 - ¿Fotos de los finalistas en la ceremonia?
 
 ---

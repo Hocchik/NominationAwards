@@ -45,7 +45,7 @@ async function ParticipantsPanel() {
   // Orden alfabético: el orden en que se agregaron no aporta nada.
   const guests = await prisma.participant.findMany({
     where: { eventId: event.id },
-    select: { id: true, displayName: true, aliases: true, hasNominated: true, hasVoted: true },
+    select: { id: true, displayName: true, aliases: true, searchNames: true, photoUrl: true, hasNominated: true, hasVoted: true },
     orderBy: { normalizedName: "asc" },
   });
   const nominated = guests.filter((p) => p.hasNominated).length;

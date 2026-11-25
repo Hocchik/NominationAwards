@@ -67,10 +67,20 @@ async function ClosingPanel() {
   return (
     <ClosingFlow
       publicKey={event.nominationPublicKey}
-      finalistsPerCategory={event.finalistsPerCategory}
       ballotCount={ballotCount}
-      categories={categories.map((c) => ({ id: c.id, name: c.name, type: c.type }))}
+      categories={categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        framing: c.framing,
+        nomineeKind: c.nomineeKind,
+        maxPicks: c.maxPicks,
+        allowExternal: c.allowExternal,
+        finalistCount: c.finalistCount,
+        directOptions: c.nomineeKind === "DIRECT" ? c.options.map((o) => ({ id: o.id, label: o.label })) : [],
+      }))}
       participantNames={Object.fromEntries(participants.map((p) => [p.id, p.displayName]))}
+      optionLabels={Object.fromEntries(categories.flatMap((c) => c.options.map((o) => [o.id, o.label])))}
     />
   );
 }

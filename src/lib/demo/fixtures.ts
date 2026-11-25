@@ -1,5 +1,6 @@
-import type { CategoryType } from "@/generated/prisma/enums";
-import type { Candidate, NominationRules } from "@/lib/ballots/nomination";
+import type { CategoryFraming, CategoryType, NomineeKind } from "@/generated/prisma/enums";
+import type { Candidate } from "@/lib/ballots/nomination";
+import { type FinalistDisplay, type GuestInfo, finalistDisplay } from "@/lib/event/finalistDisplay";
 
 // Datos del demo (/demo): un grupo y unas categorías inventadas. Los IDs son
 // UUID v4 fijos para que las mismas funciones y esquemas del evento real los
@@ -9,8 +10,18 @@ export interface DemoFinalist {
   id: string;
   name: string;
   blurb: string;
-  /** Participante del grupo ficticio; null = referente de fuera del grupo. */
+  /** Participante del grupo ficticio; null = referente de fuera o una opción. */
   participantId: string | null;
+  /** La otra mitad, en las categorías de parejas. */
+  partnerParticipantId?: string;
+  /** Opción del organizador (profes). */
+  optionId?: string;
+}
+
+export interface DemoOption {
+  id: string;
+  label: string;
+  blurb: string;
 }
 
 export interface DemoCategory {
@@ -18,13 +29,21 @@ export interface DemoCategory {
   name: string;
   description: string;
   type: CategoryType;
+  framing: CategoryFraming;
+  nomineeKind: NomineeKind;
+  maxPicks: number;
+  minPicks: number;
+  allowExternal: boolean;
+  finalistCount: number;
+  options: DemoOption[];
   finalists: DemoFinalist[];
 }
 
 export const DEMO_EVENT_NAME = "Premios de prueba";
 /** Solo nombra los borradores que las papeletas guardan en sessionStorage. */
 export const DEMO_ROOM_CODE = "DEMO";
-export const DEMO_RULES: NominationRules = { min: 3, max: 5, allowSkip: true };
+/** Se puede dejar una categoría vacía al nominar, como en el evento real. */
+export const DEMO_ALLOW_SKIP = true;
 
 const P = {
   ana: "3a6bcb65-679f-4914-a5b9-50f13d1a4963",
@@ -41,7 +60,7 @@ const P = {
   mateo: "403dddd3-4639-4cf8-87a1-1491ad366d62",
 } as const;
 
-export const DEMO_CANDIDATES: Candidate[] = [
+const DEMO_PEOPLE: Candidate[] = [
   { id: P.ana, name: "Ana Torres" },
   { id: P.bruno, name: "Bruno Díaz" },
   { id: P.camila, name: "Camila Rojas" },
@@ -56,21 +75,29 @@ export const DEMO_CANDIDATES: Candidate[] = [
   { id: P.mateo, name: "Mateo Salazar" },
 ];
 
-/** Apodos del grupo ficticio: el buscador de la entrada también los encuentra. */
+/**
+ * Apodos y otros nombres del grupo ficticio: el primero es el apodo que se ve;
+ * los demás (segundo nombre, apellido) solo sirven para buscar.
+ */
 export const DEMO_ALIASES: Record<string, string[]> = {
-  [P.gabriela]: ["Gabi"],
+  [P.gabriela]: ["Gabi", "Andrea"],
   [P.julian]: ["Juli"],
-  [P.fabian]: ["Fabi"],
+  [P.fabian]: ["Fabi", "Soto"],
 };
+
+export const DEMO_CANDIDATES: Candidate[] = DEMO_PEOPLE.map((p) => ({ ...p, aliases: DEMO_ALIASES[p.id] ?? [] }));
 
 const C = {
   party: "f8572abf-0d8e-4d25-b9e4-64ed1d57eb39",
   late: "5074c316-03cc-4f74-810f-a95e53496394",
-  chef: "3fbff61f-32ac-4ad0-873f-b1627cc5f2f2",
+  ship: "3fbff61f-32ac-4ad0-873f-b1627cc5f2f2",
   story: "27b991d7-2122-41e4-9e81-76b0ff5bc937",
   friend: "fe57b5f6-cd0e-48fe-8850-66c8fcfab12d",
-  idol: "30230433-ff30-45b4-9115-60f5684d421e",
+  ex: "8c1f0a52-6d3e-4b7a-9f21-3e5d7a9b0c14",
+  teacher: "30230433-ff30-45b4-9115-60f5684d421e",
 } as const;
+
+
 
 const F = {
   partyBruno: "3e0aabb0-e1ff-4e91-921f-a19ce6313688",
@@ -80,9 +107,9 @@ const F = {
   lateDiego: "b9830707-ec4c-4179-a2d9-5e057cdfcc41",
   lateFabian: "d3f03593-f401-4360-8026-9223b2fcf535",
   lateInes: "7e413f49-dced-4b0a-b32b-8b65886d69a6",
-  chefCamila: "463b3914-4855-43fe-b31c-39f784a9a0ff",
-  chefHugo: "5a7c19f6-481c-4adf-93ae-2a63ebcbc1be",
-  chefElena: "208f8606-29c5-42d0-9c63-72ec34ce3968",
+  shipBrunoLucia: "463b3914-4855-43fe-b31c-39f784a9a0ff",
+  shipCamilaHugo: "5a7c19f6-481c-4adf-93ae-2a63ebcbc1be",
+  shipDiegoElena: "208f8606-29c5-42d0-9c63-72ec34ce3968",
   storyMateo: "aa89ed8a-3524-46f6-876b-32c459f1770c",
   storyAna: "235baa05-848a-49e0-971f-daec9048f87c",
   storyBruno: "edcc6d6a-6d89-4705-9c90-de8965cb2403",
@@ -90,13 +117,27 @@ const F = {
   friendInes: "78b6d377-3fcc-44fb-9272-128526e71bbe",
   friendHugo: "139bf71c-a914-49c5-b82f-6a1c66c7bda8",
   friendAna: "9fb1dba7-ba82-4737-a7c6-7e92043ab09f",
-  idolRosa: "eaaa68fe-3317-4794-88f6-448b13ebd446",
-  idolPepe: "74dbd322-798b-4821-87e3-b420dd958038",
-  idolRamirez: "d49ea772-78d8-42ae-94a4-49ea7fbdd6ad",
+  exMateo: "eaaa68fe-3317-4794-88f6-448b13ebd446",
+  exElena: "74dbd322-798b-4821-87e3-b420dd958038",
+  exJulian: "d49ea772-78d8-42ae-94a4-49ea7fbdd6ad",
+  teacherRamirez: "5d0a6b3e-7f8c-4a9b-8c1d-3e4f5a6b7c8d",
+  teacherCarmen: "6e1b7c4f-8a9d-4b0c-9d2e-4f5a6b7c8d9e",
+  teacherValdivia: "7f2c8d5a-9b0e-4c1d-8e3f-5a6b7c8d9e0f",
 } as const;
+
+const person: Omit<DemoCategory, "id" | "name" | "description" | "type" | "finalists"> = {
+  framing: "NORMAL",
+  nomineeKind: "PERSON",
+  maxPicks: 1,
+  minPicks: 0,
+  allowExternal: false,
+  finalistCount: 4,
+  options: [],
+};
 
 export const DEMO_CATEGORIES: DemoCategory[] = [
   {
+    ...person,
     id: C.party,
     name: "El alma de la fiesta",
     description: "Quién convierte cualquier reunión en fiesta.",
@@ -109,6 +150,7 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
     ],
   },
   {
+    ...person,
     id: C.late,
     name: "Siempre llega tarde",
     description: "Quién nos tuvo esperando más veces este año.",
@@ -120,17 +162,20 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
     ],
   },
   {
-    id: C.chef,
-    name: "Chef del grupo",
-    description: "Quién cocina mejor en las juntas.",
+    ...person,
+    id: C.ship,
+    name: "El mejor shipeo",
+    description: "La pareja que todos queremos ver junta (pon dos nombres).",
     type: "PRIZE",
+    nomineeKind: "PAIR",
     finalists: [
-      { id: F.chefCamila, name: "Camila Rojas", participantId: P.camila, blurb: "Su ceviche tiene lista de espera." },
-      { id: F.chefHugo, name: "Hugo Medina", participantId: P.hugo, blurb: "El dueño indiscutido de la parrilla." },
-      { id: F.chefElena, name: "Elena Vargas", participantId: P.elena, blurb: "Postres que desaparecen en cinco minutos." },
+      { id: F.shipBrunoLucia, name: "Bruno Díaz y Lucía Fernández", participantId: P.bruno, partnerParticipantId: P.lucia, blurb: "" },
+      { id: F.shipCamilaHugo, name: "Camila Rojas y Hugo Medina", participantId: P.camila, partnerParticipantId: P.hugo, blurb: "" },
+      { id: F.shipDiegoElena, name: "Diego Paredes y Elena Vargas", participantId: P.diego, partnerParticipantId: P.elena, blurb: "" },
     ],
   },
   {
+    ...person,
     id: C.story,
     name: "La anécdota del año",
     description: "Quién protagonizó la historia que más contamos.",
@@ -143,6 +188,7 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
     ],
   },
   {
+    ...person,
     id: C.friend,
     name: "Amistad incondicional",
     description: "Quién siempre está cuando lo necesitas.",
@@ -154,17 +200,55 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
     ],
   },
   {
-    id: C.idol,
-    name: "Referente del año",
-    description: "Alguien de fuera del grupo que nos marcó este año.",
+    ...person,
+    id: C.ex,
+    name: "regresar con su ex",
+    description: "Quién es más probable que vuelva con su ex antes de fin de año.",
     type: "HONORARY",
+    framing: "PRONE",
     finalists: [
-      { id: F.idolRosa, name: "La tía Rosa", participantId: null, blurb: "Nos adoptó a todos en cada almuerzo." },
-      { id: F.idolPepe, name: "Don Pepe, el de la tienda", participantId: null, blurb: "Fía, aconseja y nunca cierra." },
-      { id: F.idolRamirez, name: "El profe Ramírez", participantId: null, blurb: "Nos aprobó a todos, contra todo pronóstico." },
+      { id: F.exMateo, name: "Mateo Salazar", participantId: P.mateo, blurb: "" },
+      { id: F.exElena, name: "Elena Vargas", participantId: P.elena, blurb: "" },
+      { id: F.exJulian, name: "Julián Herrera", participantId: P.julian, blurb: "" },
+    ],
+  },
+  {
+    ...person,
+    id: C.teacher,
+    name: "Mejor profe",
+    description:
+      "El profe que más nos marcó en la carrera. Escribe el nombre de 1 o 2 profes (al menos 1). Al cierre, el organizador junta los nombres del mismo profe y pasan los más escritos.",
+    type: "HONORARY",
+    nomineeKind: "TEXT",
+    maxPicks: 2,
+    minPicks: 1,
+    finalistCount: 3,
+    finalists: [
+      { id: F.teacherRamirez, name: "Ing. Ramírez", participantId: null, blurb: "" },
+      { id: F.teacherCarmen, name: "Miss Carmen", participantId: null, blurb: "" },
+      { id: F.teacherValdivia, name: "Dr. Valdivia", participantId: null, blurb: "" },
     ],
   },
 ];
+
+const DEMO_GUESTS = new Map<string, GuestInfo>(
+  DEMO_PEOPLE.map((p) => [p.id, { displayName: p.name, aliases: DEMO_ALIASES[p.id] ?? [], photoUrl: null }]),
+);
+
+/** Cómo se muestra un finalista del demo (foto, apodo, pareja), con la misma función que el evento real. */
+export function demoFinalistDisplay(f: DemoFinalist, nomineeKind?: NomineeKind): FinalistDisplay {
+  return finalistDisplay(
+    {
+      displayName: f.name,
+      participantId: f.participantId,
+      partnerParticipantId: f.partnerParticipantId ?? null,
+      optionId: f.optionId ?? null,
+      photoUrl: null,
+    },
+    DEMO_GUESTS,
+    nomineeKind,
+  );
+}
 
 /**
  * Ganadores de ejemplo para el paso «Ganador» del demo (no salen de ningún
@@ -173,10 +257,11 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
 export const DEMO_EXAMPLE_WINNERS: Record<string, string[]> = {
   [C.party]: [F.partyBruno],
   [C.late]: [F.lateDiego, F.lateFabian],
-  [C.chef]: [F.chefCamila],
+  [C.ship]: [F.shipBrunoLucia],
   [C.story]: [F.storyMateo],
   [C.friend]: [F.friendInes],
-  [C.idol]: [F.idolRosa],
+  [C.ex]: [F.exMateo],
+  [C.teacher]: [F.teacherRamirez],
 };
 
 /**

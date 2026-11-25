@@ -33,6 +33,22 @@ enum CategoryType {
   HONORARY
 }
 
+/// Cómo se lee el título de la categoría.
+enum CategoryFraming {
+  NORMAL // «El alma de la fiesta»
+  PRONE // rótulo «Más propenso/a a» + el final de la frase: «volverse gay»
+  QUESTION // una pregunta tal cual: «¿Con quién dejarías a tu hijo/a?»
+}
+
+/// Qué se nomina en la categoría.
+enum NomineeKind {
+  PERSON // alguien de la lista de invitados
+  PAIR // dos invitados juntos (shipeo, dúo)
+  OPTION // una de las opciones que carga el organizador
+  TEXT // texto libre que escribe cada uno (frases, profes); el organizador elige los finalistas
+  DIRECT // no se nomina: el organizador pone los finalistas (eventos) y solo se vota
+}
+
 enum BallotPhase {
   NOMINATION
   VOTE
@@ -73,6 +89,8 @@ model Participant {
   displayName    String
   normalizedName String // minúsculas y sin tildes, para detectar duplicados
   aliases        String[] @default([]) // apodos («Gabo»): el buscador de la sala también los encuentra
+  photoUrl       String? // foto del invitado (JPEG reducido, data URL): se usa en todas las pantallas
+  searchNames    String[] @default([]) // otros nombres solo para buscar (segundo nombre, apellidos); nunca se muestran como apodo
   hasNominated   Boolean  @default(false)
   hasVoted       Boolean  @default(false)
   sessionVersion Int      @default(0) // sube al resetear su envío: cierra las sesiones abiertas con ese nombre
@@ -83,30 +101,52 @@ model Participant {
 }
 
 model Category {
-  id            String       @id @default(uuid(4))
+  id            String          @id @default(uuid(4))
   eventId       String
-  event         Event        @relation(fields: [eventId], references: [id])
+  event         Event           @relation(fields: [eventId], references: [id])
   name          String
   description   String // la consigna
   type          CategoryType
-  sortOrder     Int          @default(0) // orden en que se muestran al nominar
-  revealOrder   Int          @default(0) // orden en la ceremonia (se define en la Fase 5)
-  activeForVote Boolean      @default(false)
-  revealed      Boolean      @default(false)
+  sortOrder     Int             @default(0) // orden en que se muestran al nominar
+  revealOrder   Int             @default(0) // orden en la ceremonia (se define en la Fase 5)
+  activeForVote Boolean         @default(false)
+  revealed      Boolean         @default(false)
+  framing       CategoryFraming @default(NORMAL)
+  nomineeKind   NomineeKind     @default(PERSON)
+  maxPicks      Int             @default(1) // cuántos nombres (o parejas u opciones) pone cada persona al nominar
+  minPicks      Int             @default(0) // mínimo obligatorio (0 = se puede dejar vacía)
+  finalistCount Int             @default(4) // cuántos pasan a la votación (3, 4 o 5); siempre gana uno
+  allowExternal Boolean         @default(false) // permite «Otro (fuera del grupo)» al nominar
 
   finalists Finalist[]
+  options   CategoryOption[]
 
   @@index([eventId, sortOrder])
 }
 
 model Finalist {
-  id            String   @id @default(uuid(4))
-  categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
-  displayName   String
-  participantId String? // si es del grupo; null si es referente externo
-  photoUrl      String?
-  blurb         String?
+  id                   String   @id @default(uuid(4))
+  categoryId           String
+  category             Category @relation(fields: [categoryId], references: [id])
+  displayName          String
+  participantId        String? // si es del grupo; null si es referente externo
+  partnerParticipantId String? // la otra mitad, si la categoría es de parejas
+  optionId             String? // si es una opción del organizador (profe, evento, frase)
+  photoUrl             String?
+  blurb                String?
+
+  @@index([categoryId])
+}
+
+/// Opciones que el organizador carga para nominar (profes, eventos, frases).
+model CategoryOption {
+  id         String   @id @default(uuid(4))
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  label      String // «Ing. Ramírez», «El viaje a Paracas», la frase
+  photoUrl   String?
+  blurb      String? // detalle corto: quién dijo la frase, el curso del profe…
+  sortOrder  Int      @default(0)
 
   @@index([categoryId])
 }

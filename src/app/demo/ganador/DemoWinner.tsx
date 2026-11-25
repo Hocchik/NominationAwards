@@ -4,20 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import { type RevealPhase, RevealScene } from "@/components/ceremony/Reveal";
 import type { StageCategory } from "@/components/ceremony/Stage";
 import { Button } from "@/components/ui/Button";
-import { DEMO_ALIASES, DEMO_CATEGORIES, DEMO_EXAMPLE_PLACES, DEMO_EXAMPLE_WINNERS, byName } from "@/lib/demo/fixtures";
+import { DEMO_CATEGORIES, DEMO_EXAMPLE_PLACES, DEMO_EXAMPLE_WINNERS, byName, demoFinalistDisplay } from "@/lib/demo/fixtures";
 
 const categories: StageCategory[] = DEMO_CATEGORIES.map((c) => ({
   id: c.id,
   name: c.name,
   description: c.description,
   type: c.type,
-  finalists: byName(c.finalists).map((f) => ({
-    id: f.id,
-    name: f.name,
-    photoUrl: null,
-    nickname: (f.participantId && DEMO_ALIASES[f.participantId]?.[0]) || null,
-    external: f.participantId === null,
-  })),
+  framing: c.framing,
+  finalists: byName(c.finalists).map((f) => ({ id: f.id, name: f.name, ...demoFinalistDisplay(f, c.nomineeKind) })),
 }));
 
 /** Segundos con los nominados en pantalla antes de que empiece el suspenso (en la gala lo decide el presentador). */

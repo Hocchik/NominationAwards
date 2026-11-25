@@ -15,7 +15,7 @@ export function AddGuestsForm() {
         id="invitados"
         name="names"
         label="Nombres, uno por línea"
-        hint="Apodos entre paréntesis: «Gabriel Mendoza (Gabo)». Si el nombre ya está, solo se le suman los apodos nuevos."
+        hint="Nombre y apellido; apodos entre paréntesis (el primero es el que se ve) y, entre corchetes, otros nombres solo para buscar: «Gabriel Mendoza (Gabo) [Armando, Salcedo]». Si el nombre ya está, solo se le suman los nuevos."
         rows={6}
         defaultValue={state.ok ? "" : state.values?.names}
         key={state.ok ? state.message : "editando"}

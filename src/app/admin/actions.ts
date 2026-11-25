@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/admin";
 import { prisma } from "@/lib/db";
 import { ADVANCE_MODE, PHASES, PHASE_LABELS, getAdvanceBlockers, nextPhase } from "@/lib/event/phases";
+import { PRESET_CATEGORIES } from "@/lib/event/presetCategories";
 import { getBaseUrl, getCategories, getCurrentEvent, getPhaseContext } from "@/lib/event/queries";
 import { generateRoomCode } from "@/lib/event/roomCode";
 import { movePhase } from "@/lib/event/transition";
@@ -110,11 +111,6 @@ export async function updateEventAction(_prev: FormState, formData: FormData): P
   const parsed = eventSettingsSchema.safeParse({
     name: formData.get("name"),
     capacity: formData.get("capacity"),
-    minNominations: canEditStructure(phase) ? formData.get("minNominations") : event.minNominations,
-    maxNominations: canEditStructure(phase) ? formData.get("maxNominations") : event.maxNominations,
-    finalistsPerCategory: canEditFinalistsCount(phase)
-      ? formData.get("finalistsPerCategory")
-      : event.finalistsPerCategory,
     maxPrizeCategories: canEditMaxPrize(phase)
       ? formData.get("maxPrizeCategories")
       : event.maxPrizeCategories,
@@ -244,11 +240,7 @@ export async function createCategoryAction(
   if (!canEditStructure(event.phase)) {
     return { ok: false, message: "Las categorías solo se crean durante la preparación." };
   }
-  const parsed = categorySchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    type: formData.get("type"),
-  });
+  const parsed = categorySchema.safeParse(categoryInput(formData));
   if (!parsed.success) return fieldErrors(parsed.error, formData);
 
   const last = await prisma.category.aggregate({
@@ -276,17 +268,42 @@ export async function updateCategoryAction(
   if (!canEditCategoryText(event.phase)) {
     return { ok: false, message: "En la ceremonia ya no se editan las categorías." };
   }
-  // El tipo cambia quién compite y cuántas caben en la votación: solo en preparación.
+  // El tipo, qué se nomina y cuántos pone cada persona cambian las reglas (y el
+  // tamaño de las papeletas): solo en preparación. Los finalistas, hasta el cierre.
+  const structure = canEditStructure(event.phase);
+  const input = categoryInput(formData);
   const parsed = categorySchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    type: canEditStructure(event.phase) ? formData.get("type") : category.type,
+    ...input,
+    type: structure ? input.type : category.type,
+    nomineeKind: structure ? input.nomineeKind : category.nomineeKind,
+    maxPicks: structure ? input.maxPicks : category.maxPicks,
+    minPicks: structure ? input.minPicks : category.minPicks,
+    allowExternal: structure ? input.allowExternal : category.allowExternal,
+    finalistCount: canEditFinalistsCount(event.phase) ? input.finalistCount : category.finalistCount,
   });
   if (!parsed.success) return fieldErrors(parsed.error, formData);
 
   await prisma.category.update({ where: { id: category.id }, data: parsed.data });
   refresh();
   return { ok: true };
+}
+
+/** Lo que llega del formulario de categoría (los campos bloqueados no se envían). */
+function categoryInput(formData: FormData) {
+  const nomineeKind = formData.get("nomineeKind") ?? "PERSON";
+  return {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    type: formData.get("type"),
+    framing: formData.get("framing") ?? "NORMAL",
+    nomineeKind,
+    maxPicks: formData.get("maxPicks") ?? 1,
+    // «Obligatoria»: hay que poner al menos uno.
+    minPicks: formData.get("required") === "on" ? 1 : 0,
+    finalistCount: formData.get("finalistCount") ?? 4,
+    // «Otro (fuera del grupo)» solo tiene sentido cuando se nomina a una persona.
+    allowExternal: nomineeKind === "PERSON" && formData.get("allowExternal") === "on",
+  };
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {
@@ -321,5 +338,20 @@ export async function moveCategoryAction(formData: FormData): Promise<void> {
         prisma.category.update({ where: { id: category.id }, data: { sortOrder: index } }),
       ),
   );
+  refresh();
+}
+
+/**
+ * Carga las 25 categorías de Premios del Grupo (con su orden de sala y de
+ * ceremonia). Solo en preparación y si todavía no hay ninguna: nunca duplica.
+ */
+export async function loadPresetCategoriesAction(): Promise<void> {
+  await requireAdmin();
+  const event = await getCurrentEvent();
+  if (!event || !canEditStructure(event.phase)) return;
+  if ((await prisma.category.count({ where: { eventId: event.id } })) > 0) return;
+  await prisma.category.createMany({
+    data: PRESET_CATEGORIES.map((c) => ({ ...c, eventId: event.id, allowExternal: false })),
+  });
   refresh();
 }

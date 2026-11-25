@@ -6,7 +6,9 @@ import { AdminDoor } from "@/components/room/AdminDoor";
 import { Logo } from "@/components/ui/Logo";
 import { prisma } from "@/lib/db";
 import { groupPhotoSlots } from "@/lib/event/groupPhotos";
-import { finalistNicknames } from "@/lib/event/nicknames";
+import { finalistDisplay } from "@/lib/event/finalistDisplay";
+import { finalistGuests } from "@/lib/event/nicknames";
+import { sortByType } from "@/lib/event/queries";
 import { boardCountdown, boardState, voteButton } from "@/lib/event/nominees";
 import { ParticipantStrip } from "./ParticipantStrip";
 
@@ -51,7 +53,7 @@ const EYEBROW: Record<EventPhase, string> = {
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 async function Nominees({ event, participant }: { event: Event; participant: Participant | null }) {
-  const [categories, savedPhotos] = await Promise.all([
+  const [unsorted, savedPhotos] = await Promise.all([
     prisma.category.findMany({
       where: { eventId: event.id },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -59,27 +61,25 @@ async function Nominees({ event, participant }: { event: Event; participant: Par
     }),
     prisma.groupPhoto.findMany({ where: { eventId: event.id }, select: { slot: true, photoUrl: true, caption: true } }),
   ]);
+  // Premios primero y luego honoríficas, cada grupo en su orden (decisión del usuario, 2026-11-21).
+  const categories = sortByType(unsorted);
   const active = categories.filter((c) => c.activeForVote);
   const state = boardState(event.phase, active.length);
 
   const revealed = state === "revealed";
   // Boca abajo no se manda ningún finalista al navegador; reveladas, solo las activas.
   const shown = revealed ? active : categories;
-  const nicknames = revealed ? await finalistNicknames(event.id, shown) : new Map<string, string>();
+  const guests = revealed ? await finalistGuests(event.id, shown) : new Map();
   const board: BoardCategory[] = shown.map((c, i) => ({
     id: c.id,
     num: String(i + 1).padStart(2, "0"),
     name: c.name,
     description: c.description,
     type: c.type,
+    framing: c.framing,
+    slots: c.finalistCount,
     finalists: revealed
-      ? c.finalists.map((f) => ({
-          id: f.id,
-          name: f.displayName,
-          photoUrl: f.photoUrl,
-          nickname: (f.participantId && nicknames.get(f.participantId)) || null,
-          external: f.participantId === null,
-        }))
+      ? c.finalists.map((f) => ({ id: f.id, name: f.displayName, blurb: f.blurb, ...finalistDisplay(f, guests, c.nomineeKind) }))
       : [],
   }));
   const totalFinalists = board.reduce((sum, c) => sum + c.finalists.length, 0);
