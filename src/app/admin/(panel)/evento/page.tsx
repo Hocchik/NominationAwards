@@ -15,6 +15,7 @@ import {
   canEditWinnerPercent,
 } from "@/lib/event/rules";
 import { CreateEventForm } from "../../_components/CreateEventForm";
+import { DangerZone } from "../../_components/DangerZone";
 import { EventSettingsForm } from "../../_components/EventSettingsForm";
 import { GroupPhotosForm } from "../../_components/GroupPhotosForm";
 import { NotaryStatus } from "../../_components/NotaryStatus";
@@ -108,6 +109,10 @@ async function EventPanel() {
           editable={canEditSchedule(event.phase)}
           nominationsCloseEditable={canEditNominationsClose(event.phase)}
         />
+      </SectionCard>
+
+      <SectionCard id="volver-a-empezar" title="Volver a empezar" description="Para repetir el evento o hacer uno nuevo. Las papeletas se borran sin abrirse.">
+        <DangerZone />
       </SectionCard>
     </div>
   );

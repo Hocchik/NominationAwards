@@ -245,7 +245,7 @@ Sin comprobantes: se quitaron el 2026-11-12 (con la lista de invitados y el rese
 | Ruta | Pantalla |
 |---|---|
 | `/admin` | Login con contraseña |
-| `/admin/evento` | Datos del evento, fase actual con botones para avanzar (con confirmación), horarios de votación, link/QR de la sala para copiar, fotos grupales de la entrada de Nominados (hasta 3, con pie de foto) |
+| `/admin/evento` | Datos del evento, fase actual con botones para avanzar (con confirmación), horarios de votación, link/QR de la sala para copiar, fotos grupales de la entrada de Nominados (hasta 3, con pie de foto) y «Volver a empezar» (decisión del usuario, 2026-11-25; `app/admin/reset-actions.ts`): **Reiniciar evento** (escribir REINICIAR) vuelve a Preparación, borra sin abrir papeletas, finalistas, participación y llaves, y conserva categorías con su orden, invitados con fotos, horarios y fotos grupales; **Empezar desde cero** (escribir BORRAR TODO) además borra categorías, invitados, horarios y fotos grupales |
 | `/admin/categorias` | CRUD de categorías, tipo PRIZE/HONORARY, consigna, orden arrastrable |
 | `/admin/participantes` | Lista de invitados: agregar (pegar nombres) y quitar, participación ✔/⏳, «bloqueado» para quien ya envió en la urna abierta y botón «Resetear nominación/voto» |
 | `/admin/cierre-nominaciones` | El notario carga su llave → descifrado y conteo en memoria → unificación de nombres (sin conteos) → cálculo automático de finalistas → envío solo de finalistas |
