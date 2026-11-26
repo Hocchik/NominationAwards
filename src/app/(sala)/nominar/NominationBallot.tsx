@@ -290,6 +290,7 @@ export function NominationBallot({
                   disabled={full}
                   selfName={selfName}
                   accent={accent}
+                  pairNumber={single ? 1 : picked.length + 1}
                   onAdd={(nominee) => update(category.id, addNominee(single ? [] : picked, nominee, candidates))}
                 />
               ) : (

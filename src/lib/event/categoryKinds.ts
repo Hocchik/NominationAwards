@@ -37,7 +37,10 @@ export function pickInstruction(kind: NomineeKind, maxPicks: number, minPicks = 
     if (minPicks >= 1) return n === 1 ? "Escribe 1 (obligatorio)" : `Escribe al menos 1 y hasta ${n} (obligatorio)`;
     return n === 1 ? "Escribe 1 o ninguno: es opcional" : `Escribe hasta ${n}, o ninguno: es opcional`;
   }
-  if (kind === "PAIR") return n === 1 ? "Elige una pareja (dos nombres)" : `Elige hasta ${n} parejas`;
+  if (kind === "PAIR") {
+    if (n === 1) return "Elige una pareja (dos nombres)";
+    return minPicks >= 1 ? `Elige de 1 a ${n} parejas (puedes repetir a alguien con otra persona)` : `Elige hasta ${n} parejas`;
+  }
   if (kind === "OPTION") return n === 1 ? "Elige una opción" : `Elige hasta ${n} opciones`;
   if (n === 1) return "Elige un nombre";
   return minPicks >= 1 ? `Elige de 1 a ${n} nombres` : `Elige hasta ${n} nombres`;

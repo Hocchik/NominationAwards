@@ -13,12 +13,15 @@ export function PairPicker({
   disabled,
   selfName,
   accent,
+  pairNumber = 1,
   onAdd,
 }: {
   candidates: Candidate[];
   disabled: boolean;
   selfName: string;
   accent: "copper" | "sage";
+  /** Qué pareja se está armando (en las categorías de más de una). */
+  pairNumber?: number;
   onAdd: (nominee: Nominee) => void;
 }) {
   const [first, setFirst] = useState<Candidate | null>(null);
@@ -33,7 +36,7 @@ export function PairPicker({
         step={1}
         accent={accent}
         allowExternal={false}
-        label="1 · La primera persona de la pareja"
+        label={pairNumber > 1 ? `Pareja ${pairNumber} · La primera persona` : "1 · La primera persona de la pareja"}
         onAdd={(nominee) => {
           if (nominee.type !== "participant") return;
           setFirst(candidates.find((c) => c.id === nominee.id) ?? null);

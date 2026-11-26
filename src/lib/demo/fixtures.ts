@@ -168,6 +168,7 @@ export const DEMO_CATEGORIES: DemoCategory[] = [
     description: "La pareja que todos queremos ver junta (pon dos nombres).",
     type: "PRIZE",
     nomineeKind: "PAIR",
+    maxPicks: 2,
     finalists: [
       { id: F.shipBrunoLucia, name: "Bruno Díaz y Lucía Fernández", participantId: P.bruno, partnerParticipantId: P.lucia, blurb: "" },
       { id: F.shipCamilaHugo, name: "Camila Rojas y Hugo Medina", participantId: P.camila, partnerParticipantId: P.hugo, blurb: "" },

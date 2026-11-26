@@ -130,12 +130,26 @@ export function RevealScene({
   const winners = finalists.filter((f) => winnerIds.includes(f.id));
   const n = Math.max(finalists.length, 1);
 
-  // Fila de finalistas, centrada; con más de 5 (datos viejos, antes del tope) se
-  // achican. Con el rótulo «Más propenso/a a…» el título baja ~40 px: las tarjetas
-  // son un poco más bajas para que la consigna (hasta 3 líneas) no las toque.
+  // Dónde termina el bloque del título (rótulo, título de 1 o 2 líneas y consigna),
+  // medido en la escena: las tarjetas se achican para no tocarlo nunca.
+  const head = useRef<HTMLDivElement>(null);
+  const [headBottom, setHeadBottom] = useState(0);
+  useLayoutEffect(() => {
+    const el = head.current;
+    if (!el) return;
+    const measure = () => setHeadBottom(el.offsetTop + el.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [category.id]);
+
+  // Fila de finalistas, centrada; con más de 5 (datos viejos, antes del tope) se achican.
   const gap = n <= 5 ? 40 : 24;
-  const cw = n <= 5 ? (categoryKicker(category) ? 176 : 200) : Math.floor((W - 120 - (n - 1) * gap) / n);
-  const ch = Math.round(cw * 1.25);
+  const baseW = n <= 5 ? 200 : Math.floor((W - 120 - (n - 1) * gap) / n);
+  const room = headBottom ? 550 - 24 - headBottom : Infinity; // alto libre sobre la línea del piso
+  const ch = Math.max(150, Math.min(Math.round(baseW * 1.25), room));
+  const cw = Math.round(ch / 1.25);
   const left = (W - (n * cw + (n - 1) * gap)) / 2;
   const spots = winnerSpots(winners.length);
   const cardX = (i: number) => left + i * (cw + gap);
@@ -233,7 +247,7 @@ export function RevealScene({
         </span>
 
         {/* 1 · Título de la categoría */}
-        <div className="rv-pre absolute top-20 left-16 z-[6] max-w-[820px]">
+        <div ref={head} className="rv-pre absolute top-20 left-16 z-[6] max-w-[820px]">
           <span className="rv-in rv-chip" style={{ animationDelay: "0.2s" }}>
             Categoría {pad(number)} · {TYPE_LABEL[category.type]}
           </span>
@@ -242,7 +256,12 @@ export function RevealScene({
               {kicker}…
             </span>
           )}
-          <h2 className="rv-display mt-4 text-[64px] leading-none font-extrabold tracking-[-0.04em]">
+          <h2
+            className={cn(
+              "rv-display mt-4 leading-none font-extrabold tracking-[-0.04em]",
+              category.name.length > 22 ? "text-[52px]" : "text-[64px]",
+            )}
+          >
             <span className="rv-mask">
               <span className="rv-word" style={{ animationDelay: "0.4s" }}>
                 {titleA} {titleB && <em>{titleB}</em>}

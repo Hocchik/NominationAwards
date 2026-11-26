@@ -558,8 +558,11 @@ function TieChoice({
       {value.mode === "pick" && (
         <div className="space-y-1 pl-6">
           <p className="text-xs text-ink-soft">
-            Elegiste {picked} · para llegar a {target} {missing === 1 ? "falta 1" : `faltan ${missing}`} · como máximo{" "}
-            {room === 1 ? "1 más" : `${room} más`} ({MAX_FINALISTS} en total)
+            Elegiste {picked} ·{" "}
+            {picked >= missing
+              ? `ya son ${sure.length + picked} finalistas`
+              : `para llegar a ${target} ${missing - picked === 1 ? "falta 1" : `faltan ${missing - picked}`}`}
+            {picked < room && ` · puedes sumar ${room - picked === 1 ? "1 más" : `${room - picked} más`} (máximo ${MAX_FINALISTS})`}
           </p>
           {tied.map((t) => {
             const on = value.picked.includes(t.key);

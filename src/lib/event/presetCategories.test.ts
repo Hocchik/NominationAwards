@@ -44,10 +44,10 @@ describe("las 25 categorías de Premios del Grupo", () => {
     expect(kind("profe")).toMatchObject({ nomineeKind: "TEXT", maxPicks: 2, minPicks: 1 });
   });
 
-  it("hasta 3 nombres en las de persona, una pareja en las de parejas y todas obligatorias menos Evento", () => {
+  it("hasta 3 nombres en las de persona, hasta 2 parejas en las de parejas y todas obligatorias menos Evento", () => {
     for (const c of PRESET_CATEGORIES) {
       if (c.nomineeKind === "PERSON") expect(c.maxPicks).toBe(3);
-      if (c.nomineeKind === "PAIR") expect(c.maxPicks).toBe(1);
+      if (c.nomineeKind === "PAIR") expect(c.maxPicks).toBe(2);
       expect(c.minPicks).toBe(c.nomineeKind === "DIRECT" ? 0 : 1);
     }
   });

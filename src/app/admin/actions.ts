@@ -146,12 +146,12 @@ export async function updateScheduleAction(
   if (!canEditSchedule(event.phase)) {
     return { ok: false, message: "La votación ya cerró: el horario no se puede cambiar." };
   }
-  // Ya cerradas las nominaciones, su hora queda como estaba (solo se valida).
+  // Ya cerradas las nominaciones, su hora no cambia ni se usa para validar: si
+  // se cerraron antes con el botón, la hora programada (aún futura) no debe
+  // impedir abrir la votación antes de esa hora.
   const closeEditable = canEditNominationsClose(event.phase);
   const parsed = scheduleSchema.safeParse({
-    nominationsCloseAt: closeEditable
-      ? (formData.get("nominationsCloseAt") ?? "")
-      : (event.nominationsCloseAt?.toISOString() ?? ""),
+    nominationsCloseAt: closeEditable ? (formData.get("nominationsCloseAt") ?? "") : "",
     votingOpensAt: formData.get("votingOpensAt") ?? "",
     votingClosesAt: formData.get("votingClosesAt") ?? "",
   });
